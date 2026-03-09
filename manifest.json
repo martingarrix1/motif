@@ -1,0 +1,20 @@
+{
+  "name": "MOTIF 상담관리",
+  "short_name": "MOTIF",
+  "start_url": "/motif/",
+  "display": "standalone",
+  "background_color": "#f0f2f5",
+  "theme_color": "#1a1a2e",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192/1a1a2e/ffffff?text=M",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512/1a1a2e/ffffff?text=M",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
