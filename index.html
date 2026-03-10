@@ -79,6 +79,7 @@
   <button class="active" onclick="showPage('consult', this)">📝 상담입력</button>
   <button onclick="showPage('customers', this)">👥 고객목록</button>
   <button onclick="showPage('aftercare', this)">📋 사후관리</button>
+  <button onclick="showPage('todo', this)">✅ 할일</button>
 </div>
 
 <div class="content">
@@ -191,6 +192,22 @@
     <div id="aftercare-list"><div class="loading">불러오는 중...</div></div>
   </div>
 
+  <div id="page-todo" class="page">
+    <div class="card">
+      <div class="card-title">할일 추가</div>
+      <div class="form-group">
+        <label>날짜</label>
+        <input type="date" id="todo-date">
+      </div>
+      <div class="form-group">
+        <label>할일 내용</label>
+        <input type="text" id="todo-text" placeholder="할일을 입력하세요">
+      </div>
+      <button class="btn btn-primary" onclick="addTodo()">+ 추가</button>
+    </div>
+    <div id="todo-list"></div>
+  </div>
+
 </div>
 
 <div id="customer-modal" class="modal">
@@ -240,6 +257,7 @@ function showPage(page, btn) {
   if (btn) btn.classList.add('active');
   if (page === 'customers' && allCustomers.length === 0) loadCustomers();
   if (page === 'aftercare' && allAftercare.length === 0) loadAftercare();
+  if (page === 'todo') initTodo();
 }
 
 async function submitConsult() {
@@ -544,6 +562,77 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ─── 할일 ───────────────────────────────────────────────
+
+function getTodos() {
+  try { return JSON.parse(localStorage.getItem('motif_todos') || '[]'); } catch(e) { return []; }
+}
+function saveTodos(todos) {
+  localStorage.setItem('motif_todos', JSON.stringify(todos));
+}
+
+function addTodo() {
+  const date = document.getElementById('todo-date').value;
+  const text = document.getElementById('todo-text').value.trim();
+  if (!date || !text) { showToast('날짜와 내용을 입력해주세요!'); return; }
+  const todos = getTodos();
+  todos.push({ id: Date.now(), date, text, done: false });
+  saveTodos(todos);
+  document.getElementById('todo-text').value = '';
+  renderTodos();
+  showToast('✅ 추가됐어요!');
+}
+
+function toggleTodo(id) {
+  const todos = getTodos();
+  const t = todos.find(t => t.id === id);
+  if (t) t.done = !t.done;
+  saveTodos(todos);
+  renderTodos();
+}
+
+function deleteTodo(id) {
+  saveTodos(getTodos().filter(t => t.id !== id));
+  renderTodos();
+}
+
+function renderTodos() {
+  const todos = getTodos();
+  const container = document.getElementById('todo-list');
+  if (!todos.length) { container.innerHTML = '<div class="loading">할일이 없어요 😊</div>'; return; }
+  const groups = {};
+  todos.sort((a,b) => a.date.localeCompare(b.date)).forEach(t => {
+    if (!groups[t.date]) groups[t.date] = [];
+    groups[t.date].push(t);
+  });
+  const today = new Date().toISOString().slice(0,10);
+  let html = '';
+  Object.keys(groups).sort().forEach(date => {
+    const isToday = date === today;
+    const isPast = date < today;
+    const dateLabel = date.replace(/-/g, '.') + (isToday ? ' 📌 오늘' : '');
+    html += `<div class="card" style="margin-bottom:12px">
+      <div class="card-title" style="color:${isPast && !isToday ? '#e53935' : '#1a1a2e'}">${dateLabel}</div>`;
+    groups[date].forEach(t => {
+      html += `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f5f5">
+        <div onclick="toggleTodo(${t.id})" style="width:24px;height:24px;border-radius:50%;border:2px solid ${t.done?'#1a1a2e':'#ddd'};background:${t.done?'#1a1a2e':'white'};cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          ${t.done ? '<span style="color:white;font-size:13px">✓</span>' : ''}
+        </div>
+        <span style="flex:1;font-size:clamp(14px,3.5vw,16px);text-decoration:${t.done?'line-through':'none'};color:${t.done?'#bbb':'#222'}">${t.text}</span>
+        <button onclick="deleteTodo(${t.id})" style="background:none;border:none;color:#ddd;font-size:20px;cursor:pointer;padding:4px">×</button>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function initTodo() {
+  const dateInput = document.getElementById('todo-date');
+  if (!dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
+  renderTodos();
 }
 </script>
 </body>
