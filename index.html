@@ -428,28 +428,21 @@ function renderAftercare(data) {
     };
     const fa = getFollow(a), fb = getFollow(b);
 
-    // 1. 핀 고정은 맨 위
+    // 1. 체크된 항목은 맨 아래
     const pinnedA = a.pin === '1', pinnedB = b.pin === '1';
-    if (pinnedA && !pinnedB) return -1;
-    if (!pinnedA && pinnedB) return 1;
+    if (pinnedA && !pinnedB) return 1;
+    if (!pinnedA && pinnedB) return -1;
 
-    // 2. 날짜 있는 것 vs 없는 것: 날짜 있는 것 먼저
+    // 2. 2주 날짜 다가오는 순 (가까울수록 위)
     if (fa && !fb) return -1;
     if (!fa && fb) return 1;
-
-    // 3. 둘 다 날짜 있으면 오늘과 가까운 순
     if (fa && fb) {
-      const diffA = Math.abs(fa - today);
-      const diffB = Math.abs(fb - today);
+      const diffA = fa - today;
+      const diffB = fb - today;
       if (diffA !== diffB) return diffA - diffB;
     }
 
-    // 4. 시공완료일 최신순
-    const da = a.doneDate ? new Date(a.doneDate) : new Date(0);
-    const db = b.doneDate ? new Date(b.doneDate) : new Date(0);
-    if (da.getTime() !== db.getTime()) return db - da;
-
-    // 5. 첨부(작성)일 최신순
+    // 3. 상담 날짜 최신순
     const aa = a.addedDate ? new Date(a.addedDate) : new Date(0);
     const ab = b.addedDate ? new Date(b.addedDate) : new Date(0);
     return ab - aa;
