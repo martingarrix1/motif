@@ -584,12 +584,6 @@ async function deleteCustomer(timestamp) {
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
-  event.stopPropagation();
-  try {
-    const url = await api({ action: 'getPDFUrl', fileId });
-    window.open(url, '_blank');
-  } catch(e) { showToast('❌ ' + e.message); }
-}
 
 function showToast(msg) {
   const t = document.getElementById('toast');
