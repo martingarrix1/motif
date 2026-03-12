@@ -389,26 +389,10 @@ async function loadAftercare() {
     const data = await api({ action: 'getAftercare' });
     allAftercare = data;
     renderAftercare(data);
-    checkFollowUpAlerts(data);
   } catch(e) { document.getElementById('aftercare-list').innerHTML = '<div class="loading">❌ ' + e.message + '</div>'; }
 }
 
-function checkFollowUpAlerts(data) {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const alerts = [];
-  data.forEach(c => {
-    if (!c.doneDate) return;
-    if (c.pin === '1') return;
-    const follow = new Date(c.doneDate);
-    follow.setDate(follow.getDate() + 14);
-    follow.setHours(0,0,0,0);
-    const diff = Math.round((follow - today) / (1000*60*60*24));
-    if (diff === 0) alerts.push(`🔴 오늘! ${c.name} (${c.carType})`);
-    else if (diff === 1) alerts.push(`🟠 내일! ${c.name} (${c.carType})`);
-    else if (diff < 0) alerts.push(`⚠️ 놓침 ${Math.abs(diff)}일 전! ${c.name} (${c.carType})`);
-  });
-  if (alerts.length > 0) setTimeout(() => alert('📋 사후관리 알림\n\n' + alerts.join('\n')), 500);
-}
+
 
 function calcFollowDate(dateStr) {
   if (!dateStr) return '';
