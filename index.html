@@ -351,8 +351,8 @@ function renderCustomers(data) {
         </select>
       </div>
       <div style="display:flex;gap:8px;margin-top:10px">
-        ${c.pdfId ? `<button class="btn btn-small btn-pdf" style="flex:1" onclick="openPDF('${c.pdfId}',event)">📄 견적서 보기</button>` : '<span style="flex:1"></span>'}
-        <button onclick="deleteCustomer('${c.timestamp}',event)" style="padding:8px 14px;background:#fff0f0;color:#d32f2f;border:1px solid #ffcdd2;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">🗑 삭제</button>
+        ${c.pdfId ? `<button class="btn btn-small btn-pdf" style="flex:1" onclick="event.stopPropagation();openPDF('${c.pdfId}',event)">📄 견적서 보기</button>` : '<span style="flex:1"></span>'}
+        <button onclick="event.stopPropagation();deleteCustomer('${c.timestamp}',event)" style="padding:8px 14px;background:#fff0f0;color:#d32f2f;border:1px solid #ffcdd2;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">🗑 삭제</button>
       </div>
     </div>
   `).join('');
