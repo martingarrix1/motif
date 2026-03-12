@@ -350,9 +350,9 @@ function renderCustomers(data) {
           <option value="재전송 4차" ${c.resend==='재전송 4차'?'selected':''}>재전송 4차</option>
         </select>
       </div>
-      <div style="display:flex;gap:8px;margin-top:10px">
-        ${c.pdfId ? `<button class="btn btn-small btn-pdf" style="flex:1" onclick="event.stopPropagation();openPDF('${c.pdfId}',event)">📄 견적서 보기</button>` : '<span style="flex:1"></span>'}
-        <button onclick="event.stopPropagation();deleteCustomer('${c.timestamp}',event)" style="padding:8px 14px;background:#fff0f0;color:#d32f2f;border:1px solid #ffcdd2;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">🗑 삭제</button>
+      <div style="display:flex;gap:8px;margin-top:10px" onclick="event.stopPropagation()">
+        ${c.pdfId ? `<button class="btn btn-small btn-pdf" style="flex:1" onclick="event.stopPropagation();window.open('https://drive.google.com/file/d/${c.pdfId}/view','_blank')">📄 견적서 보기</button>` : '<span style="flex:1"></span>'}
+        <button onclick="event.stopPropagation();deleteCustomer('${c.timestamp}')" style="padding:8px 14px;background:#fff0f0;color:#d32f2f;border:1px solid #ffcdd2;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">🗑 삭제</button>
       </div>
     </div>
   `).join('');
@@ -568,8 +568,7 @@ async function updateCustomerField(timestamp, field, value) {
 }
 
 async function openPDF(fileId, event) {
-async function deleteCustomer(timestamp, event) {
-  event.stopPropagation();
+async function deleteCustomer(timestamp) {
   if (!confirm('이 고객을 삭제할까요?')) return;
   try {
     const r = await apiPost({ action: 'deleteCustomer', timestamp });
