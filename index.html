@@ -488,17 +488,9 @@ function renderAftercare(data) {
             <option value="보증서 발행 2차" ${c.warranty==='보증서 발행 2차'?'selected':''}>보증서 발행 2차</option>
           </select>
         </div>
+          ${c.warrantyPdfId ? `<button onclick="window.open('https://drive.google.com/file/d/${c.warrantyPdfId}/view','_blank')" style="margin-top:8px;width:100%;padding:7px 10px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">📄 전자보증서 보기</button>` : ''}
       </div>
-        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-          <button onclick="generateWarranty('${c.name}','${c.carType}','${c.doneDate}',this)"
-            style="flex:1;padding:8px 12px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:clamp(12px,3vw,14px);font-weight:600;cursor:pointer">
-            📜 전자보증서 생성
-          </button>
-          ${c.warrantyPdfId ? `<button onclick="window.open('https://drive.google.com/file/d/${c.warrantyPdfId}/view','_blank')"
-            style="flex:1;padding:8px 12px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:8px;font-size:clamp(12px,3vw,14px);font-weight:600;cursor:pointer">
-            📄 보증서 보기
-          </button>` : ''}
-        </div>
+
     `;
   }).join('');
 }
@@ -532,7 +524,14 @@ async function updateDoneDate(name, carType, oldDoneDate, newDoneDate, idx) {
   document.getElementById('followbadge-' + idx).innerHTML = badge;
   try {
     const r = await apiPost({ action: 'updateDoneDate', name, carType, oldDoneDate, newDoneDate });
-    showToast(r === 'ok' ? '✅ 시공완료일 업데이트!' : '❌ 행을 찾지 못했어');
+    if (r === 'ok') {
+      showToast('✅ 시공완료일 업데이트! 보증서 생성 중...');
+      const w = await apiPost({ action: 'generateWarranty', name, carType, doneDate: newDoneDate });
+      if (w.success) { showToast('✅ 전자보증서 생성 완료!'); allAftercare = []; loadAftercare(); }
+      else showToast('❌ 보증서 생성 실패: ' + (w.error || ''));
+    } else {
+      showToast('❌ 행을 찾지 못했어');
+    }
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
