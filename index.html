@@ -353,7 +353,7 @@ function renderCustomers(data) {
         </select>
       </div>
       <div style="display:flex;gap:8px;margin-top:10px">
-        ${c.pdfId ? `<button class="btn btn-small btn-pdf" style="flex:1" onclick="window.open('https://drive.google.com/file/d/${c.pdfId}/view','_blank')">📄 견적서 보기</button>` : '<span style="flex:1"></span>'}
+        <button class="btn btn-small btn-pdf" style="flex:1" onclick="window.location.href='tel:${c.phone}'">📞 전화하기</button>
         <button onclick="deleteCustomer('${c.timestamp}')" style="padding:8px 14px;background:#fff0f0;color:#d32f2f;border:1px solid #ffcdd2;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">🗑 삭제</button>
       </div>
     </div>
@@ -427,15 +427,32 @@ function renderAftercare(data) {
       return f;
     };
     const fa = getFollow(a), fb = getFollow(b);
+
+    // 1. 핀 고정은 맨 위
     const pinnedA = a.pin === '1', pinnedB = b.pin === '1';
-    if (pinnedA && !pinnedB) return 1;
-    if (!pinnedA && pinnedB) return -1;
-    const overdueA = fa && fa < today && !a.warranty;
-    const overdueB = fb && fb < today && !b.warranty;
-    if (overdueA && !overdueB) return -1;
-    if (!overdueA && overdueB) return 1;
-    if (overdueA && overdueB) return fa - fb;
-    return 0;
+    if (pinnedA && !pinnedB) return -1;
+    if (!pinnedA && pinnedB) return 1;
+
+    // 2. 날짜 있는 것 vs 없는 것: 날짜 있는 것 먼저
+    if (fa && !fb) return -1;
+    if (!fa && fb) return 1;
+
+    // 3. 둘 다 날짜 있으면 오늘과 가까운 순
+    if (fa && fb) {
+      const diffA = Math.abs(fa - today);
+      const diffB = Math.abs(fb - today);
+      if (diffA !== diffB) return diffA - diffB;
+    }
+
+    // 4. 시공완료일 최신순
+    const da = a.doneDate ? new Date(a.doneDate) : new Date(0);
+    const db = b.doneDate ? new Date(b.doneDate) : new Date(0);
+    if (da.getTime() !== db.getTime()) return db - da;
+
+    // 5. 첨부(작성)일 최신순
+    const aa = a.addedDate ? new Date(a.addedDate) : new Date(0);
+    const ab = b.addedDate ? new Date(b.addedDate) : new Date(0);
+    return ab - aa;
   });
 
   container.innerHTML = sorted.map((c, i) => {
@@ -478,6 +495,10 @@ function renderAftercare(data) {
           </select>
         </div>
           ${c.warrantyPdfId ? `<button onclick="window.open('https://drive.google.com/file/d/${c.warrantyPdfId}/view','_blank')" style="margin-top:8px;width:100%;padding:7px 10px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">📄 전자보증서 보기</button>` : ''}
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button onclick="window.location.href='tel:${c.phone}'" style="flex:1;padding:8px 10px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">📞 전화</button>
+            <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:8px 10px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">💬 문자</button>
+          </div>
       </div>
 
     `;
