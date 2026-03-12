@@ -489,6 +489,16 @@ function renderAftercare(data) {
           </select>
         </div>
       </div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+          <button onclick="generateWarranty('${c.name}','${c.carType}','${c.doneDate}',this)"
+            style="flex:1;padding:8px 12px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:clamp(12px,3vw,14px);font-weight:600;cursor:pointer">
+            📜 전자보증서 생성
+          </button>
+          ${c.warrantyPdfId ? `<button onclick="window.open('https://drive.google.com/file/d/${c.warrantyPdfId}/view','_blank')"
+            style="flex:1;padding:8px 12px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:8px;font-size:clamp(12px,3vw,14px);font-weight:600;cursor:pointer">
+            📄 보증서 보기
+          </button>` : ''}
+        </div>
     `;
   }).join('');
 }
@@ -540,6 +550,28 @@ async function updateWarranty(name, carType, doneDate, value) {
     if (r === 'ok') { showToast('✅ 보증서 업데이트!'); allAftercare = []; loadAftercare(); }
     else showToast('❌ 행을 찾지 못했어');
   } catch(e) { showToast('❌ ' + e.message); }
+}
+
+
+async function generateWarranty(name, carType, doneDate, btn) {
+  btn.disabled = true;
+  btn.textContent = '⏳ 생성 중...';
+  try {
+    const r = await apiPost({ action: 'generateWarranty', name, carType, doneDate });
+    if (r.success) {
+      showToast('✅ 전자보증서 생성 완료!');
+      allAftercare = [];
+      loadAftercare();
+    } else {
+      showToast('❌ ' + (r.error || '생성 실패'));
+      btn.disabled = false;
+      btn.textContent = '📜 전자보증서 생성';
+    }
+  } catch(e) {
+    showToast('❌ ' + e.message);
+    btn.disabled = false;
+    btn.textContent = '📜 전자보증서 생성';
+  }
 }
 
 async function updateCustomerField(timestamp, field, value) {
