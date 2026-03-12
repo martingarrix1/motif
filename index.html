@@ -570,6 +570,10 @@ async function updateCustomerField(timestamp, field, value) {
 }
 
 async function openPDF(fileId, event) {
+  if (event) event.stopPropagation();
+  window.open('https://drive.google.com/file/d/' + fileId + '/view', '_blank');
+}
+
 async function deleteCustomer(timestamp) {
   if (!confirm('이 고객을 삭제할까요?')) return;
   try {
