@@ -350,7 +350,10 @@ function renderCustomers(data) {
           <option value="재전송 4차" ${c.resend==='재전송 4차'?'selected':''}>재전송 4차</option>
         </select>
       </div>
-      ${c.pdfId ? `<div style="margin-top:10px"><button class="btn btn-small btn-pdf" onclick="openPDF('${c.pdfId}',event)">📄 견적서 보기</button></div>` : ''}
+      <div style="display:flex;gap:8px;margin-top:10px">
+        ${c.pdfId ? `<button class="btn btn-small btn-pdf" style="flex:1" onclick="openPDF('${c.pdfId}',event)">📄 견적서 보기</button>` : '<span style="flex:1"></span>'}
+        <button onclick="deleteCustomer('${c.timestamp}',event)" style="padding:8px 14px;background:#fff0f0;color:#d32f2f;border:1px solid #ffcdd2;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">🗑 삭제</button>
+      </div>
     </div>
   `).join('');
 }
@@ -565,6 +568,21 @@ async function updateCustomerField(timestamp, field, value) {
 }
 
 async function openPDF(fileId, event) {
+async function deleteCustomer(timestamp, event) {
+  event.stopPropagation();
+  if (!confirm('이 고객을 삭제할까요?')) return;
+  try {
+    const r = await apiPost({ action: 'deleteCustomer', timestamp });
+    if (r === 'ok') {
+      showToast('✅ 삭제 완료!');
+      allCustomers = allCustomers.filter(c => c.timestamp !== timestamp);
+      renderCustomers(allCustomers);
+    } else {
+      showToast('❌ 삭제 실패: ' + (r.error || r));
+    }
+  } catch(e) { showToast('❌ ' + e.message); }
+}
+
   event.stopPropagation();
   try {
     const url = await api({ action: 'getPDFUrl', fileId });
