@@ -321,18 +321,20 @@ function renderCustomers(data) {
   const container = document.getElementById('customer-list');
   if (!data.length) { container.innerHTML = '<div class="loading">데이터가 없습니다.</div>'; return; }
   container.innerHTML = data.map((c, i) => `
-    <div class="customer-card" onclick="showCustomerDetail(${i})">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div class="customer-name">${c.name}</div>
-        <span class="badge ${(c.category||'').includes('PPF')?'badge-ppf':(c.category||'').includes('썬팅')?'badge-tinting':'badge-coating'}">${c.category||'-'}</span>
+    <div class="customer-card">
+      <div onclick="showCustomerDetail(${i})" style="cursor:pointer">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="customer-name">${c.name}</div>
+          <span class="badge ${(c.category||'').includes('PPF')?'badge-ppf':(c.category||'').includes('썬팅')?'badge-tinting':'badge-coating'}">${c.category||'-'}</span>
+        </div>
+        <div class="customer-car">${c.carType} · ${c.phone}</div>
+        ${c.summary ? `<div style="font-size:clamp(12px,3vw,14px);color:#999;margin-top:4px;line-height:1.5">${c.summary}</div>` : ''}
+        <div class="customer-meta">
+          <span class="customer-date">${c.timestamp}</span>
+          ${c.estPrice ? `<span class="price-text">${c.estPrice}만원</span>` : ''}
+        </div>
       </div>
-      <div class="customer-car">${c.carType} · ${c.phone}</div>
-      ${c.summary ? `<div style="font-size:clamp(12px,3vw,14px);color:#999;margin-top:4px;line-height:1.5">${c.summary}</div>` : ''}
-      <div class="customer-meta">
-        <span class="customer-date">${c.timestamp}</span>
-        ${c.estPrice ? `<span class="price-text">${c.estPrice}만원</span>` : ''}
-      </div>
-      <div style="display:flex;gap:8px;margin-top:12px" onclick="event.stopPropagation()">
+      <div style="display:flex;gap:8px;margin-top:12px">
         <select onchange="updateCustomerField('${c.timestamp}','status',this.value)"
           style="flex:1;font-size:clamp(13px,3.5vw,15px);border:1px solid #ddd;border-radius:8px;padding:8px;font-weight:600;background:${c.status==='예약'?'#ffebee':c.status==='예약안내'||c.status==='상담진행'?'#fff3e0':'#f5f5f5'};color:${c.status==='예약'?'#c62828':c.status==='예약안내'||c.status==='상담진행'?'#e65100':'#555'}">
           <option value="">-</option>
@@ -350,9 +352,9 @@ function renderCustomers(data) {
           <option value="재전송 4차" ${c.resend==='재전송 4차'?'selected':''}>재전송 4차</option>
         </select>
       </div>
-      <div style="display:flex;gap:8px;margin-top:10px" onclick="event.stopPropagation()">
-        ${c.pdfId ? `<button class="btn btn-small btn-pdf" style="flex:1" onclick="event.stopPropagation();window.open('https://drive.google.com/file/d/${c.pdfId}/view','_blank')">📄 견적서 보기</button>` : '<span style="flex:1"></span>'}
-        <button onclick="event.stopPropagation();deleteCustomer('${c.timestamp}')" style="padding:8px 14px;background:#fff0f0;color:#d32f2f;border:1px solid #ffcdd2;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">🗑 삭제</button>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        ${c.pdfId ? `<button class="btn btn-small btn-pdf" style="flex:1" onclick="window.open('https://drive.google.com/file/d/${c.pdfId}/view','_blank')">📄 견적서 보기</button>` : '<span style="flex:1"></span>'}
+        <button onclick="deleteCustomer('${c.timestamp}')" style="padding:8px 14px;background:#fff0f0;color:#d32f2f;border:1px solid #ffcdd2;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">🗑 삭제</button>
       </div>
     </div>
   `).join('');
