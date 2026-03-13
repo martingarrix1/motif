@@ -574,8 +574,17 @@ async function updateAftercareStatus(name, carType, doneDate, value) {
 async function updateWarranty(name, carType, doneDate, value) {
   try {
     const r = await apiPost({ action: 'updateWarranty', name, carType, doneDate, warrantyValue: value });
-    if (r === 'ok') { showToast('✅ 보증서 업데이트!'); allAftercare = []; loadAftercare(); }
-    else showToast('❌ 행을 찾지 못했어');
+    if (r === 'ok') {
+      showToast('✅ 보증서 업데이트!');
+      // 보증서 발행 1차/2차 선택 시 알림톡 발송
+      if (value === '보증서 발행 1차' || value === '보증서 발행 2차') {
+        const customer = allAftercare.find(c => c.name === name && c.carType === carType && c.doneDate === doneDate);
+        const pdfId = customer ? customer.warrantyPdfId : '';
+        await apiPost({ action: 'sendWarrantyAlimtalk', name, carType, doneDate, warrantyValue: value, pdfId });
+        showToast('✅ 알림톡 발송 완료!');
+      }
+      allAftercare = []; loadAftercare();
+    } else showToast('❌ 행을 찾지 못했어');
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
