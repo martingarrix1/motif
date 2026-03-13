@@ -80,6 +80,7 @@
   <button onclick="showPage('customers', this)">👥 고객목록</button>
   <button onclick="showPage('aftercare', this)">📋 사후관리</button>
   <button onclick="showPage('todo', this)">✅ 할일</button>
+  <button onclick="showPage('glass', this)">🔵 유리막</button>
 </div>
 
 <div class="content">
@@ -206,6 +207,30 @@
       <button class="btn btn-primary" onclick="addTodo()">+ 추가</button>
     </div>
     <div id="todo-list"></div>
+  </div>
+
+  <div id="page-glass" class="page">
+    <div class="card">
+      <div class="card-title">유리막 보증서 발급</div>
+      <div class="form-group">
+        <label>차종</label>
+        <input type="text" id="glass-cartype" placeholder="예) 쏘렌토">
+      </div>
+      <div class="form-group">
+        <label>차량번호</label>
+        <input type="text" id="glass-carnumber" placeholder="예) 123가4567">
+      </div>
+      <div class="form-group">
+        <label>시공일자</label>
+        <input type="date" id="glass-date">
+      </div>
+      <div class="form-group">
+        <label>시공금액</label>
+        <input type="text" id="glass-price" placeholder="예) 150,000">
+      </div>
+      <button class="btn btn-primary" onclick="submitGlassWarranty()" id="glass-submit-btn">📄 보증서 생성</button>
+    </div>
+    <div id="glass-result"></div>
   </div>
 
 </div>
@@ -608,6 +633,41 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ─── 유리막 보증서 ──────────────────────────────────────────
+
+async function submitGlassWarranty() {
+  const carType   = document.getElementById('glass-cartype').value.trim();
+  const carNumber = document.getElementById('glass-carnumber').value.trim();
+  const date      = document.getElementById('glass-date').value;
+  const price     = document.getElementById('glass-price').value.trim();
+
+  if (!carType || !carNumber || !date || !price) {
+    showToast('❌ 모든 항목을 입력해주세요');
+    return;
+  }
+
+  const btn = document.getElementById('glass-submit-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ 생성 중...';
+
+  try {
+    const r = await apiPost({ action: 'createGlassWarranty', carType, carNumber, date, price });
+    if (r && r.fileId) {
+      document.getElementById('glass-result').innerHTML = `
+        <div class="card" style="margin-top:16px;text-align:center">
+          <div style="font-size:16px;font-weight:700;margin-bottom:12px">✅ 보증서 생성 완료!</div>
+          <button class="btn btn-primary" onclick="window.open('https://drive.google.com/file/d/${r.fileId}/view','_blank')">📄 보증서 열기</button>
+        </div>`;
+      showToast('✅ 유리막 보증서 생성 완료!');
+    } else {
+      showToast('❌ 생성 실패: ' + (r.error || JSON.stringify(r)));
+    }
+  } catch(e) { showToast('❌ ' + e.message); }
+
+  btn.disabled = false;
+  btn.textContent = '📄 보증서 생성';
 }
 
 // ─── 할일 ───────────────────────────────────────────────
