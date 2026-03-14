@@ -81,6 +81,7 @@
   <button onclick="showPage('aftercare', this)">📋 사후관리</button>
   <button onclick="showPage('todo', this)">✅ 할일</button>
   <button onclick="showPage('glass', this)">🔵 유리막</button>
+  <button onclick="showPage('calendar', this)">📅 캘린더</button>
 </div>
 
 <div class="content">
@@ -209,6 +210,21 @@
     <div id="todo-list"></div>
   </div>
 
+  <div id="page-calendar" class="page">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <button onclick="calendarPrev()" style="padding:6px 14px;border:1px solid #ddd;border-radius:8px;background:#f5f5f5;font-size:18px;cursor:pointer">‹</button>
+        <div id="calendar-title" style="font-size:17px;font-weight:700"></div>
+        <button onclick="calendarNext()" style="padding:6px 14px;border:1px solid #ddd;border-radius:8px;background:#f5f5f5;font-size:18px;cursor:pointer">›</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;gap:2px;margin-bottom:4px">
+        ${['일','월','화','수','목','금','토'].map((d,i)=>`<div style="font-size:12px;font-weight:700;color:${i===0?'#e53935':i===6?'#1a73e8':'#555'};padding:4px">${d}</div>`).join('')}
+      </div>
+      <div id="calendar-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px"></div>
+    </div>
+    <div id="calendar-events" style="margin-top:8px"></div>
+  </div>
+
   <div id="page-glass" class="page">
     <div class="card">
       <div class="card-title">유리막 보증서 발급</div>
@@ -287,6 +303,7 @@ function showPage(page, btn) {
   if (page === 'customers' && allCustomers.length === 0) loadCustomers();
   if (page === 'aftercare' && allAftercare.length === 0) loadAftercare();
   if (page === 'todo') initTodo();
+  if (page === 'calendar') { if (allCustomers.length === 0) loadCustomers().then(renderCalendar); else renderCalendar(); }
 }
 
 async function submitConsult() {
@@ -391,7 +408,10 @@ function renderCustomers(data) {
     <div class="customer-card">
       <div onclick="showCustomerDetail(${i})" style="cursor:pointer">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <div class="customer-name">${c.name}</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div class="customer-name">${c.name}</div>
+            ${allCustomers.filter(x=>x.phone===c.phone&&x.timestamp!==c.timestamp).length>0?`<span style="font-size:11px;background:#fff3e0;color:#e65100;border-radius:4px;padding:2px 5px;font-weight:700">재방문</span>`:''}
+          </div>
           <span class="badge ${(c.category||'').includes('PPF')?'badge-ppf':(c.category||'').includes('썬팅')?'badge-tinting':'badge-coating'}">${c.category||'-'}</span>
         </div>
         <div class="customer-car">${c.carType} · ${c.phone}</div>
@@ -476,6 +496,22 @@ function filterCustomers() {
 
 function showCustomerDetail(idx) {
   const c = allCustomers[idx];
+
+  // 같은 전화번호 이전 이력 찾기
+  const history = allCustomers.filter(x => x.phone === c.phone && x.timestamp !== c.timestamp);
+  const historyHtml = history.length ? `
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid #eee">
+      <div style="font-size:13px;font-weight:700;color:#e65100;margin-bottom:8px">🔄 재방문 이력 (${history.length}건)</div>
+      ${history.map(h => `
+        <div style="background:#fff8e1;border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:13px">
+          <span style="font-weight:600">${h.timestamp}</span>
+          <span style="color:#666;margin-left:8px">${h.carType}</span>
+          <span style="color:#999;margin-left:8px">${h.category||''}</span>
+          ${h.estPrice ? `<span style="color:#1a73e8;font-weight:600;margin-left:8px">${h.estPrice}만원</span>` : ''}
+          ${h.doneDate ? `<span style="color:#2e7d32;font-size:12px;margin-left:8px">✅ 시공완료 ${h.doneDate}</span>` : ''}
+        </div>`).join('')}
+    </div>` : '';
+
   document.getElementById('modal-title').textContent = c.name + ' · ' + c.carType;
   document.getElementById('modal-body').innerHTML = `
     <div class="detail-row"><span class="detail-label">연락처</span><span class="detail-value">${c.phone}</span></div>
@@ -491,6 +527,7 @@ function showCustomerDetail(idx) {
     <div class="detail-row"><span class="detail-label">특이사항</span><span class="detail-value">${c.note||'-'}</span></div>
     <div class="detail-row"><span class="detail-label">상담일시</span><span class="detail-value">${c.timestamp}</span></div>
     ${c.pdfId?`<div style="margin-top:18px"><button class="btn btn-primary" onclick="openPDF('${c.pdfId}',event)">📄 견적서 PDF 보기</button></div>`:''}
+    ${historyHtml}
   `;
   document.getElementById('customer-modal').classList.add('active');
 }
@@ -586,6 +623,7 @@ function renderAftercare(data) {
             onchange="updateDoneDate('${c.name}','${c.carType}','${c.doneDate}',this.value,${i})"
             style="font-size:clamp(13px,3.5vw,15px);border:1px solid #ddd;border-radius:8px;padding:5px 10px;background:white;color:#333;font-weight:600">
           <span id="followbadge-${i}">${followBadge}</span>
+          ${c.warranty ? `<span style="font-size:11px;background:#f3e5f5;color:#6a1b9a;border-radius:4px;padding:2px 6px;font-weight:700;margin-left:4px">📨 ${c.warranty}</span>` : '<span style="font-size:11px;background:#f5f5f5;color:#999;border-radius:4px;padding:2px 6px;margin-left:4px">미발송</span>'}
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
           ${c.estPrice ? `<span style="font-size:clamp(13px,3.5vw,16px);color:#1a73e8;font-weight:700">${c.estPrice}만원</span>` : '<span></span>'}
@@ -726,6 +764,73 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ─── 캘린더 ──────────────────────────────────────────────────
+
+let calendarYear = new Date().getFullYear();
+let calendarMonth = new Date().getMonth();
+
+function calendarPrev() { calendarMonth--; if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; } renderCalendar(); }
+function calendarNext() { calendarMonth++; if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; } renderCalendar(); }
+
+function renderCalendar() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const y = calendarYear, m = calendarMonth;
+  document.getElementById('calendar-title').textContent = y + '년 ' + (m+1) + '월';
+
+  // 입고예정일 맵핑
+  const entryMap = {};
+  allCustomers.forEach(c => {
+    if (c.entryDate) {
+      if (!entryMap[c.entryDate]) entryMap[c.entryDate] = [];
+      entryMap[c.entryDate].push(c);
+    }
+  });
+
+  const firstDay = new Date(y, m, 1).getDay();
+  const lastDate = new Date(y, m+1, 0).getDate();
+  let cells = '';
+
+  for (let i = 0; i < firstDay; i++) cells += '<div></div>';
+
+  for (let d = 1; d <= lastDate; d++) {
+    const dateStr = y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    const isToday = new Date(y,m,d).getTime() === today.getTime();
+    const events = entryMap[dateStr] || [];
+    const dow = new Date(y,m,d).getDay();
+    const color = dow===0?'#e53935':dow===6?'#1a73e8':'#333';
+
+    cells += `<div onclick="showCalendarDay('${dateStr}')" style="min-height:52px;border-radius:8px;padding:4px;cursor:pointer;background:${isToday?'#e3f2fd':events.length?'#fff8e1':'transparent'};border:${isToday?'2px solid #1a73e8':'1px solid #eee'}">
+      <div style="font-size:12px;font-weight:${isToday?'700':'400'};color:${color};text-align:center">${d}</div>
+      ${events.slice(0,2).map(e=>`<div style="font-size:10px;background:#ff9800;color:white;border-radius:3px;padding:1px 3px;margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${e.name}</div>`).join('')}
+      ${events.length>2?`<div style="font-size:10px;color:#999;text-align:center">+${events.length-2}</div>`:''}
+    </div>`;
+  }
+
+  document.getElementById('calendar-grid').innerHTML = cells;
+  document.getElementById('calendar-events').innerHTML = '';
+}
+
+function showCalendarDay(dateStr) {
+  const events = allCustomers.filter(c => c.entryDate === dateStr);
+  const el = document.getElementById('calendar-events');
+  if (!events.length) { el.innerHTML = ''; return; }
+
+  el.innerHTML = `<div class="card">
+    <div style="font-size:14px;font-weight:700;margin-bottom:10px">🚗 ${dateStr} 입고 (${events.length}건)</div>
+    ${events.map(c=>`
+      <div style="background:#f5f5f5;border-radius:8px;padding:10px;margin-bottom:8px">
+        <div style="font-weight:700">${c.name} <span style="color:#666;font-weight:400;font-size:13px">${c.carType}</span>
+          <span style="font-size:12px;margin-left:6px;color:#999">${c.phone}</span>
+        </div>
+        <div style="font-size:13px;color:#555;margin-top:4px">${c.category||''} ${c.estPrice?'· '+c.estPrice+'만원':''}</div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button onclick="window.location.href='tel:${c.phone}'" style="flex:1;padding:6px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">📞 전화</button>
+          <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:6px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">💬 문자</button>
+        </div>
+      </div>`).join('')}
+  </div>`;
 }
 
 // ─── 유리막 보증서 ──────────────────────────────────────────
