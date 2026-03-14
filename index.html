@@ -221,6 +221,10 @@
         <input type="text" id="glass-carnumber" placeholder="예) 123가4567">
       </div>
       <div class="form-group">
+        <label>전화번호</label>
+        <input type="text" id="glass-phone" placeholder="예) 01012345678">
+      </div>
+      <div class="form-group">
         <label>시공일자</label>
         <input type="date" id="glass-date">
       </div>
@@ -649,10 +653,11 @@ function showToast(msg) {
 async function submitGlassWarranty() {
   const carType   = document.getElementById('glass-cartype').value.trim();
   const carNumber = document.getElementById('glass-carnumber').value.trim();
+  const phone     = document.getElementById('glass-phone').value.trim();
   const date      = document.getElementById('glass-date').value;
   const price     = document.getElementById('glass-price').value.trim();
 
-  if (!carType || !carNumber || !date || !price) {
+  if (!carType || !carNumber || !phone || !date || !price) {
     showToast('❌ 모든 항목을 입력해주세요');
     return;
   }
@@ -662,7 +667,7 @@ async function submitGlassWarranty() {
   btn.textContent = '⏳ 생성 중...';
 
   try {
-    const r = await apiPost({ action: 'createGlassWarranty', carType, carNumber, date, price });
+    const r = await apiPost({ action: 'createGlassWarranty', carType, carNumber, phone, date, price });
     if (r && r.fileId) {
       document.getElementById('glass-result').innerHTML = `
         <div class="card" style="margin-top:16px;text-align:center">
