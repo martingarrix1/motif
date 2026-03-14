@@ -462,6 +462,7 @@ function renderCustomers(data) {
       <div style="display:flex;gap:6px;margin-top:10px">
         <button class="btn btn-small btn-pdf" style="flex:1" onclick="window.location.href='tel:${c.phone}'">📞 전화</button>
         <button class="btn btn-small" style="flex:1;background:#fff8e1;color:#f57f17;border:1px solid #ffe082" onclick="window.location.href='sms:${c.phone}'">💬 문자</button>
+        <button onclick="completeCustomer('${c.timestamp}')" style="padding:8px 12px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">✅</button>
         <button onclick="deleteCustomer('${c.timestamp}')" style="padding:8px 12px;background:#fff0f0;color:#d32f2f;border:1px solid #ffcdd2;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">🗑</button>
       </div>
       <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
@@ -521,6 +522,15 @@ async function sendDoneAlimtalk(name, carType, phone, doneDate, pdfId, popupEl) 
     const r = await apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate, pdfId });
     if (r === 'ok') showToast('✅ 시공완료 알림톡 발송 완료!');
     else showToast('❌ ' + (r.error || '발송 실패'));
+  } catch(e) { showToast('❌ ' + e.message); }
+}
+
+async function completeCustomer(timestamp) {
+  if (!confirm('이 고객을 완료 처리할까요? 목록 맨 아래로 이동합니다.')) return;
+  try {
+    const r = await apiPost({ action: 'completeCustomer', timestamp });
+    if (r === 'ok') { showToast('✅ 완료 처리됨'); allCustomers = []; loadCustomers(); }
+    else showToast('❌ 실패');
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
