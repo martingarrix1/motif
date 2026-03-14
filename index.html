@@ -349,7 +349,31 @@ async function loadCustomers() {
 function renderCustomers(data) {
   const container = document.getElementById('customer-list');
   if (!data.length) { container.innerHTML = '<div class="loading">데이터가 없습니다.</div>'; return; }
-  container.innerHTML = data.map((c, i) => `
+
+  const todayStr = new Date().toISOString().slice(0,10);
+  const todayCustomers = data.filter(c => c.entryDate === todayStr);
+
+  let html = '';
+  if (todayCustomers.length) {
+    html += `<div style="background:#fff3e0;border:2px solid #ff9800;border-radius:12px;padding:14px;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:700;color:#e65100;margin-bottom:10px">🚗 오늘 입고 (${todayCustomers.length}건)</div>
+      ${todayCustomers.map(c => `
+        <div style="background:#fff;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <span style="font-weight:700;font-size:15px">${c.name}</span>
+            <span style="color:#666;font-size:13px;margin-left:8px">${c.carType}</span>
+            <span style="color:#999;font-size:12px;margin-left:8px">${c.phone}</span>
+            ${c.estPrice ? `<span style="color:#1a73e8;font-weight:600;font-size:13px;margin-left:8px">${c.estPrice}만원</span>` : ''}
+            <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
+              <input type="date" value="${c.entryDate}" onchange="changeEntryDate('${c.timestamp}',this.value)" style="font-size:12px;border:1px solid #ddd;border-radius:6px;padding:4px 6px">
+              <button onclick="clearEntryDate('${c.timestamp}')" style="padding:4px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">취소</button>
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  }
+
+  html += data.map((c, i) => `
     <div class="customer-card">
       <div onclick="showCustomerDetail(${i})" style="cursor:pointer">
         <div style="display:flex;justify-content:space-between;align-items:center">
@@ -387,6 +411,24 @@ function renderCustomers(data) {
       </div>
     </div>
   `).join('');
+  container.innerHTML = html;
+}
+
+async function changeEntryDate(timestamp, value) {
+  try {
+    const r = await apiPost({ action: 'updateCustomerField', timestamp, field: 'entryDate', value });
+    if (r === 'ok') { showToast('✅ 날짜 변경됨'); allCustomers = []; loadCustomers(); }
+    else showToast('❌ 실패');
+  } catch(e) { showToast('❌ ' + e.message); }
+}
+
+async function clearEntryDate(timestamp) {
+  if (!confirm('입고를 취소할까요? (입고예정일이 삭제됩니다)')) return;
+  try {
+    const r = await apiPost({ action: 'updateCustomerField', timestamp, field: 'entryDate', value: '' });
+    if (r === 'ok') { showToast('✅ 입고 취소됨'); allCustomers = []; loadCustomers(); }
+    else showToast('❌ 실패');
+  } catch(e) { showToast('❌ ' + e.message); }
 }
 
 function filterCustomers() {
