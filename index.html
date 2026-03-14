@@ -420,6 +420,9 @@ function renderCustomers(data) {
     </div>`;
   }
 
+  // 정렬된 순서로 allCustomers 재정렬 (showCustomerDetail 인덱스 일치)
+  allCustomers = sorted;
+
   html += sorted.map((c, i) => `
     <div class="customer-card">
       <div onclick="showCustomerDetail(${i})" style="cursor:pointer">
