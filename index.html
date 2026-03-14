@@ -350,8 +350,15 @@ function renderCustomers(data) {
   const container = document.getElementById('customer-list');
   if (!data.length) { container.innerHTML = '<div class="loading">데이터가 없습니다.</div>'; return; }
 
+  // 시공완료일 없는 것 먼저, 있는 것은 뒤로
+  const sorted = [...data].sort((a, b) => {
+    if (a.doneDate && !b.doneDate) return 1;
+    if (!a.doneDate && b.doneDate) return -1;
+    return 0;
+  });
+
   const todayStr = new Date().toISOString().slice(0,10);
-  const todayCustomers = data.filter(c => c.entryDate === todayStr);
+  const todayCustomers = sorted.filter(c => c.entryDate === todayStr);
 
   let html = '';
   if (todayCustomers.length) {
@@ -373,7 +380,7 @@ function renderCustomers(data) {
     </div>`;
   }
 
-  html += data.map((c, i) => `
+  html += sorted.map((c, i) => `
     <div class="customer-card">
       <div onclick="showCustomerDetail(${i})" style="cursor:pointer">
         <div style="display:flex;justify-content:space-between;align-items:center">
