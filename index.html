@@ -218,7 +218,13 @@
         <button onclick="calendarNext()" style="padding:6px 14px;border:1px solid #ddd;border-radius:8px;background:#f5f5f5;font-size:18px;cursor:pointer">›</button>
       </div>
       <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;gap:2px;margin-bottom:4px">
-        ${['일','월','화','수','목','금','토'].map((d,i)=>`<div style="font-size:12px;font-weight:700;color:${i===0?'#e53935':i===6?'#1a73e8':'#555'};padding:4px">${d}</div>`).join('')}
+        <div style="font-size:12px;font-weight:700;color:#e53935;padding:4px">일</div>
+        <div style="font-size:12px;font-weight:700;color:#555;padding:4px">월</div>
+        <div style="font-size:12px;font-weight:700;color:#555;padding:4px">화</div>
+        <div style="font-size:12px;font-weight:700;color:#555;padding:4px">수</div>
+        <div style="font-size:12px;font-weight:700;color:#555;padding:4px">목</div>
+        <div style="font-size:12px;font-weight:700;color:#555;padding:4px">금</div>
+        <div style="font-size:12px;font-weight:700;color:#1a73e8;padding:4px">토</div>
       </div>
       <div id="calendar-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px"></div>
     </div>
@@ -417,8 +423,7 @@ function renderCustomers(data) {
         <div class="customer-car">${c.carType} · ${c.phone}</div>
         ${c.summary ? `<div style="font-size:clamp(12px,3vw,14px);color:#999;margin-top:4px;line-height:1.5">${c.summary}</div>` : ''}
         <div class="customer-meta">
-          <span class="customer-date">${c.timestamp}</span>
-          ${c.entryDate ? `<span style="font-size:12px;color:#e65100;font-weight:600">🚗 ${c.entryDate}</span>` : ''}
+          ${c.entryDate ? `<span style="font-size:12px;color:#e65100;font-weight:600">🚗 입고 ${c.entryDate}</span>` : ''}
           ${c.estPrice ? `<span class="price-text">${c.estPrice}만원</span>` : ''}
         </div>
       </div>
