@@ -373,11 +373,21 @@ function renderCustomers(data) {
   const container = document.getElementById('customer-list');
   if (!data.length) { container.innerHTML = '<div class="loading">데이터가 없습니다.</div>'; return; }
 
-  // 정렬: 1.시공완료 → 맨아래  2.입고예정일 있는것 → 날짜순  3.나머지 → 최신순
+  // 정렬: 1.시공완료 → 맨아래  2.노쇼(3일 이상 지난 입고예정일) → 시공완료 바로 위  3.입고예정일 있는것 → 날짜순  4.나머지 → 최신순
+  const todayD = new Date(); todayD.setHours(0,0,0,0);
   const sorted = [...data].sort((a, b) => {
     const aDone = !!a.doneDate, bDone = !!b.doneDate;
     if (aDone && !bDone) return 1;
     if (!aDone && bDone) return -1;
+
+    const isNoShow = (c) => {
+      if (!c.entryDate || c.doneDate) return false;
+      const d = new Date(c.entryDate); d.setHours(0,0,0,0);
+      return (todayD - d) > 3 * 24 * 60 * 60 * 1000;
+    };
+    const aNS = isNoShow(a), bNS = isNoShow(b);
+    if (aNS && !bNS) return 1;
+    if (!aNS && bNS) return -1;
 
     const aEntry = a.entryDate, bEntry = b.entryDate;
     if (aEntry && !bEntry) return -1;
