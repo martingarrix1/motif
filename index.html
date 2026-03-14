@@ -423,7 +423,7 @@ function renderCustomers(data) {
         <div class="customer-car">${c.carType} · ${c.phone}</div>
         ${c.summary ? `<div style="font-size:clamp(12px,3vw,14px);color:#999;margin-top:4px;line-height:1.5">${c.summary}</div>` : ''}
         <div class="customer-meta">
-          ${c.entryDate ? `<span style="font-size:12px;color:#e65100;font-weight:600">🚗 ${c.entryDate.slice(5).replace('-','.')}</span>` : ''}
+          ${c.entryDate ? `<span style="font-size:12px;color:#e65100;font-weight:600">🚗 ${(d=>d.getMonth()+1+'.'+(d.getDate()))(new Date(c.entryDate))}</span>` : ''}
           ${c.doneDate ? `<span style="font-size:12px;color:#2e7d32;font-weight:600">✅ 시공 ${c.doneDate}</span>` : ''}
           ${c.estPrice ? `<span class="price-text">${c.estPrice}만원</span>` : ''}
         </div>
