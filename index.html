@@ -433,7 +433,7 @@ function renderCustomers(data) {
           </div>
           <span class="badge ${(c.category||'').includes('PPF')?'badge-ppf':(c.category||'').includes('썬팅')?'badge-tinting':'badge-coating'}">${c.category||'-'}</span>
         </div>
-        <div class="customer-car">${c.carType} · ${c.phone}</div>
+        <div class="customer-car">${c.carType} · <span onclick="copyPhone('${c.phone}')" style="cursor:pointer;text-decoration:underline dotted">${c.phone}</span></div>
         ${c.summary ? `<div style="font-size:clamp(12px,3vw,14px);color:#999;margin-top:4px;line-height:1.5">${c.summary}</div>` : ''}
         <div class="customer-meta">
           ${c.entryDate ? `<span style="font-size:12px;color:#e65100;font-weight:600">🚗 ${(d=>d.getMonth()+1+'.'+(d.getDate()))(new Date(c.entryDate))}</span>` : ''}
@@ -532,6 +532,10 @@ async function completeCustomer(timestamp) {
     if (r === 'ok') { showToast('✅ 완료 처리됨'); allCustomers = []; loadCustomers(); }
     else showToast('❌ 실패');
   } catch(e) { showToast('❌ ' + e.message); }
+}
+
+function copyPhone(phone) {
+  navigator.clipboard.writeText(phone).then(() => showToast('📋 ' + phone + ' 복사됨!'));
 }
 
 async function changeEntryDate(timestamp, value) {
