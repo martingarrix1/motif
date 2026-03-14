@@ -474,7 +474,25 @@ function renderCustomers(data) {
         <span style="font-size:12px;color:#666;white-space:nowrap">시공완료일</span>
         <input type="date" value="${c.doneDate||''}" onchange="setDoneDate('${c.timestamp}','${c.name}','${c.carType}','${c.phone}','${c.category}','${c.summary}','${c.estPrice}',this.value)"
           style="flex:1;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:6px 8px">
-        ${c.doneDate ? `<span style="font-size:11px;color:#2e7d32;font-weight:600">✅ 등록됨</span>` : ''}
+        ${c.doneDate ? `<span style="font-size:11px;color:#2e7d32;font-weight:600">✅</span>` : ''}
+      </div>
+      <div style="margin-top:6px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:12px;color:#666;white-space:nowrap">견적금액</span>
+        <input type="text" value="${c.estPrice||''}" inputmode="numeric" onblur="updateCustomerField('${c.timestamp}','estPrice',this.value)"
+          style="flex:1;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:6px 8px" placeholder="만원">
+        <span style="font-size:12px;color:#666;white-space:nowrap">계약금</span>
+        <input type="text" value="${c.deposit||''}" inputmode="numeric" onblur="updateCustomerField('${c.timestamp}','deposit',this.value)"
+          style="flex:1;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:6px 8px" placeholder="만원">
+      </div>
+      <div style="margin-top:6px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:12px;color:#666;white-space:nowrap">메모</span>
+        <input type="text" value="${c.note||''}" onblur="updateCustomerField('${c.timestamp}','note',this.value)"
+          style="flex:1;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:6px 8px" placeholder="특이사항">
+      </div>
+      <div style="margin-top:6px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:12px;color:#666;white-space:nowrap">상담내용</span>
+        <input type="text" value="${c.summary||''}" onblur="updateCustomerField('${c.timestamp}','summary',this.value)"
+          style="flex:1;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:6px 8px" placeholder="시공내용">
       </div>
     </div>
   `).join('');
@@ -580,19 +598,54 @@ function showCustomerDetail(idx) {
 
   document.getElementById('modal-title').textContent = c.name + ' · ' + c.carType;
   document.getElementById('modal-body').innerHTML = `
-    <div class="detail-row"><span class="detail-label">연락처</span><span class="detail-value">${c.phone}</span></div>
+    <div class="detail-row"><span class="detail-label">연락처</span><span class="detail-value" onclick="copyPhone('${c.phone}')" style="cursor:pointer;text-decoration:underline dotted">${c.phone}</span></div>
     <div class="detail-row"><span class="detail-label">시공분류</span><span class="detail-value">${c.category||'-'}</span></div>
-    <div class="detail-row"><span class="detail-label">상담내용</span><span class="detail-value">${c.summary||'-'}</span></div>
-    <div class="detail-row"><span class="detail-label">PPF</span><span class="detail-value">${c.ppf||'-'}</span></div>
-    <div class="detail-row"><span class="detail-label">기타</span><span class="detail-value">${c.etc||'-'}</span></div>
-    <div class="detail-row"><span class="detail-label">예상금액</span><span class="detail-value">${c.estPrice?c.estPrice+'만원':'-'}</span></div>
-    <div class="detail-row"><span class="detail-label">계약금</span><span class="detail-value">${c.deposit?c.deposit+'만원':'-'}</span></div>
-    <div class="detail-row"><span class="detail-label">입고예정일</span><span class="detail-value">${c.entryDate||'-'}</span></div>
     <div class="detail-row"><span class="detail-label">블랙박스</span><span class="detail-value">${c.blackbox||'-'}</span></div>
     <div class="detail-row"><span class="detail-label">보조배터리</span><span class="detail-value">${c.battery||'-'}</span></div>
-    <div class="detail-row"><span class="detail-label">특이사항</span><span class="detail-value">${c.note||'-'}</span></div>
     <div class="detail-row"><span class="detail-label">상담일시</span><span class="detail-value">${c.timestamp}</span></div>
-    ${c.pdfId?`<div style="margin-top:18px"><button class="btn btn-primary" onclick="openPDF('${c.pdfId}',event)">📄 견적서 PDF 보기</button></div>`:''}
+
+    <div style="margin-top:14px;border-top:1px solid #eee;padding-top:14px">
+      <div style="font-size:12px;color:#999;margin-bottom:8px">✏️ 수정 가능 항목</div>
+
+      <div style="margin-bottom:10px">
+        <div style="font-size:12px;color:#666;margin-bottom:4px">상담내용</div>
+        <textarea rows="2" onblur="updateCustomerField('${c.timestamp}','summary',this.value)"
+          style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box;resize:none">${c.summary||''}</textarea>
+      </div>
+
+      <div style="margin-bottom:10px">
+        <div style="font-size:12px;color:#666;margin-bottom:4px">PPF</div>
+        <input type="text" value="${c.ppf||''}" onblur="updateCustomerField('${c.timestamp}','ppf',this.value)"
+          style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
+      </div>
+
+      <div style="margin-bottom:10px">
+        <div style="font-size:12px;color:#666;margin-bottom:4px">기타</div>
+        <input type="text" value="${c.etc||''}" onblur="updateCustomerField('${c.timestamp}','etc',this.value)"
+          style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div style="flex:1">
+          <div style="font-size:12px;color:#666;margin-bottom:4px">예상금액(만원)</div>
+          <input type="text" inputmode="numeric" value="${c.estPrice||''}" onblur="updateCustomerField('${c.timestamp}','estPrice',this.value)"
+            style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
+        </div>
+        <div style="flex:1">
+          <div style="font-size:12px;color:#666;margin-bottom:4px">계약금(만원)</div>
+          <input type="text" inputmode="numeric" value="${c.deposit||''}" onblur="updateCustomerField('${c.timestamp}','deposit',this.value)"
+            style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
+        </div>
+      </div>
+
+      <div style="margin-bottom:10px">
+        <div style="font-size:12px;color:#666;margin-bottom:4px">특이사항/메모</div>
+        <textarea rows="2" onblur="updateCustomerField('${c.timestamp}','note',this.value)"
+          style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box;resize:none">${c.note||''}</textarea>
+      </div>
+    </div>
+
+    ${c.pdfId?`<div style="margin-top:12px"><button class="btn btn-primary" onclick="openPDF('${c.pdfId}',event)">📄 견적서 PDF 보기</button></div>`:''}
     ${historyHtml}
   `;
   document.getElementById('customer-modal').classList.add('active');
