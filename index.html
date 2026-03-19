@@ -957,6 +957,7 @@ function showCalendarDay(dateStr) {
           <button onclick="window.location.href='tel:${c.phone}'" style="flex:1;padding:6px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">📞 전화</button>
           <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:6px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">💬 문자</button>
           <button onclick="editReservation(${c.rowIndex},'${c.work||''}')" style="padding:6px 8px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;cursor:pointer">✏️</button>
+          <button onclick="editReservationDate(${c.rowIndex},'${c.date}','${dateStr}')" style="padding:6px 8px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:6px;font-size:12px;cursor:pointer">📅</button>
           <button onclick="deleteReservation(${c.rowIndex},'${dateStr}')" style="padding:6px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px;cursor:pointer">🗑</button>
         </div>
       </div>` : `
@@ -976,6 +977,7 @@ function showCalendarDay(dateStr) {
           <button onclick="window.location.href='tel:${c.phone}'" style="flex:1;padding:6px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">📞 전화</button>
           <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:6px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">💬 문자</button>
           <button onclick="openCalendarCustomerEdit('${c.timestamp}')" style="padding:6px 8px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:6px;font-size:12px;cursor:pointer">✏️수정</button>
+          <button onclick="editCustomerEntryDate('${c.timestamp}','${dateStr}')" style="padding:6px 8px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:6px;font-size:12px;cursor:pointer">📅날짜</button>
         </div>
       </div>`).join('') : '<div style="color:#999;font-size:13px;margin-bottom:12px">입고 예정 없음</div>'}
 
@@ -1020,6 +1022,20 @@ function openCalendarCustomerEdit(timestamp) {
   // 기존 showCustomerDetail 팝업 재사용
   const idx = allCustomers.indexOf(c);
   showCustomerDetail(idx);
+}
+
+async function editReservationDate(rowIndex, currentDate, oldDateStr) {
+  const newDate = prompt('날짜 변경 (yyyy-mm-dd):', currentDate);
+  if (!newDate || newDate === currentDate) return;
+  try {
+    const r = await apiPost({ action: 'updateReservationDate', rowIndex, date: newDate });
+    if (r === 'ok') {
+      showToast('✅ 날짜 변경됨');
+      allReservations = await api({ action: 'getReservations' });
+      renderCalendar();
+      showCalendarDay(newDate);
+    } else showToast('❌ 실패');
+  } catch(e) { showToast('❌ ' + e.message); }
 }
 
 async function editCustomerEntryDate(timestamp, dateStr) {
