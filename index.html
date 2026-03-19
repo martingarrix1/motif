@@ -934,7 +934,9 @@ function renderCalendar() {
 }
 
 function showCalendarDay(dateStr) {
-  const events = allCustomers.filter(c => c.entryDate === dateStr);
+  const custEvents = allCustomers.filter(c => c.entryDate === dateStr).map(c => ({...c, _type:'customer'}));
+  const resEvents  = allReservations.filter(r => r.date === dateStr).map(r => ({...r, _type:'reservation'}));
+  const events = [...custEvents, ...resEvents];
   const el = document.getElementById('calendar-events');
 
   el.innerHTML = `<div class="card">
@@ -973,6 +975,7 @@ function showCalendarDay(dateStr) {
         <div style="display:flex;gap:6px;margin-top:8px">
           <button onclick="window.location.href='tel:${c.phone}'" style="flex:1;padding:6px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">📞 전화</button>
           <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:6px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">💬 문자</button>
+          <button onclick="openCalendarCustomerEdit('${c.timestamp}')" style="padding:6px 8px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:6px;font-size:12px;cursor:pointer">✏️수정</button>
         </div>
       </div>`).join('') : '<div style="color:#999;font-size:13px;margin-bottom:12px">입고 예정 없음</div>'}
 
@@ -1007,6 +1010,28 @@ async function deleteReservation(rowIndex, dateStr) {
     allReservations.forEach((r, i) => { if (r.rowIndex > rowIndex) r.rowIndex--; });
     showCalendarDay(dateStr);
     renderCalendar();
+  } else showToast('❌ 실패');
+}
+
+function openCalendarCustomerEdit(timestamp) {
+  const c = allCustomers.find(x => x.timestamp === timestamp);
+  if (!c) { showToast('❌ 고객 정보 없음'); return; }
+
+  // 기존 showCustomerDetail 팝업 재사용
+  const idx = allCustomers.indexOf(c);
+  showCustomerDetail(idx);
+}
+
+async function editCustomerEntryDate(timestamp, dateStr) {
+  const newDate = prompt('입고예정일 변경 (yyyy-mm-dd):', dateStr);
+  if (!newDate) return;
+  const r = await apiPost({ action: 'updateCustomerField', timestamp, field: 'entryDate', value: newDate });
+  if (r === 'ok') {
+    showToast('✅ 날짜 변경됨');
+    allCustomers = [];
+    await loadCustomers();
+    renderCalendar();
+    showCalendarDay(newDate);
   } else showToast('❌ 실패');
 }
 
