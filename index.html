@@ -929,11 +929,10 @@ function renderCalendar() {
 function showCalendarDay(dateStr) {
   const events = allCustomers.filter(c => c.entryDate === dateStr);
   const el = document.getElementById('calendar-events');
-  if (!events.length) { el.innerHTML = ''; return; }
 
   el.innerHTML = `<div class="card">
     <div style="font-size:14px;font-weight:700;margin-bottom:10px">🚗 ${dateStr} 입고 (${events.length}건)</div>
-    ${events.map(c=>`
+    ${events.length ? events.map(c=>`
       <div style="background:#f5f5f5;border-radius:8px;padding:12px;margin-bottom:8px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div>
@@ -950,8 +949,37 @@ function showCalendarDay(dateStr) {
           <button onclick="window.location.href='tel:${c.phone}'" style="flex:1;padding:6px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">📞 전화</button>
           <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:6px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">💬 문자</button>
         </div>
-      </div>`).join('')}
+      </div>`).join('') : '<div style="color:#999;font-size:13px;margin-bottom:12px">입고 예정 없음</div>'}
+
+    <div style="border-top:1px solid #eee;padding-top:14px;margin-top:4px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">➕ 입고 예약 추가</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <input type="text" id="cal-name" placeholder="이름" style="font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px">
+        <input type="tel" id="cal-phone" placeholder="전화번호" inputmode="numeric" style="font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px">
+        <input type="text" id="cal-cartype" placeholder="차종" style="font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px">
+        <input type="text" id="cal-work" placeholder="작업내용 (나만 보임)" style="font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px">
+        <button onclick="addCalendarReservation('${dateStr}')" style="padding:10px;background:#1a73e8;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">📅 예약 등록 + 하루 전 알림톡</button>
+      </div>
+    </div>
   </div>`;
+}
+
+async function addCalendarReservation(dateStr) {
+  const name    = document.getElementById('cal-name').value.trim();
+  const phone   = document.getElementById('cal-phone').value.trim();
+  const carType = document.getElementById('cal-cartype').value.trim();
+  const work    = document.getElementById('cal-work').value.trim();
+  if (!name || !phone || !carType) { showToast('❌ 이름, 전화번호, 차종을 입력해주세요'); return; }
+  showToast('⏳ 등록 중...');
+  try {
+    const r = await apiPost({ action: 'addCalendarReservation', name, phone, carType, work, date: dateStr });
+    if (r === 'ok') {
+      showToast('✅ 예약 등록 완료! 하루 전 알림톡 예약됨');
+      showCalendarDay(dateStr);
+    } else {
+      showToast('❌ 실패: ' + (r.error || ''));
+    }
+  } catch(e) { showToast('❌ ' + e.message); }
 }
 
 // ─── 유리막 보증서 ──────────────────────────────────────────
