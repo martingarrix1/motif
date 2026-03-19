@@ -582,16 +582,39 @@ async function clearEntryDate(timestamp) {
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
+let searchTimer = null;
 function filterCustomers() {
-  const q = document.getElementById('search-input').value.toLowerCase();
-  renderCustomers(allCustomers.filter(c => c.name.toLowerCase().includes(q) || c.carType.toLowerCase().includes(q) || c.phone.includes(q)));
+  const q = document.getElementById('search-input').value.trim();
+  if (!q) {
+    loadCustomers();
+    return;
+  }
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    document.getElementById('customer-list').innerHTML = '<div class="loading">검색 중...</div>';
+    try {
+      const results = await api({ action: 'searchCustomers', q });
+      allCustomers = results;
+      window._customerTotal = results.length;
+      window._isSearchMode = true;
+      renderCustomers(results);
+      const lb = document.getElementById('load-more-btn');
+      if (lb) lb.remove();
+    } catch(e) { showToast('❌ ' + e.message); }
+  }, 400);
 }
 
-function showCustomerDetail(idx) {
+async function showCustomerDetail(idx) {
   const c = allCustomers[idx];
 
-  // 같은 전화번호 이전 이력 찾기
-  const history = allCustomers.filter(x => x.phone === c.phone && x.timestamp !== c.timestamp);
+  // 같은 전화번호 전체 이력 서버에서 검색
+  let history = [];
+  try {
+    const all = await api({ action: 'searchCustomers', q: c.phone });
+    history = all.filter(x => x.timestamp !== c.timestamp);
+  } catch(e) {
+    history = allCustomers.filter(x => x.phone === c.phone && x.timestamp !== c.timestamp);
+  }
   const historyHtml = history.length ? `
     <div style="margin-top:16px;padding-top:14px;border-top:1px solid #eee">
       <div style="font-size:13px;font-weight:700;color:#e65100;margin-bottom:8px">🔄 재방문 이력 (${history.length}건)</div>
