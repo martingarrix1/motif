@@ -978,6 +978,7 @@ function showCalendarDay(dateStr) {
           <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:6px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">💬 문자</button>
           <button onclick="openCalendarCustomerEdit('${c.timestamp}')" style="padding:6px 8px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:6px;font-size:12px;cursor:pointer">✏️수정</button>
           <button onclick="editCustomerEntryDate('${c.timestamp}','${dateStr}')" style="padding:6px 8px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:6px;font-size:12px;cursor:pointer">📅날짜</button>
+          <button onclick="deleteCustomerFromCalendar('${c.timestamp}','${dateStr}')" style="padding:6px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px;cursor:pointer">🗑</button>
         </div>
       </div>`).join('') : '<div style="color:#999;font-size:13px;margin-bottom:12px">입고 예정 없음</div>'}
 
@@ -1022,6 +1023,19 @@ function openCalendarCustomerEdit(timestamp) {
   // 기존 showCustomerDetail 팝업 재사용
   const idx = allCustomers.indexOf(c);
   showCustomerDetail(idx);
+}
+
+async function deleteCustomerFromCalendar(timestamp, dateStr) {
+  if (!confirm('이 고객을 삭제할까요? 고객목록과 사후관리에서 모두 삭제됩니다.')) return;
+  try {
+    const r = await apiPost({ action: 'deleteCustomer', timestamp });
+    if (r === 'ok') {
+      showToast('✅ 삭제 완료');
+      allCustomers = allCustomers.filter(c => c.timestamp !== timestamp);
+      renderCalendar();
+      showCalendarDay(dateStr);
+    } else showToast('❌ 실패');
+  } catch(e) { showToast('❌ ' + e.message); }
 }
 
 async function editReservationDate(rowIndex, currentDate, oldDateStr) {
