@@ -279,6 +279,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbzv3xVInSeTmisnUk7X9u2e
 
 let allCustomers = [];
 let allAftercare = [];
+let allReservations = [];
 
 async function api(params) {
   const url = API_URL + '?' + new URLSearchParams(params);
@@ -309,7 +310,7 @@ function showPage(page, btn) {
   if (page === 'customers' && allCustomers.length === 0) loadCustomers();
   if (page === 'aftercare' && allAftercare.length === 0) loadAftercare();
   if (page === 'todo') initTodo();
-  if (page === 'calendar') { if (allCustomers.length === 0) loadCustomers().then(renderCalendar); else renderCalendar(); }
+  if (page === 'calendar') { loadCalendar(); }
 }
 
 async function submitConsult() {
@@ -893,12 +894,18 @@ function renderCalendar() {
   const y = calendarYear, m = calendarMonth;
   document.getElementById('calendar-title').textContent = y + '년 ' + (m+1) + '월';
 
-  // 입고예정일 맵핑
+  // 입고예정일 맵핑 (고객목록 + 입고예약)
   const entryMap = {};
   allCustomers.forEach(c => {
     if (c.entryDate) {
       if (!entryMap[c.entryDate]) entryMap[c.entryDate] = [];
-      entryMap[c.entryDate].push(c);
+      entryMap[c.entryDate].push({ ...c, _type: 'customer' });
+    }
+  });
+  allReservations.forEach(r => {
+    if (r.date) {
+      if (!entryMap[r.date]) entryMap[r.date] = [];
+      entryMap[r.date].push({ ...r, _type: 'reservation' });
     }
   });
 
@@ -932,7 +939,25 @@ function showCalendarDay(dateStr) {
 
   el.innerHTML = `<div class="card">
     <div style="font-size:14px;font-weight:700;margin-bottom:10px">🚗 ${dateStr} 입고 (${events.length}건)</div>
-    ${events.length ? events.map(c=>`
+    ${events.length ? events.map(c=> c._type === 'reservation' ? `
+      <div style="background:#e8f5e9;border-radius:8px;padding:12px;margin-bottom:8px;border:1px solid #c8e6c9">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <span style="font-size:10px;background:#2e7d32;color:white;border-radius:4px;padding:1px 5px;margin-right:6px">예약</span>
+            <span style="font-weight:700;font-size:15px">${c.carType}</span>
+            <span style="color:#666;font-size:13px;margin-left:6px">${c.name}</span>
+          </div>
+          ${c.sent === '발송' ? '<span style="font-size:11px;color:#2e7d32">📨발송됨</span>' : ''}
+        </div>
+        ${c.work ? `<div style="font-size:12px;color:#555;margin-top:4px">📋 ${c.work}</div>` : ''}
+        <div style="font-size:12px;color:#999;margin-top:4px">${c.phone}</div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button onclick="window.location.href='tel:${c.phone}'" style="flex:1;padding:6px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">📞 전화</button>
+          <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:6px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">💬 문자</button>
+          <button onclick="editReservation(${c.rowIndex},'${c.work||''}')" style="padding:6px 8px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;cursor:pointer">✏️</button>
+          <button onclick="deleteReservation(${c.rowIndex},'${dateStr}')" style="padding:6px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px;cursor:pointer">🗑</button>
+        </div>
+      </div>` : `
       <div style="background:#f5f5f5;border-radius:8px;padding:12px;margin-bottom:8px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div>
@@ -964,6 +989,38 @@ function showCalendarDay(dateStr) {
   </div>`;
 }
 
+async function loadCalendar() {
+  if (allCustomers.length === 0) await loadCustomers();
+  try {
+    allReservations = await api({ action: 'getReservations' });
+  } catch(e) { allReservations = []; }
+  renderCalendar();
+}
+
+async function deleteReservation(rowIndex, dateStr) {
+  if (!confirm('이 예약을 삭제할까요?')) return;
+  const r = await apiPost({ action: 'deleteReservation', rowIndex });
+  if (r === 'ok') {
+    showToast('✅ 삭제 완료');
+    allReservations = allReservations.filter(r => r.rowIndex !== rowIndex);
+    // rowIndex 재정렬
+    allReservations.forEach((r, i) => { if (r.rowIndex > rowIndex) r.rowIndex--; });
+    showCalendarDay(dateStr);
+    renderCalendar();
+  } else showToast('❌ 실패');
+}
+
+async function editReservation(rowIndex, currentWork) {
+  const newWork = prompt('작업내용 수정:', currentWork);
+  if (newWork === null) return;
+  const r = await apiPost({ action: 'updateReservation', rowIndex, work: newWork });
+  if (r === 'ok') {
+    showToast('✅ 수정 완료');
+    const res = allReservations.find(r => r.rowIndex === rowIndex);
+    if (res) res.work = newWork;
+  } else showToast('❌ 실패');
+}
+
 async function addCalendarReservation(dateStr) {
   const name    = document.getElementById('cal-name').value.trim();
   const phone   = document.getElementById('cal-phone').value.trim();
@@ -975,6 +1032,8 @@ async function addCalendarReservation(dateStr) {
     const r = await apiPost({ action: 'addCalendarReservation', name, phone, carType, work, date: dateStr });
     if (r === 'ok') {
       showToast('✅ 예약 등록 완료! 하루 전 알림톡 예약됨');
+      allReservations = await api({ action: 'getReservations' });
+      renderCalendar();
       showCalendarDay(dateStr);
     } else {
       showToast('❌ 실패: ' + (r.error || ''));
