@@ -1168,10 +1168,20 @@ function showCalendarDay(dateStr) {
 }
 
 async function loadCalendar() {
-  // 고객목록은 이미 있으면 재사용
+  // 고객목록 캐시 확인
   const p1 = allCustomers.length === 0 ? loadCustomers() : Promise.resolve();
-  // 예약은 항상 최신으로
-  const p2 = api({ action: 'getReservations' }).then(r => { allReservations = r; }).catch(() => { allReservations = []; });
+
+  // 예약 캐시 확인
+  const p2 = (async () => {
+    const cached = cacheGet('reservations');
+    if (cached) { allReservations = cached; return; }
+    try {
+      const r = await api({ action: 'getReservations' });
+      allReservations = r;
+      cacheSet('reservations', r);
+    } catch(e) { allReservations = []; }
+  })();
+
   await Promise.all([p1, p2]);
   renderCalendar();
 }
