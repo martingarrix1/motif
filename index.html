@@ -1091,17 +1091,17 @@ function showToast(msg) {
 let calendarYear = new Date().getFullYear();
 let calendarMonth = new Date().getMonth();
 
-function calendarPrev() { calendarMonth--; if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; } renderCalendar(); }
-function calendarNext() { calendarMonth++; if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; } renderCalendar(); }
+function calendarPrev() { calendarMonth--; if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; } calendarCustomers = []; loadCalendar(); }
+function calendarNext() { calendarMonth++; if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; } calendarCustomers = []; loadCalendar(); }
 
 function renderCalendar() {
   const today = new Date(); today.setHours(0,0,0,0);
   const y = calendarYear, m = calendarMonth;
   document.getElementById('calendar-title').textContent = y + '년 ' + (m+1) + '월';
 
-  // 입고예정일 맵핑 (고객목록 + 입고예약)
+  // 입고예정일 맵핑 (캘린더 전용 데이터 + 입고예약)
   const entryMap = {};
-  allCustomers.forEach(c => {
+  (calendarCustomers.length ? calendarCustomers : allCustomers).forEach(c => {
     if (c.entryDate) {
       if (!entryMap[c.entryDate]) entryMap[c.entryDate] = [];
       entryMap[c.entryDate].push({ ...c, _type: 'customer' });
@@ -1139,7 +1139,8 @@ function renderCalendar() {
 }
 
 function showCalendarDay(dateStr) {
-  const custEvents = allCustomers.filter(c => c.entryDate === dateStr).map(c => ({...c, _type:'customer'}));
+  const src = calendarCustomers.length ? calendarCustomers : allCustomers;
+  const custEvents = src.filter(c => c.entryDate === dateStr).map(c => ({...c, _type:'customer'}));
   const resEvents  = allReservations.filter(r => r.date === dateStr).map(r => ({...r, _type:'reservation'}));
   const events = [...custEvents, ...resEvents];
   const el = document.getElementById('calendar-events');
@@ -1201,11 +1202,23 @@ function showCalendarDay(dateStr) {
   </div>`;
 }
 
-async function loadCalendar() {
-  // 고객목록 캐시 확인
-  const p1 = allCustomers.length === 0 ? loadCustomers() : Promise.resolve();
+let calendarCustomers = []; // 캘린더 전용 데이터
 
-  // 예약 캐시 확인
+async function loadCalendar() {
+  renderCalendarSkeleton();
+  const y = calendarYear, m = calendarMonth + 1;
+  const cacheKey = 'cal_' + y + '_' + m;
+
+  const p1 = (async () => {
+    const cached = cacheGet(cacheKey);
+    if (cached) { calendarCustomers = cached; return; }
+    try {
+      const data = await api({ action: 'getCalendarData', year: y, month: m });
+      calendarCustomers = data;
+      cacheSet(cacheKey, data);
+    } catch(e) { calendarCustomers = []; }
+  })();
+
   const p2 = (async () => {
     const cached = cacheGet('reservations');
     if (cached) { allReservations = cached; return; }
@@ -1218,6 +1231,11 @@ async function loadCalendar() {
 
   await Promise.all([p1, p2]);
   renderCalendar();
+}
+
+function renderCalendarSkeleton() {
+  document.getElementById('calendar-grid').innerHTML = 
+    Array(35).fill('<div style="min-height:52px;background:#f5f5f5;border-radius:8px;animation:pulse 1s infinite"></div>').join('');
 }
 
 async function deleteReservation(rowIndex, dateStr) {
