@@ -808,10 +808,21 @@ function renderAftercare(data) {
             <button onclick="window.location.href='tel:${c.phone}'" style="flex:1;padding:8px 10px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">📞 전화</button>
             <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:8px 10px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">💬 문자</button>
           </div>
+          <button onclick="sendDoneAlimtalkFromAftercare('${c.name}','${c.carType}','${c.phone}','${c.doneDate}','${c.warrantyPdfId||''}')" style="margin-top:6px;width:100%;padding:8px 10px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">📨 시공완료 알림톡 수동 발송</button>
       </div>
 
     `;
   }).join('');
+}
+
+async function sendDoneAlimtalkFromAftercare(name, carType, phone, doneDate, pdfId) {
+  if (!confirm(`${name} / ${carType} 시공완료 알림톡을 발송할까요?`)) return;
+  showToast('⏳ 발송 중...');
+  try {
+    const r = await apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate, pdfId });
+    if (r === 'ok') showToast('✅ 시공완료 알림톡 발송 완료!');
+    else showToast('❌ ' + (r.error || '발송 실패'));
+  } catch(e) { showToast('❌ ' + e.message); }
 }
 
 function showAftercareEdit(name, carType, doneDate, phone, category, summary, estPrice) {
