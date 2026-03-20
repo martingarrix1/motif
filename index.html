@@ -392,7 +392,7 @@ async function loadCustomers() {
       renderCustomers(allCustomers);
       return;
     }
-    const res = await api({ action: 'getCustomerList', offset: 0, limit: 30 });
+    const res = await api({ action: 'getCustomerList', offset: 0, limit: 15 });
     const data = res.data || res;
     const total = res.total || data.length;
     allCustomers = data;
@@ -716,20 +716,54 @@ async function showCustomerDetail(idx) {
 
 function closeModal() { document.getElementById('customer-modal').classList.remove('active'); }
 
+let aftercareOffset = 0;
+let aftercareTotal = 0;
+const AFTERCARE_LIMIT = 15;
+
 async function loadAftercare() {
+  aftercareOffset = 0;
   document.getElementById('aftercare-list').innerHTML = '<div class="loading">불러오는 중...</div>';
   try {
-    const cached = cacheGet('aftercare');
+    const cached = cacheGet('aftercare_0');
     if (cached) {
-      allAftercare = cached;
-      renderAftercare(cached);
+      allAftercare = cached.data;
+      aftercareTotal = cached.total;
+      renderAftercare(allAftercare);
+      renderAftercarLoadMoreBtn();
       return;
     }
-    const data = await api({ action: 'getAftercare' });
+    const res = await api({ action: 'getAftercare', offset: 0, limit: AFTERCARE_LIMIT });
+    const data = res.data || res;
+    const total = res.total || data.length;
     allAftercare = data;
-    cacheSet('aftercare', data);
-    renderAftercare(data);
+    aftercareTotal = total;
+    cacheSet('aftercare_0', { data, total });
+    renderAftercare(allAftercare);
+    renderAftercarLoadMoreBtn();
   } catch(e) { document.getElementById('aftercare-list').innerHTML = '<div class="loading">❌ ' + e.message + '</div>'; }
+}
+
+async function loadMoreAftercare() {
+  aftercareOffset += AFTERCARE_LIMIT;
+  try {
+    const res = await api({ action: 'getAftercare', offset: aftercareOffset, limit: AFTERCARE_LIMIT });
+    const more = res.data || [];
+    allAftercare = [...allAftercare, ...more];
+    renderAftercare(allAftercare);
+    renderAftercarLoadMoreBtn();
+  } catch(e) { showToast('❌ ' + e.message); }
+}
+
+function renderAftercarLoadMoreBtn() {
+  const existing = document.getElementById('aftercare-more-btn');
+  if (existing) existing.remove();
+  if (allAftercare.length < aftercareTotal) {
+    const btn = document.createElement('div');
+    btn.id = 'aftercare-more-btn';
+    btn.style.cssText = 'text-align:center;padding:16px';
+    btn.innerHTML = `<button onclick="loadMoreAftercare()" style="padding:10px 24px;background:#f5f5f5;border:1px solid #ddd;border-radius:8px;font-size:14px;color:#555;cursor:pointer">더보기 (${aftercareTotal - allAftercare.length}건 남음)</button>`;
+    document.getElementById('aftercare-list').after(btn);
+  }
 }
 
 
