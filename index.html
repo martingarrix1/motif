@@ -282,7 +282,7 @@ let allAftercare = [];
 let allReservations = [];
 
 // ─── 캐시 유틸 ───────────────────────────────────────────
-const CACHE_TTL = 3 * 60 * 1000; // 3분
+const CACHE_TTL = 10 * 60 * 1000; // 10분
 function cacheSet(key, data) {
   try { sessionStorage.setItem(key, JSON.stringify({ t: Date.now(), d: data })); } catch(e) {}
 }
