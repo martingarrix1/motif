@@ -280,6 +280,22 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbzv3xVInSeTmisnUk7X9u2e
 let allCustomers = [];
 let allAftercare = [];
 let allReservations = [];
+
+// ─── 캐시 유틸 ───────────────────────────────────────────
+const CACHE_TTL = 3 * 60 * 1000; // 3분
+function cacheSet(key, data) {
+  try { sessionStorage.setItem(key, JSON.stringify({ t: Date.now(), d: data })); } catch(e) {}
+}
+function cacheGet(key) {
+  try {
+    const v = sessionStorage.getItem(key);
+    if (!v) return null;
+    const p = JSON.parse(v);
+    if (Date.now() - p.t > CACHE_TTL) { sessionStorage.removeItem(key); return null; }
+    return p.d;
+  } catch(e) { return null; }
+}
+function cacheClear(key) { try { sessionStorage.removeItem(key); } catch(e) {} }
 let customerOffset = 0;
 let hasMoreCustomers = true;
 
@@ -368,12 +384,21 @@ async function loadCustomers() {
   hasMoreCustomers = true;
   document.getElementById('customer-list').innerHTML = '<div class="loading">불러오는 중...</div>';
   try {
+    const cached = cacheGet('customers_0');
+    if (cached) {
+      allCustomers = cached.data;
+      window._customerTotal = cached.total;
+      hasMoreCustomers = allCustomers.length < cached.total;
+      renderCustomers(allCustomers);
+      return;
+    }
     const res = await api({ action: 'getCustomerList', offset: 0, limit: 30 });
     const data = res.data || res;
     const total = res.total || data.length;
     allCustomers = data;
     hasMoreCustomers = allCustomers.length < total;
     window._customerTotal = total;
+    cacheSet('customers_0', { data, total });
     renderCustomers(data);
   } catch(e) { document.getElementById('customer-list').innerHTML = '<div class="loading">❌ ' + e.message + '</div>'; }
 }
@@ -521,6 +546,7 @@ async function setDoneDate(timestamp, name, carType, phone, category, summary, e
     const r = await apiPost({ action: 'setDoneDate', timestamp, name, carType, phone, category, summary, estPrice, doneDate });
     if (r.success) {
       showToast('✅ 등록 완료! 보증서 생성됨');
+      cacheClear('customers_0'); cacheClear('aftercare');
       allCustomers = [];
       loadCustomers();
       const btn = document.querySelector('[data-done-send]');
@@ -693,8 +719,15 @@ function closeModal() { document.getElementById('customer-modal').classList.remo
 async function loadAftercare() {
   document.getElementById('aftercare-list').innerHTML = '<div class="loading">불러오는 중...</div>';
   try {
+    const cached = cacheGet('aftercare');
+    if (cached) {
+      allAftercare = cached;
+      renderAftercare(cached);
+      return;
+    }
     const data = await api({ action: 'getAftercare' });
     allAftercare = data;
+    cacheSet('aftercare', data);
     renderAftercare(data);
   } catch(e) { document.getElementById('aftercare-list').innerHTML = '<div class="loading">❌ ' + e.message + '</div>'; }
 }
@@ -1002,6 +1035,7 @@ async function deleteCustomer(timestamp) {
     const r = await apiPost({ action: 'deleteCustomer', timestamp });
     if (r === 'ok') {
       showToast('✅ 삭제 완료!');
+      cacheClear('customers_0');
       allCustomers = allCustomers.filter(c => c.timestamp !== timestamp);
       renderCustomers(allCustomers);
     } else {
