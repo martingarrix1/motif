@@ -730,7 +730,14 @@ function renderAftercare(data) {
     if (pinnedA && !pinnedB) return 1;
     if (!pinnedA && pinnedB) return -1;
 
-    // 2. 시공완료일 기준 오늘과 가까운 순
+    // 2. 오늘이 2주후 날짜인 고객 맨 위
+    const todayStr = today.toISOString().split('T')[0];
+    const aToday = fa ? fa.toISOString().split('T')[0] === todayStr : false;
+    const bToday = fb ? fb.toISOString().split('T')[0] === todayStr : false;
+    if (aToday && !bToday) return -1;
+    if (!aToday && bToday) return 1;
+
+    // 3. 시공완료일 기준 오늘과 가까운 순
     const da2 = a.doneDate ? new Date(a.doneDate) : null;
     const db2 = b.doneDate ? new Date(b.doneDate) : null;
     if (da2 && !db2) return -1;
@@ -741,7 +748,7 @@ function renderAftercare(data) {
       if (diffA !== diffB) return diffA - diffB;
     }
 
-    // 3. 상담 날짜 최신순
+    // 4. 상담 날짜 최신순
     const aa = a.addedDate ? new Date(a.addedDate) : new Date(0);
     const ab = b.addedDate ? new Date(b.addedDate) : new Date(0);
     return ab - aa;
@@ -930,8 +937,9 @@ async function updateWarranty(name, carType, doneDate, value) {
       if (value === '보증서 발행 1차' || value === '보증서 발행 2차') {
         const customer = allAftercare.find(c => c.name === name && c.carType === carType && c.doneDate === doneDate);
         const pdfId = customer ? customer.warrantyPdfId : '';
-        await apiPost({ action: 'sendWarrantyAlimtalk', name, carType, doneDate, warrantyValue: value, pdfId });
-        showToast('✅ 알림톡 발송 완료!');
+        const ar = await apiPost({ action: 'sendWarrantyAlimtalk', name, carType, doneDate, warrantyValue: value, pdfId });
+        if (ar === 'ok') showToast('✅ 알림톡 발송 완료!');
+        else showToast('❌ 알림톡 실패: ' + (ar.error || JSON.stringify(ar)));
       }
       allAftercare = []; loadAftercare();
     } else showToast('❌ 행을 찾지 못했어');
