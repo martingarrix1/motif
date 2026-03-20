@@ -1220,14 +1220,42 @@ async function addCalendarReservation(dateStr) {
   const carType = document.getElementById('cal-cartype').value.trim();
   const work    = document.getElementById('cal-work').value.trim();
   if (!name || !phone || !carType) { showToast('❌ 이름, 전화번호, 차종을 입력해주세요'); return; }
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const tomorrowStr = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+  const isToday    = dateStr === todayStr;
+  const isTomorrow = dateStr === tomorrowStr;
+  const hour = new Date().getHours();
+
+  // 오늘 or 내일(10시 이후) → 즉시 발송 여부 확인
+  if (isToday || (isTomorrow && hour >= 10)) {
+    const send = confirm(`${name} / ${carType}
+📨 알림톡을 지금 바로 발송할까요?`);
+    if (!send) {
+      // 발송 안 하고 등록만
+      showToast('⏳ 등록 중...');
+      try {
+        const r = await apiPost({ action: 'addCalendarReservation', name, phone, carType, work, date: dateStr, skipAlimtalk: true });
+        if (r === 'ok') {
+          showToast('✅ 예약 등록 완료!');
+          allReservations = await api({ action: 'getReservations' });
+          allCustomers = []; await loadCustomers();
+          renderCalendar(); showCalendarDay(dateStr);
+        } else showToast('❌ 실패: ' + (r.error || ''));
+      } catch(e) { showToast('❌ ' + e.message); }
+      return;
+    }
+  }
+
   showToast('⏳ 등록 중...');
   try {
     const r = await apiPost({ action: 'addCalendarReservation', name, phone, carType, work, date: dateStr });
     if (r === 'ok') {
-      showToast('✅ 예약 등록 완료! 하루 전 알림톡 예약됨');
+      const msg = (isToday || (isTomorrow && hour >= 10)) ? '✅ 예약 등록 + 알림톡 발송 완료!' : '✅ 예약 등록 완료! 하루 전 알림톡 예약됨';
+      showToast(msg);
       allReservations = await api({ action: 'getReservations' });
-      renderCalendar();
-      showCalendarDay(dateStr);
+      allCustomers = []; await loadCustomers();
+      renderCalendar(); showCalendarDay(dateStr);
     } else {
       showToast('❌ 실패: ' + (r.error || ''));
     }
