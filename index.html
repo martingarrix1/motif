@@ -767,7 +767,10 @@ function renderAftercare(data) {
             <option value="완료" ${c.status==='완료'?'selected':''}>완료</option>
           </select>
         </div>
-        <div class="customer-car">${c.carType} · ${c.phone}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+          <div class="customer-car" onclick="copyPhone('${c.phone}')" style="cursor:pointer;text-decoration:underline dotted">${c.carType} · ${c.phone}</div>
+          <button onclick="showAftercareEdit('${c.name}','${c.carType}','${c.doneDate}','${c.phone}','${c.category}','${c.summary}','${c.estPrice}')" style="padding:4px 8px;background:#f5f5f5;border:1px solid #ddd;border-radius:6px;font-size:11px;color:#555;cursor:pointer">✏️ 수정</button>
+        </div>
         <div style="font-size:clamp(12px,3vw,14px);color:#999;margin-top:3px">${c.category||''}</div>
         ${c.summary ? `<div style="font-size:clamp(12px,3vw,14px);color:#777;margin-top:4px;line-height:1.5">${c.summary}</div>` : ''}
         <div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-top:12px;padding:10px;background:#f8f8f8;border-radius:10px;flex-wrap:wrap">
@@ -797,6 +800,68 @@ function renderAftercare(data) {
 
     `;
   }).join('');
+}
+
+function showAftercareEdit(name, carType, doneDate, phone, category, summary, estPrice) {
+  const popup = document.createElement('div');
+  popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  popup.innerHTML = `
+    <div style="background:white;border-radius:16px;padding:24px;max-width:360px;width:100%">
+      <div style="font-size:16px;font-weight:700;margin-bottom:16px">✏️ ${name} · ${carType} 수정</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div>
+          <div style="font-size:12px;color:#666;margin-bottom:4px">전화번호</div>
+          <input id="ae-phone" type="text" inputmode="numeric" value="${phone}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
+        </div>
+        <div>
+          <div style="font-size:12px;color:#666;margin-bottom:4px">차종</div>
+          <input id="ae-cartype" type="text" value="${carType}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
+        </div>
+        <div>
+          <div style="font-size:12px;color:#666;margin-bottom:4px">시공항목</div>
+          <input id="ae-category" type="text" value="${category}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
+        </div>
+        <div>
+          <div style="font-size:12px;color:#666;margin-bottom:4px">상담내용</div>
+          <textarea id="ae-summary" rows="2" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box;resize:none">${summary}</textarea>
+        </div>
+        <div>
+          <div style="font-size:12px;color:#666;margin-bottom:4px">금액(만원)</div>
+          <input id="ae-price" type="text" inputmode="numeric" value="${estPrice}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button onclick="this.closest('div[style*=fixed]').remove()" style="flex:1;padding:12px;background:#f5f5f5;color:#555;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">취소</button>
+        <button onclick="saveAftercareEdit('${name}','${carType}','${doneDate}',this.closest('div[style*=fixed]'))" style="flex:1;padding:12px;background:#1a73e8;color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">저장</button>
+      </div>
+    </div>`;
+  document.body.appendChild(popup);
+}
+
+async function saveAftercareEdit(name, carType, doneDate, popupEl) {
+  const phone    = document.getElementById('ae-phone').value.trim();
+  const newCar   = document.getElementById('ae-cartype').value.trim();
+  const category = document.getElementById('ae-category').value.trim();
+  const summary  = document.getElementById('ae-summary').value.trim();
+  const estPrice = document.getElementById('ae-price').value.trim();
+
+  const fields = [
+    { field: 'phone', value: phone },
+    { field: 'carType', value: newCar },
+    { field: 'category', value: category },
+    { field: 'summary', value: summary },
+    { field: 'estPrice', value: estPrice }
+  ];
+
+  try {
+    for (const f of fields) {
+      await apiPost({ action: 'updateAftercareField', name, carType, doneDate, field: f.field, value: f.value });
+    }
+    showToast('✅ 수정 완료!');
+    popupEl.remove();
+    allAftercare = [];
+    loadAftercare();
+  } catch(e) { showToast('❌ ' + e.message); }
 }
 
 async function togglePin(name, carType, doneDate, checked) {
