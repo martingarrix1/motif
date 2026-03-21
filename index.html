@@ -1164,6 +1164,7 @@ function showCalendarDay(dateStr) {
           <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:6px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">💬 문자</button>
           <button onclick="editReservation(${c.rowIndex},'${c.work||''}')" style="padding:6px 8px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;cursor:pointer">✏️</button>
           <button onclick="editReservationDate(${c.rowIndex},'${c.date}','${dateStr}')" style="padding:6px 8px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:6px;font-size:12px;cursor:pointer">📅</button>
+          <button onclick="sendDoneAlimtalkFromAftercare('${c.name}','${c.carType}','${c.phone}','${c.date}','')" style="padding:6px 8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:12px;cursor:pointer">📨완료</button>
           <button onclick="deleteReservation(${c.rowIndex},'${dateStr}')" style="padding:6px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px;cursor:pointer">🗑</button>
         </div>
       </div>` : `
@@ -1344,9 +1345,12 @@ async function addCalendarReservation(dateStr) {
     }
   }
 
+  // 예약안내 알림톡 발송 여부
+  const sendReservation = confirm(`${name} / ${carType}\n📨 예약안내 알림톡을 발송할까요?`);
+
   showToast('⏳ 등록 중...');
   try {
-    const r = await apiPost({ action: 'addCalendarReservation', name, phone, carType, work, date: dateStr });
+    const r = await apiPost({ action: 'addCalendarReservation', name, phone, carType, work, date: dateStr, sendReservationAlimtalk: sendReservation });
     if (r === 'ok') {
       const msg = (isToday || (isTomorrow && hour >= 10)) ? '✅ 예약 등록 + 알림톡 발송 완료!' : '✅ 예약 등록 완료! 하루 전 알림톡 예약됨';
       showToast(msg);
