@@ -281,36 +281,110 @@ let allCustomers = [];
 let allAftercare = [];
 let allReservations = [];
 
-// ─── 캐시 유틸 ───────────────────────────────────────────
-const CACHE_TTL = 10 * 60 * 1000; // 10분
-function cacheSet(key, data) {
-  try { sessionStorage.setItem(key, JSON.stringify({ t: Date.now(), d: data })); } catch(e) {}
+const CLIENT_CACHE_NS = 'motif_v3_20260321';
+const CACHE_TTL = 2 * 60 * 1000;
+const SHORT_TTL = 45 * 1000;
+const MONTH_TTL = 3 * 60 * 1000;
+const CUSTOMER_PAGE_SIZE = 20;
+const AFTERCARE_PAGE_SIZE = 15;
+
+function formatKSTDate(dateLike = new Date()) {
+  const d = dateLike instanceof Date ? dateLike : new Date(dateLike);
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(d).reduce((acc, part) => {
+    if (part.type !== 'literal') acc[part.type] = part.value;
+    return acc;
+  }, {});
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+function todayKST() { return formatKSTDate(new Date()); }
+
+function namespacedKey(key) {
+  return `${CLIENT_CACHE_NS}_${key}`;
+}
+function cacheSet(key, data, ttl = CACHE_TTL) {
+  try {
+    sessionStorage.setItem(namespacedKey(key), JSON.stringify({ t: Date.now(), ttl, d: data }));
+  } catch(e) {}
 }
 function cacheGet(key) {
   try {
-    const v = sessionStorage.getItem(key);
+    const v = sessionStorage.getItem(namespacedKey(key));
     if (!v) return null;
     const p = JSON.parse(v);
-    if (Date.now() - p.t > CACHE_TTL) { sessionStorage.removeItem(key); return null; }
+    const ttl = p.ttl || CACHE_TTL;
+    if (Date.now() - p.t > ttl) {
+      sessionStorage.removeItem(namespacedKey(key));
+      return null;
+    }
     return p.d;
   } catch(e) { return null; }
 }
-function cacheClear(key) { try { sessionStorage.removeItem(key); } catch(e) {} }
+function cacheClear(key) {
+  try { sessionStorage.removeItem(namespacedKey(key)); } catch(e) {}
+}
+function clearDataCaches(scope = 'all') {
+  try {
+    const prefixes = {
+      customer: ['customers_page_0', 'customers_loaded', 'customer_search'],
+      aftercare: ['aftercare_0'],
+      reservation: ['reservations'],
+      calendar: ['cal_']
+    };
+    const removeByPrefix = (rawPrefix) => {
+      const prefix = namespacedKey(rawPrefix);
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const k = sessionStorage.key(i);
+        if (k && k.startsWith(prefix)) sessionStorage.removeItem(k);
+      }
+    };
+    if (scope === 'all') {
+      ['customer', 'aftercare', 'reservation', 'calendar'].forEach(s => clearDataCaches(s));
+      return;
+    }
+    (prefixes[scope] || []).forEach(removeByPrefix);
+    if (scope === 'customer') removeByPrefix('cal_');
+    if (scope === 'reservation') removeByPrefix('cal_');
+  } catch(e) {}
+}
+
 let customerOffset = 0;
 let hasMoreCustomers = true;
+let _customerLoading = false;
+let _calendarLoadingKey = '';
+let _calendarLoadToken = 0;
+
+async function fetchJson(url, options = {}) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  try {
+    const res = await fetch(url, {
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json;charset=utf-8' },
+      ...options,
+      signal: controller.signal
+    });
+    if (!res.ok) throw new Error('네트워크 오류 ' + res.status);
+    return await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 async function api(params) {
-  const url = API_URL + '?' + new URLSearchParams(params);
-  const res = await fetch(url);
-  return res.json();
+  const qs = new URLSearchParams({ ...params, _ts: String(Date.now()) });
+  return fetchJson(API_URL + '?' + qs.toString());
 }
 
 async function apiPost(body) {
-  const res = await fetch(API_URL, {
+  return fetchJson(API_URL, {
     method: 'POST',
     body: JSON.stringify(body)
   });
-  return res.json();
 }
 
 document.querySelectorAll('.check-item').forEach(label => {
@@ -325,10 +399,13 @@ function showPage(page, btn) {
   document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
   if (btn) btn.classList.add('active');
-  if (page === 'customers' && allCustomers.length === 0) loadCustomers();
-  if (page === 'aftercare' && allAftercare.length === 0) loadAftercare();
-  if (page === 'todo') initTodo();
-  if (page === 'calendar') { loadCalendar(); }
+
+  requestAnimationFrame(() => {
+    if (page === 'customers' && allCustomers.length === 0) loadCustomers();
+    if (page === 'aftercare' && allAftercare.length === 0) loadAftercare();
+    if (page === 'todo') initTodo();
+    if (page === 'calendar') loadCalendar();
+  });
 }
 
 async function submitConsult() {
@@ -368,7 +445,7 @@ async function submitConsult() {
   showToast('전송 중... ⏳');
   try {
     const r = await apiPost({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery });
-    if (r.success) { showToast('✅ 전송 완료!'); resetForm(); allCustomers = []; }
+    if (r.success) { showToast('✅ 전송 완료!'); resetForm(); allCustomers = []; clearDataCaches('all'); }
     else showToast('❌ 오류: ' + (r.error || ''));
   } catch(e) { showToast('❌ 오류: ' + e.message); }
 }
@@ -379,39 +456,64 @@ function resetForm() {
   document.querySelectorAll('.check-item').forEach(el => { el.querySelector('input').checked = false; el.classList.remove('checked'); });
 }
 
-async function loadCustomers() {
+async function loadCustomers(force = false) {
+  if (_customerLoading) return;
+  _customerLoading = true;
   customerOffset = 0;
   hasMoreCustomers = true;
   document.getElementById('customer-list').innerHTML = '<div class="loading">불러오는 중...</div>';
   try {
-    const cached = cacheGet('customers_0');
+    const cacheKey = 'customers_page_0';
+    const cached = !force ? cacheGet(cacheKey) : null;
     if (cached) {
-      allCustomers = cached.data;
-      window._customerTotal = cached.total;
-      hasMoreCustomers = allCustomers.length < cached.total;
+      allCustomers = cached.data || [];
+      customerOffset = allCustomers.length;
+      window._customerTotal = cached.total || allCustomers.length;
+      hasMoreCustomers = allCustomers.length < window._customerTotal;
       renderCustomers(allCustomers);
+      _customerLoading = false;
       return;
     }
-    const res = await api({ action: 'getCustomerList', offset: 0, limit: 15 });
-    const data = res.data || res;
+
+    const res = await api({ action: 'getCustomerList', offset: 0, limit: CUSTOMER_PAGE_SIZE });
+    const data = res.data || res || [];
     const total = res.total || data.length;
     allCustomers = data;
-    hasMoreCustomers = allCustomers.length < total;
+    customerOffset = data.length;
+    hasMoreCustomers = customerOffset < total;
     window._customerTotal = total;
-    cacheSet('customers_0', { data, total });
+    cacheSet(cacheKey, { data, total }, SHORT_TTL);
     renderCustomers(data);
-  } catch(e) { document.getElementById('customer-list').innerHTML = '<div class="loading">❌ ' + e.message + '</div>'; }
+  } catch(e) {
+    document.getElementById('customer-list').innerHTML = '<div class="loading">❌ ' + e.message + '</div>';
+  } finally {
+    _customerLoading = false;
+  }
 }
 
 async function loadMoreCustomers() {
-  customerOffset += 30;
+  if (_customerLoading || !hasMoreCustomers || window._isSearchMode) return;
+  _customerLoading = true;
   try {
-    const data = await api({ action: 'getCustomerList', offset: customerOffset });
-    if (data.length === 0) { showToast('더 이상 데이터가 없어요'); return; }
+    const nextOffset = allCustomers.length;
+    const res = await api({ action: 'getCustomerList', offset: nextOffset, limit: CUSTOMER_PAGE_SIZE });
+    const data = res.data || res || [];
+    const total = res.total || window._customerTotal || data.length;
+    if (!data.length) {
+      hasMoreCustomers = false;
+      showToast('더 이상 데이터가 없어요');
+      return;
+    }
     allCustomers = [...allCustomers, ...data];
-    if (data.length < 150) hasMoreCustomers = false;
+    customerOffset = allCustomers.length;
+    window._customerTotal = total;
+    hasMoreCustomers = customerOffset < total;
     renderCustomers(allCustomers);
-  } catch(e) { showToast('❌ ' + e.message); }
+  } catch(e) {
+    showToast('❌ ' + e.message);
+  } finally {
+    _customerLoading = false;
+  }
 }
 
 function renderCustomers(data) {
@@ -446,7 +548,7 @@ function renderCustomers(data) {
   const phoneCount = {};
   sorted.forEach(c => { phoneCount[c.phone] = (phoneCount[c.phone] || 0) + 1; });
 
-  const todayStr = new Date().toISOString().slice(0,10);
+  const todayStr = todayKST();
   const todayCustomers = sorted.filter(c => c.entryDate === todayStr);
 
   let html = '';
@@ -550,7 +652,7 @@ async function setDoneDate(timestamp, name, carType, phone, category, summary, e
     const r = await apiPost({ action: 'setDoneDate', timestamp, name, carType, phone, category, summary, estPrice, doneDate });
     if (r.success) {
       showToast('✅ 등록 완료! 보증서 생성됨');
-      cacheClear('customers_0'); cacheClear('aftercare');
+      clearDataCaches('all');
       const idx = allCustomers.findIndex(c => c.timestamp === timestamp);
       if (idx !== -1) { allCustomers[idx].doneDate = doneDate; renderCustomers(allCustomers); }
       const btn = document.querySelector('[data-done-send]');
@@ -593,8 +695,8 @@ async function completeCustomer(timestamp) {
     const r = await apiPost({ action: 'completeCustomer', timestamp });
     if (r === 'ok') {
       showToast('✅ 완료 처리됨');
-      cacheClear('customers_0');
-      const today = new Date().toISOString().slice(0,10);
+      clearDataCaches('customer');
+      const today = todayKST();
       const idx = allCustomers.findIndex(c => c.timestamp === timestamp);
       if (idx !== -1) { allCustomers[idx].doneDate = today; renderCustomers(allCustomers); }
     } else showToast('❌ 실패');
@@ -610,7 +712,7 @@ async function changeEntryDate(timestamp, value) {
     const r = await apiPost({ action: 'updateCustomerField', timestamp, field: 'entryDate', value });
     if (r === 'ok') {
       showToast('✅ 날짜 변경됨');
-      cacheClear('customers_0');
+      clearDataCaches('customer');
       const idx = allCustomers.findIndex(c => c.timestamp === timestamp);
       if (idx !== -1) { allCustomers[idx].entryDate = value; renderCustomers(allCustomers); }
     } else showToast('❌ 실패');
@@ -623,7 +725,7 @@ async function clearEntryDate(timestamp) {
     const r = await apiPost({ action: 'updateCustomerField', timestamp, field: 'entryDate', value: '' });
     if (r === 'ok') {
       showToast('✅ 입고 취소됨');
-      cacheClear('customers_0');
+      clearDataCaches('customer');
       const idx = allCustomers.findIndex(c => c.timestamp === timestamp);
       if (idx !== -1) { allCustomers[idx].entryDate = ''; renderCustomers(allCustomers); }
     } else showToast('❌ 실패');
@@ -740,7 +842,7 @@ function closeModal() { document.getElementById('customer-modal').classList.remo
 
 let aftercareOffset = 0;
 let aftercareTotal = 0;
-const AFTERCARE_LIMIT = 15;
+const AFTERCARE_LIMIT = AFTERCARE_PAGE_SIZE;
 
 async function loadAftercare() {
   aftercareOffset = 0;
@@ -759,7 +861,7 @@ async function loadAftercare() {
     const total = res.total || data.length;
     allAftercare = data;
     aftercareTotal = total;
-    cacheSet('aftercare_0', { data, total });
+    cacheSet('aftercare_0', { data, total }, CACHE_TTL);
     renderAftercare(allAftercare);
     renderAftercarLoadMoreBtn();
   } catch(e) { document.getElementById('aftercare-list').innerHTML = '<div class="loading">❌ ' + e.message + '</div>'; }
@@ -1091,7 +1193,7 @@ async function deleteCustomer(timestamp) {
     const r = await apiPost({ action: 'deleteCustomer', timestamp });
     if (r === 'ok') {
       showToast('✅ 삭제 완료!');
-      cacheClear('customers_0');
+      clearDataCaches('all');
       allCustomers = allCustomers.filter(c => c.timestamp !== timestamp);
       renderCustomers(allCustomers);
     } else {
@@ -1227,46 +1329,64 @@ function showCalendarDay(dateStr) {
 
 let calendarCustomers = []; // 캘린더 전용 데이터
 
-async function loadCalendar() {
-  // 1. 고객목록 캐시에서 즉시 달력 그리기
-  if (allCustomers.length > 0 || cacheGet('customers_0')) {
-    if (allCustomers.length === 0) {
-      const c = cacheGet('customers_0');
-      if (c) allCustomers = c.data;
-    }
-    calendarCustomers = allCustomers;
+async function loadCalendar(force = false) {
+  const y = calendarYear;
+  const m = calendarMonth + 1;
+  const loadKey = y + '-' + m + '-' + force;
+  if (_calendarLoadingKey === loadKey) return;
+  _calendarLoadingKey = loadKey;
+  const token = ++_calendarLoadToken;
+
+  const monthCacheKey = 'cal_' + y + '_' + m;
+  const customerCache = cacheGet('customers_page_0');
+  const monthCached = !force ? cacheGet(monthCacheKey) : null;
+  const reservationsCached = !force ? cacheGet('reservations') : null;
+
+  if (monthCached) {
+    calendarCustomers = monthCached;
+  } else if (allCustomers.length > 0) {
+    calendarCustomers = allCustomers.filter(c => (c.entryDate || '').startsWith(`${y}-${String(m).padStart(2, '0')}-`));
+  } else if (customerCache && customerCache.data) {
+    allCustomers = customerCache.data;
+    calendarCustomers = allCustomers.filter(c => (c.entryDate || '').startsWith(`${y}-${String(m).padStart(2, '0')}-`));
+  }
+
+  if (reservationsCached) allReservations = reservationsCached;
+
+  if (calendarCustomers.length || allReservations.length) {
     renderCalendar();
   } else {
     renderCalendarSkeleton();
   }
 
-  // 2. 예약 데이터 로드 (캐시 우선)
-  const resCached = cacheGet('reservations');
-  if (resCached) {
-    allReservations = resCached;
-    renderCalendar();
-  } else {
-    api({ action: 'getReservations' }).then(r => {
-      allReservations = r;
-      cacheSet('reservations', r);
-      renderCalendar();
-    }).catch(() => {});
+  const tasks = [];
+  if (!reservationsCached || force) {
+    tasks.push(
+      api({ action: 'getReservations' }).then(r => {
+        if (token !== _calendarLoadToken) return;
+        allReservations = Array.isArray(r) ? r : [];
+        cacheSet('reservations', allReservations, SHORT_TTL);
+      }).catch(() => {})
+    );
   }
 
-  // 3. 백그라운드에서 해당 월 정확한 데이터 업데이트
-  const y = calendarYear, m = calendarMonth + 1;
-  const cacheKey = 'cal_' + y + '_' + m;
-  const calCached = cacheGet(cacheKey);
-  if (calCached) {
-    calendarCustomers = calCached;
-    renderCalendar();
-  } else {
-    api({ action: 'getCalendarData', year: y, month: m }).then(data => {
-      calendarCustomers = data;
-      cacheSet(cacheKey, data);
-      renderCalendar();
-    }).catch(() => {});
+  if (!monthCached || force) {
+    tasks.push(
+      api({ action: 'getCalendarData', year: y, month: m }).then(data => {
+        if (token !== _calendarLoadToken) return;
+        calendarCustomers = Array.isArray(data) ? data : [];
+        cacheSet(monthCacheKey, calendarCustomers, MONTH_TTL);
+      }).catch(() => {})
+    );
   }
+
+  if (tasks.length) {
+    await Promise.all(tasks);
+    if (token !== _calendarLoadToken) return;
+    renderCalendar();
+  }
+
+  _calendarLoadingKey = '';
 }
 
 function renderCalendarSkeleton() {
@@ -1279,11 +1399,11 @@ async function deleteReservation(rowIndex, dateStr) {
   const r = await apiPost({ action: 'deleteReservation', rowIndex });
   if (r === 'ok') {
     showToast('✅ 삭제 완료');
+    clearDataCaches('reservation');
     allReservations = allReservations.filter(r => r.rowIndex !== rowIndex);
-    // rowIndex 재정렬
     allReservations.forEach((r, i) => { if (r.rowIndex > rowIndex) r.rowIndex--; });
+    await loadCalendar(true);
     showCalendarDay(dateStr);
-    renderCalendar();
   } else showToast('❌ 실패');
 }
 
@@ -1302,8 +1422,9 @@ async function deleteCustomerFromCalendar(timestamp, dateStr) {
     const r = await apiPost({ action: 'deleteCustomer', timestamp });
     if (r === 'ok') {
       showToast('✅ 삭제 완료');
+      clearDataCaches('all');
       allCustomers = allCustomers.filter(c => c.timestamp !== timestamp);
-      renderCalendar();
+      await loadCalendar(true);
       showCalendarDay(dateStr);
     } else showToast('❌ 실패');
   } catch(e) { showToast('❌ ' + e.message); }
@@ -1316,8 +1437,9 @@ async function editReservationDate(rowIndex, currentDate, oldDateStr) {
     const r = await apiPost({ action: 'updateReservationDate', rowIndex, date: newDate });
     if (r === 'ok') {
       showToast('✅ 날짜 변경됨');
+      clearDataCaches('reservation');
       allReservations = await api({ action: 'getReservations' });
-      renderCalendar();
+      await loadCalendar(true);
       showCalendarDay(newDate);
     } else showToast('❌ 실패');
   } catch(e) { showToast('❌ ' + e.message); }
@@ -1329,9 +1451,10 @@ async function editCustomerEntryDate(timestamp, dateStr) {
   const r = await apiPost({ action: 'updateCustomerField', timestamp, field: 'entryDate', value: newDate });
   if (r === 'ok') {
     showToast('✅ 날짜 변경됨');
+    clearDataCaches('customer');
     allCustomers = [];
-    await loadCustomers();
-    renderCalendar();
+    await loadCustomers(true);
+    await loadCalendar(true);
     showCalendarDay(newDate);
   } else showToast('❌ 실패');
 }
@@ -1354,8 +1477,10 @@ async function addCalendarReservation(dateStr) {
   const work    = document.getElementById('cal-work').value.trim();
   if (!name || !phone || !carType) { showToast('❌ 이름, 전화번호, 차종을 입력해주세요'); return; }
 
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const tomorrowStr = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+  const todayStr = todayKST();
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = formatKSTDate(tomorrow);
   const isToday    = dateStr === todayStr;
   const isTomorrow = dateStr === tomorrowStr;
   const hour = new Date().getHours();
@@ -1377,9 +1502,12 @@ async function addCalendarReservation(dateStr) {
     if (r === 'ok') {
       const msg = (isToday || (isTomorrow && hour >= 10)) && !skipImmediate ? '✅ 예약 등록 + 알림톡 발송 완료!' : '✅ 예약 등록 완료! 하루 전 알림톡 예약됨';
       showToast(msg);
+      clearDataCaches('all');
       allReservations = await api({ action: 'getReservations' });
-      allCustomers = []; await loadCustomers();
-      renderCalendar(); showCalendarDay(dateStr);
+      allCustomers = [];
+      await loadCustomers(true);
+      await loadCalendar(true);
+      showCalendarDay(dateStr);
     } else {
       showToast('❌ 실패: ' + (r.error || ''));
     }
@@ -1465,7 +1593,7 @@ function renderTodos() {
     if (!groups[t.date]) groups[t.date] = [];
     groups[t.date].push(t);
   });
-  const today = new Date().toISOString().slice(0,10);
+  const today = todayKST();
   let html = '';
   Object.keys(groups).sort().forEach(date => {
     const isToday = date === today;
@@ -1489,7 +1617,7 @@ function renderTodos() {
 
 function initTodo() {
   const dateInput = document.getElementById('todo-date');
-  if (!dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
+  if (!dateInput.value) dateInput.value = todayKST();
   renderTodos();
 }
 </script>
