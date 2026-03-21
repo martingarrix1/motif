@@ -1091,8 +1091,8 @@ function showToast(msg) {
 let calendarYear = new Date().getFullYear();
 let calendarMonth = new Date().getMonth();
 
-function calendarPrev() { calendarMonth--; if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; } calendarCustomers = []; loadCalendar(); }
-function calendarNext() { calendarMonth++; if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; } calendarCustomers = []; loadCalendar(); }
+function calendarPrev() { calendarMonth--; if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; } loadCalendar(); }
+function calendarNext() { calendarMonth++; if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; } loadCalendar(); }
 
 function renderCalendar() {
   const today = new Date(); today.setHours(0,0,0,0);
@@ -1206,32 +1206,45 @@ function showCalendarDay(dateStr) {
 let calendarCustomers = []; // 캘린더 전용 데이터
 
 async function loadCalendar() {
-  renderCalendarSkeleton();
-  const y = calendarYear, m = calendarMonth + 1;
-  const cacheKey = 'cal_' + y + '_' + m;
+  // 1. 고객목록 캐시에서 즉시 달력 그리기
+  if (allCustomers.length > 0 || cacheGet('customers_0')) {
+    if (allCustomers.length === 0) {
+      const c = cacheGet('customers_0');
+      if (c) allCustomers = c.data;
+    }
+    calendarCustomers = allCustomers;
+    renderCalendar();
+  } else {
+    renderCalendarSkeleton();
+  }
 
-  const p1 = (async () => {
-    const cached = cacheGet(cacheKey);
-    if (cached) { calendarCustomers = cached; return; }
-    try {
-      const data = await api({ action: 'getCalendarData', year: y, month: m });
-      calendarCustomers = data;
-      cacheSet(cacheKey, data);
-    } catch(e) { calendarCustomers = []; }
-  })();
-
-  const p2 = (async () => {
-    const cached = cacheGet('reservations');
-    if (cached) { allReservations = cached; return; }
-    try {
-      const r = await api({ action: 'getReservations' });
+  // 2. 예약 데이터 로드 (캐시 우선)
+  const resCached = cacheGet('reservations');
+  if (resCached) {
+    allReservations = resCached;
+    renderCalendar();
+  } else {
+    api({ action: 'getReservations' }).then(r => {
       allReservations = r;
       cacheSet('reservations', r);
-    } catch(e) { allReservations = []; }
-  })();
+      renderCalendar();
+    }).catch(() => {});
+  }
 
-  await Promise.all([p1, p2]);
-  renderCalendar();
+  // 3. 백그라운드에서 해당 월 정확한 데이터 업데이트
+  const y = calendarYear, m = calendarMonth + 1;
+  const cacheKey = 'cal_' + y + '_' + m;
+  const calCached = cacheGet(cacheKey);
+  if (calCached) {
+    calendarCustomers = calCached;
+    renderCalendar();
+  } else {
+    api({ action: 'getCalendarData', year: y, month: m }).then(data => {
+      calendarCustomers = data;
+      cacheSet(cacheKey, data);
+      renderCalendar();
+    }).catch(() => {});
+  }
 }
 
 function renderCalendarSkeleton() {
