@@ -442,6 +442,10 @@ function renderCustomers(data) {
     return (b.timestamp || '').localeCompare(a.timestamp || '');
   });
 
+  // 재방문 판별용 전화번호 카운트 맵 (O(n²) → O(n))
+  const phoneCount = {};
+  sorted.forEach(c => { phoneCount[c.phone] = (phoneCount[c.phone] || 0) + 1; });
+
   const todayStr = new Date().toISOString().slice(0,10);
   const todayCustomers = sorted.filter(c => c.entryDate === todayStr);
 
@@ -474,7 +478,7 @@ function renderCustomers(data) {
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="display:flex;align-items:center;gap:6px">
             <div class="customer-name">${c.name}</div>
-            ${allCustomers.filter(x=>x.phone===c.phone&&x.timestamp!==c.timestamp).length>0?`<span style="font-size:11px;background:#fff3e0;color:#e65100;border-radius:4px;padding:2px 5px;font-weight:700">재방문</span>`:''}
+            ${(phoneCount[c.phone]||0) > 1 ?`<span style="font-size:11px;background:#fff3e0;color:#e65100;border-radius:4px;padding:2px 5px;font-weight:700">재방문</span>`:''}
           </div>
           <span class="badge ${(c.category||'').includes('PPF')?'badge-ppf':(c.category||'').includes('썬팅')?'badge-tinting':'badge-coating'}">${c.category||'-'}</span>
         </div>
@@ -547,8 +551,8 @@ async function setDoneDate(timestamp, name, carType, phone, category, summary, e
     if (r.success) {
       showToast('✅ 등록 완료! 보증서 생성됨');
       cacheClear('customers_0'); cacheClear('aftercare');
-      allCustomers = [];
-      loadCustomers();
+      const idx = allCustomers.findIndex(c => c.timestamp === timestamp);
+      if (idx !== -1) { allCustomers[idx].doneDate = doneDate; renderCustomers(allCustomers); }
       const btn = document.querySelector('[data-done-send]');
       if (btn && r.pdfId) btn.setAttribute('data-pdf-id', r.pdfId);
     } else {
@@ -587,8 +591,13 @@ async function completeCustomer(timestamp) {
   if (!confirm('이 고객을 완료 처리할까요? 목록 맨 아래로 이동합니다.')) return;
   try {
     const r = await apiPost({ action: 'completeCustomer', timestamp });
-    if (r === 'ok') { showToast('✅ 완료 처리됨'); allCustomers = []; loadCustomers(); }
-    else showToast('❌ 실패');
+    if (r === 'ok') {
+      showToast('✅ 완료 처리됨');
+      cacheClear('customers_0');
+      const today = new Date().toISOString().slice(0,10);
+      const idx = allCustomers.findIndex(c => c.timestamp === timestamp);
+      if (idx !== -1) { allCustomers[idx].doneDate = today; renderCustomers(allCustomers); }
+    } else showToast('❌ 실패');
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
@@ -599,8 +608,12 @@ function copyPhone(phone) {
 async function changeEntryDate(timestamp, value) {
   try {
     const r = await apiPost({ action: 'updateCustomerField', timestamp, field: 'entryDate', value });
-    if (r === 'ok') { showToast('✅ 날짜 변경됨'); allCustomers = []; loadCustomers(); }
-    else showToast('❌ 실패');
+    if (r === 'ok') {
+      showToast('✅ 날짜 변경됨');
+      cacheClear('customers_0');
+      const idx = allCustomers.findIndex(c => c.timestamp === timestamp);
+      if (idx !== -1) { allCustomers[idx].entryDate = value; renderCustomers(allCustomers); }
+    } else showToast('❌ 실패');
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
@@ -608,18 +621,33 @@ async function clearEntryDate(timestamp) {
   if (!confirm('입고를 취소할까요? (입고예정일이 삭제됩니다)')) return;
   try {
     const r = await apiPost({ action: 'updateCustomerField', timestamp, field: 'entryDate', value: '' });
-    if (r === 'ok') { showToast('✅ 입고 취소됨'); allCustomers = []; loadCustomers(); }
-    else showToast('❌ 실패');
+    if (r === 'ok') {
+      showToast('✅ 입고 취소됨');
+      cacheClear('customers_0');
+      const idx = allCustomers.findIndex(c => c.timestamp === timestamp);
+      if (idx !== -1) { allCustomers[idx].entryDate = ''; renderCustomers(allCustomers); }
+    } else showToast('❌ 실패');
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
 let searchTimer = null;
+let _originalCustomers = []; // 검색 전 원본 보존
+
 function filterCustomers() {
   const q = document.getElementById('search-input').value.trim();
   if (!q) {
-    loadCustomers();
+    // 로컬 원본으로 복원 (서버 재조회 안 함)
+    if (_originalCustomers.length > 0) {
+      allCustomers = [..._originalCustomers];
+      window._customerTotal = allCustomers.length;
+      window._isSearchMode = false;
+      renderCustomers(allCustomers);
+    } else {
+      loadCustomers();
+    }
     return;
   }
+  if (!_originalCustomers.length && allCustomers.length) _originalCustomers = [...allCustomers];
   clearTimeout(searchTimer);
   searchTimer = setTimeout(async () => {
     document.getElementById('customer-list').innerHTML = '<div class="loading">검색 중...</div>';
@@ -638,14 +666,8 @@ function filterCustomers() {
 async function showCustomerDetail(idx) {
   const c = allCustomers[idx];
 
-  // 같은 전화번호 전체 이력 서버에서 검색
-  let history = [];
-  try {
-    const all = await api({ action: 'searchCustomers', q: c.phone });
-    history = all.filter(x => x.timestamp !== c.timestamp);
-  } catch(e) {
-    history = allCustomers.filter(x => x.phone === c.phone && x.timestamp !== c.timestamp);
-  }
+  // 로컬 데이터에서 재방문 이력 필터링 (서버 재조회 제거)
+  const history = allCustomers.filter(x => x.phone === c.phone && x.timestamp !== c.timestamp);
   const historyHtml = history.length ? `
     <div style="margin-top:16px;padding-top:14px;border-top:1px solid #eee">
       <div style="font-size:13px;font-weight:700;color:#e65100;margin-bottom:8px">🔄 재방문 이력 (${history.length}건)</div>
