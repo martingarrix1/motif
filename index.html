@@ -1116,36 +1116,52 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// ─── 캘린더 ──────────────────────────────────────────────────
+// ─── 캘린더 최적화 ──────────────────────────────────────────────────
 
 let calendarYear = new Date().getFullYear();
 let calendarMonth = new Date().getMonth();
+let renderCalendarTimer = null; // 중복 렌더링 방지용 타이머
 
 function calendarPrev() { calendarMonth--; if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; } loadCalendar(); }
 function calendarNext() { calendarMonth++; if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; } loadCalendar(); }
 
+// 1. 디바운스 적용: 여러 번 호출되어도 마지막 1번만 DOM에 그리도록 제어
 function renderCalendar() {
+  if (renderCalendarTimer) clearTimeout(renderCalendarTimer);
+  renderCalendarTimer = setTimeout(() => {
+    _executeRenderCalendar();
+  }, 30); // 30ms 대기 후 렌더링
+}
+
+// 실제 달력을 그리는 함수 (최적화 완료)
+function _executeRenderCalendar() {
   const today = new Date(); today.setHours(0,0,0,0);
   const y = calendarYear, m = calendarMonth;
   document.getElementById('calendar-title').textContent = y + '년 ' + (m+1) + '월';
 
-  // 입고예정일 맵핑 (캘린더 전용 데이터 + 입고예약, 중복 제거)
+  // 성능 최적화: 현재 월(Month) 문자열을 미리 만들어 해당 데이터만 필터링
+  const currentMonthStr = y + '-' + String(m+1).padStart(2,'0');
   const entryMap = {};
+  
   const custSrc = calendarCustomers.length ? calendarCustomers : allCustomers;
+  
+  // 전체 순회가 아닌 현재 월(currentMonthStr)로 시작하는 데이터만 매핑 (속도 대폭 향상)
   custSrc.forEach(c => {
-    if (c.entryDate) {
+    if (c.entryDate && c.entryDate.startsWith(currentMonthStr)) {
       if (!entryMap[c.entryDate]) entryMap[c.entryDate] = [];
       entryMap[c.entryDate].push({ ...c, _type: 'customer' });
     }
   });
-  // 입고예약 시트 항목 중 고객목록에 이미 있는 name+phone은 제외 (중복 방지)
+
+  // 입고예약 시트 항목 매핑
   allReservations.forEach(r => {
-    if (!r.date) return;
-    const custOnDate = entryMap[r.date] || [];
-    const isDup = custOnDate.some(c => c.name === r.name && c.phone === r.phone);
-    if (!isDup) {
-      if (!entryMap[r.date]) entryMap[r.date] = [];
-      entryMap[r.date].push({ ...r, _type: 'reservation' });
+    if (r.date && r.date.startsWith(currentMonthStr)) {
+      const custOnDate = entryMap[r.date] || [];
+      const isDup = custOnDate.some(c => c.name === r.name && c.phone === r.phone);
+      if (!isDup) {
+        if (!entryMap[r.date]) entryMap[r.date] = [];
+        entryMap[r.date].push({ ...r, _type: 'reservation' });
+      }
     }
   });
 
@@ -1156,7 +1172,7 @@ function renderCalendar() {
   for (let i = 0; i < firstDay; i++) cells += '<div></div>';
 
   for (let d = 1; d <= lastDate; d++) {
-    const dateStr = y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    const dateStr = currentMonthStr + '-' + String(d).padStart(2,'0');
     const isToday = new Date(y,m,d).getTime() === today.getTime();
     const events = entryMap[dateStr] || [];
     const dow = new Date(y,m,d).getDay();
@@ -1245,45 +1261,53 @@ function showCalendarDay(dateStr) {
 let calendarCustomers = []; // 캘린더 전용 데이터
 
 async function loadCalendar() {
-  // 1. 고객목록 캐시에서 즉시 달력 그리기
+  // 스켈레톤 UI 표시
+  if (allCustomers.length === 0 && !cacheGet('customers_0')) {
+    renderCalendarSkeleton();
+  }
+
+  // 1. 고객목록 데이터 준비
   if (allCustomers.length > 0 || cacheGet('customers_0')) {
     if (allCustomers.length === 0) {
       const c = cacheGet('customers_0');
       if (c) allCustomers = c.data;
     }
     calendarCustomers = allCustomers;
-    renderCalendar();
-  } else {
-    renderCalendarSkeleton();
   }
+
+  const y = calendarYear, m = calendarMonth + 1;
+  const cacheKey = 'cal_' + y + '_' + m;
+  const tasks = []; // 병렬 처리를 위한 배열
 
   // 2. 예약 데이터 로드 (캐시 우선)
   const resCached = cacheGet('reservations');
   if (resCached) {
     allReservations = resCached;
-    renderCalendar();
   } else {
-    api({ action: 'getReservations' }).then(r => {
+    tasks.push(api({ action: 'getReservations' }).then(r => {
       allReservations = r;
       cacheSet('reservations', r);
-      renderCalendar();
-    }).catch(() => {});
+    }).catch(() => {}));
   }
 
-  // 3. 백그라운드에서 해당 월 정확한 데이터 업데이트
-  const y = calendarYear, m = calendarMonth + 1;
-  const cacheKey = 'cal_' + y + '_' + m;
+  // 3. 백그라운드에서 해당 월 데이터 업데이트
   const calCached = cacheGet(cacheKey);
   if (calCached) {
     calendarCustomers = calCached;
-    renderCalendar();
   } else {
-    api({ action: 'getCalendarData', year: y, month: m }).then(data => {
+    tasks.push(api({ action: 'getCalendarData', year: y, month: m }).then(data => {
       calendarCustomers = data;
       cacheSet(cacheKey, data);
-      renderCalendar();
-    }).catch(() => {});
+    }).catch(() => {}));
   }
+
+  // 남은 API 통신이 있다면 한 번에 기다림 (Promise.all)
+  if (tasks.length > 0) {
+    await Promise.all(tasks);
+  }
+
+  // 모든 준비가 끝난 후 딱 한 번만 렌더링 호출!
+  renderCalendar();
 }
 
 function renderCalendarSkeleton() {
