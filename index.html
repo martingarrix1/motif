@@ -1142,8 +1142,13 @@ function renderCalendar() {
   });
   allReservations.forEach(r => {
     if (r.date) {
-      if (!entryMap[r.date]) entryMap[r.date] = [];
-      entryMap[r.date].push({ ...r, _type: 'reservation' });
+      const existing = entryMap[r.date] || [];
+      // 고객목록에 이미 있는 name+phone이면 달력에 중복 표시 안 함
+      const isDup = existing.some(c => c.name === r.name && c.phone === r.phone);
+      if (!isDup) {
+        if (!entryMap[r.date]) entryMap[r.date] = [];
+        entryMap[r.date].push({ ...r, _type: 'reservation' });
+      }
     }
   });
 
