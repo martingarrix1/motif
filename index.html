@@ -1233,14 +1233,7 @@ function showCalendarDay(dateStr) {
       </div>`).join('') : '<div style="color:#999;font-size:13px;margin-bottom:12px">입고 예정 없음</div>'}
 
     <div style="border-top:1px solid #eee;padding-top:14px;margin-top:4px">
-      <div style="font-size:13px;font-weight:700;margin-bottom:10px">➕ 입고 예약 추가</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <input type="text" id="cal-name" placeholder="이름" style="font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px">
-        <input type="tel" id="cal-phone" placeholder="전화번호" inputmode="numeric" style="font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px">
-        <input type="text" id="cal-cartype" placeholder="차종" style="font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px">
-        <input type="text" id="cal-work" placeholder="작업내용 (나만 보임)" style="font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px">
-        <button onclick="addCalendarReservation('${dateStr}')" style="padding:10px;background:#1a73e8;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">📅 예약 등록 + 하루 전 알림톡</button>
-      </div>
+      <button onclick="openCalendarFullForm('${dateStr}')" style="width:100%;padding:12px;background:#1a73e8;color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">➕ 입고 예약 상담 입력</button>
     </div>
   </div>`;
 }
@@ -1677,6 +1670,184 @@ function renderMemos() {
       <div style="font-size:11px;color:#bbb;margin-top:8px;text-align:right">${m.date}</div>
     </div>`;
   }).join('');
+}
+
+
+// ─── 캘린더 상담 풀폼 ────────────────────────────────────
+
+function openCalendarFullForm(dateStr) {
+  const tintOptions = ['LX70','LX55','LX40','LX25','LX15','보그40','보그30','보그20','보그10','제니스50','제니스30','제니스15','제니스05','퀀텀37','퀀텀28','퀀텀19','퀀텀14','퀀텀08','티타늄26','티타늄16','티타늄06','G라인30','G라인10','S라인30','S라인10','XRPLUS55','XRPLUS30','XRPLUS20','XRPLUS15','XRPLUS05'];
+  const tintOpts = tintOptions.map(o => `<option>${o}</option>`).join('');
+
+  const popup = document.createElement('div');
+  popup.id = 'cal-full-form-popup';
+  popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:white;z-index:9999;display:flex;flex-direction:column;overflow:hidden';
+  popup.innerHTML = `
+    <div style="background:#1a1a2e;color:white;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div style="font-size:15px;font-weight:700">📅 입고예약 상담 입력 (${dateStr})</div>
+      <button onclick="document.getElementById('cal-full-form-popup').remove()" style="background:none;border:none;color:white;font-size:26px;cursor:pointer;line-height:1;padding:0 4px">×</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px">
+
+      <div class="card">
+        <div class="card-title">기본정보</div>
+        <div class="form-group"><label>차종</label><input type="text" id="cf-carType" placeholder="예) 카니발"></div>
+        <div class="form-group"><label>고객명</label><input type="text" id="cf-name" placeholder="이름"></div>
+        <div class="form-group"><label>연락처</label><input type="tel" id="cf-phone" placeholder="010-0000-0000"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">시공분류</div>
+        <div class="check-group" id="cf-category-group">
+          <label class="check-item"><input type="checkbox" value="썬팅"> 썬팅</label>
+          <label class="check-item"><input type="checkbox" value="PPF"> PPF</label>
+          <label class="check-item"><input type="checkbox" value="가죽"> 가죽</label>
+          <label class="check-item"><input type="checkbox" value="유리막"> 유리막</label>
+          <label class="check-item"><input type="checkbox" value="전장"> 전장</label>
+          <label class="check-item"><input type="checkbox" value="복합"> 복합</label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">틴팅</div>
+        <div class="form-group"><label>전면</label><select id="cf-tintF"><option value="">-</option>${tintOpts}</select></div>
+        <div class="form-group"><label>측면1열</label><select id="cf-tintS1"><option value="">-</option>${tintOpts}</select></div>
+        <div class="form-group"><label>측면2열</label><select id="cf-tintS2"><option value="">-</option>${tintOpts}</select></div>
+        <div class="form-group"><label>후면</label><select id="cf-tintR"><option value="">-</option>${tintOpts}</select></div>
+        <div class="form-group"><label>썬루프</label><select id="cf-tintSun"><option value="">-</option>${tintOpts}</select></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">PPF</div>
+        <div class="check-group" id="cf-ppf-group">
+          <label class="check-item"><input type="checkbox" value="본넷"> 본넷PPF</label>
+          <label class="check-item"><input type="checkbox" value="문콕"> 문콕패키지</label>
+          <label class="check-item"><input type="checkbox" value="프런트A"> 프런트A</label>
+          <label class="check-item"><input type="checkbox" value="프런트F"> 프런트F</label>
+          <label class="check-item"><input type="checkbox" value="생활보호"> 생활보호</label>
+          <label class="check-item"><input type="checkbox" value="전체"> 전체PPF</label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">코팅작업</div>
+        <div class="check-group" id="cf-coating-group">
+          <label class="check-item"><input type="checkbox" value="유리막"> 유리막코팅</label>
+          <label class="check-item"><input type="checkbox" value="그래핀"> 그래핀코팅</label>
+          <label class="check-item"><input type="checkbox" value="가죽기본"> 가죽기본</label>
+          <label class="check-item"><input type="checkbox" value="UG가죽"> UG가죽</label>
+          <label class="check-item"><input type="checkbox" value="야와라A"> 야와라A</label>
+          <label class="check-item"><input type="checkbox" value="야와라B"> 야와라B</label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">전장작업</div>
+        <div class="form-group"><label>블랙박스</label>
+          <select id="cf-blackbox"><option value="">-</option><option>파인뷰</option><option>아이나비z</option><option>아이나비q</option></select>
+        </div>
+        <div class="form-group"><label>보조배터리</label>
+          <select id="cf-battery"><option value="">-</option><option>6A</option><option>12A</option><option>18A</option></select>
+        </div>
+        <div class="form-group"><label>기타</label><input type="text" id="cf-etcValue" placeholder="기타 내용"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">견적정보</div>
+        <div class="form-group"><label>입고예정일</label><input type="date" id="cf-entryDate" value="${dateStr}"></div>
+        <div class="form-group"><label>예상견적 (만원)</label><input type="number" id="cf-estPrice" placeholder="0"></div>
+        <div class="form-group"><label>계약금 (만원)</label><input type="number" id="cf-deposit" placeholder="0"></div>
+        <div class="form-group"><label>구분</label>
+          <select id="cf-status" style="color:#c62828;font-weight:700;border-color:#ffcdd2;background:#ffebee">
+            <option value="예약안내" selected>예약안내</option>
+            <option value="상담">상담</option>
+            <option value="예약">예약</option>
+          </select>
+        </div>
+        <div class="form-group"><label>특이사항</label><textarea id="cf-note" placeholder="특이사항 입력" style="height:80px;resize:none"></textarea></div>
+      </div>
+
+      <div style="height:16px"></div>
+    </div>
+
+    <div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:10px;flex-shrink:0;background:white">
+      <button onclick="document.getElementById('cal-full-form-popup').remove()" style="flex:1;padding:14px;background:#f5f5f5;color:#555;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">취소</button>
+      <button onclick="submitCalendarForm('${dateStr}')" style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">📤 예약 등록</button>
+    </div>
+  `;
+  document.body.appendChild(popup);
+
+  // 팝업 내 체크박스 이벤트 등록
+  popup.querySelectorAll('.check-item').forEach(label => {
+    label.addEventListener('click', function() {
+      const cb = this.querySelector('input[type="checkbox"]');
+      setTimeout(() => { this.classList.toggle('checked', cb.checked); }, 0);
+    });
+  });
+}
+
+async function submitCalendarForm(dateStr) {
+  const name    = document.getElementById('cf-name').value.trim();
+  const carType = document.getElementById('cf-carType').value.trim();
+  const phone   = document.getElementById('cf-phone').value.trim();
+  if (!name || !carType || !phone) { showToast('차종, 고객명, 연락처를 입력해주세요!'); return; }
+
+  const category  = [...document.querySelectorAll('#cf-category-group input:checked')].map(c => c.value).join(' / ');
+  const ppfText   = [...document.querySelectorAll('#cf-ppf-group input:checked')].map(c => c.value).join(', ');
+  const coatingText = [...document.querySelectorAll('#cf-coating-group input:checked')].map(c => c.value).join(', ');
+  const tintF   = document.getElementById('cf-tintF').value;
+  const tintS1  = document.getElementById('cf-tintS1').value;
+  const tintS2  = document.getElementById('cf-tintS2').value;
+  const tintR   = document.getElementById('cf-tintR').value;
+  const tintSun = document.getElementById('cf-tintSun').value;
+  const blackbox  = document.getElementById('cf-blackbox').value;
+  const battery   = document.getElementById('cf-battery').value;
+  const etcValue  = document.getElementById('cf-etcValue').value;
+  const combinedM = [coatingText, etcValue].filter(Boolean).join(' / ');
+  const entryDate = document.getElementById('cf-entryDate').value || dateStr;
+  const estPrice  = document.getElementById('cf-estPrice').value;
+  const deposit   = document.getElementById('cf-deposit').value;
+  const status    = document.getElementById('cf-status').value;
+  const note      = document.getElementById('cf-note').value;
+
+  let summaryParts = [];
+  if (category) summaryParts.push('시공: ' + category);
+  let tintParts = [];
+  if (tintF) tintParts.push('전면: ' + tintF);
+  if (tintS1) tintParts.push('측면1열: ' + tintS1);
+  if (tintS2) tintParts.push('측면2열: ' + tintS2);
+  if (tintR) tintParts.push('후면: ' + tintR);
+  if (tintSun) tintParts.push('썬루프: ' + tintSun);
+  if (tintParts.length) summaryParts.push('틴팅: ' + tintParts.join(', '));
+  if (ppfText) summaryParts.push('PPF: ' + ppfText);
+  if (combinedM) summaryParts.push(combinedM);
+  const summary = summaryParts.join(' / ');
+
+  showToast('⏳ 등록 중...');
+  try {
+    // submitFromWebApp으로 전송 → 설문지 응답 시트6에 전체 데이터 저장 + 사후관리 + 보증서 생성 가능
+    const r = await apiPost({
+      action: 'submitFromWebApp',
+      name, phone, carType, category, summary, estPrice, status,
+      note, deposit, ppfText, combinedM,
+      tintF, tintS1, tintS2, tintR, tintSun,
+      entryDate, blackbox, battery
+    });
+    if (r.success) {
+      showToast('✅ 예약 등록 완료! 알림톡 발송됨');
+      document.getElementById('cal-full-form-popup').remove();
+      cacheClear('customers_0');
+      allCustomers = [];
+      await loadCustomers();
+      // 캘린더 갱신
+      const y = calendarYear, m = calendarMonth + 1;
+      cacheClear('cal_' + y + '_' + m);
+      await loadCalendar();
+      showCalendarDay(entryDate);
+    } else {
+      showToast('❌ 오류: ' + (r.error || ''));
+    }
+  } catch(e) { showToast('❌ ' + e.message); }
 }
 
 function initMemo() {
