@@ -1174,7 +1174,11 @@ function renderCalendar() {
 function showCalendarDay(dateStr) {
   const src = calendarCustomers.length ? calendarCustomers : allCustomers;
   const custEvents = src.filter(c => c.entryDate === dateStr).map(c => ({...c, _type:'customer'}));
-  const resEvents  = allReservations.filter(r => r.date === dateStr).map(r => ({...r, _type:'reservation'}));
+  // 고객목록에 이미 있는 name+phone은 입고예약에서 제외 (중복 방지)
+  const resEvents = allReservations.filter(r => {
+    if (r.date !== dateStr) return false;
+    return !custEvents.some(c => c.name === r.name && c.phone === r.phone);
+  }).map(r => ({...r, _type:'reservation'}));
   const events = [...custEvents, ...resEvents];
   const el = document.getElementById('calendar-events');
 
