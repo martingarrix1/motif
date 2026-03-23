@@ -1868,14 +1868,20 @@ async function submitCalendarForm(dateStr) {
       allCustomers = [];
       await loadCustomers();
 
-      // calendarCustomers에 즉시 추가 (달력에 바로 표시)
-      const newEntry = {
-        name, phone, carType, category, summary, estPrice, deposit,
-        entryDate, pdfId: '', doneDate: '',
-        timestamp: new Date().toISOString()
-      };
-      calendarCustomers = [...calendarCustomers.filter(c => !(c.name === name && c.phone === phone)), ...allCustomers.filter(c => c.phone === phone)];
-      if (calendarCustomers.length === 0) calendarCustomers = [newEntry];
+      // 고객목록에서 새로 등록된 항목 찾아 calendarCustomers 갱신
+      const newCust = allCustomers.filter(c => c.phone === phone && c.entryDate === entryDate);
+      if (newCust.length > 0) {
+        // 기존 같은 날짜+같은 사람 제거 후 추가
+        calendarCustomers = calendarCustomers.filter(c => !(c.phone === phone && c.entryDate === entryDate));
+        calendarCustomers = [...newCust, ...calendarCustomers];
+      } else {
+        // 서버에서 직접 해당 월 데이터 재조회
+        try {
+          const freshData = await api({ action: 'getCalendarData', year: calendarYear, month: calendarMonth + 1 });
+          calendarCustomers = freshData;
+          cacheSet('cal_' + calendarYear + '_' + (calendarMonth + 1), freshData);
+        } catch(e) {}
+      }
 
       renderCalendar();
       showCalendarDay(entryDate);
