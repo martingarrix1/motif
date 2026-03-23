@@ -570,20 +570,17 @@ async function setDoneDate(timestamp, name, carType, phone, category, summary, e
   if (!doneDate) return;
   if (!confirm(`${name} / ${carType} 시공완료일을 ${doneDate}로 등록할까요?`)) return;
 
-  // 1. 팝업 먼저
-  showDoneAlimtalkPopup(name, carType, phone, doneDate, '');
-
-  // 2. 백그라운드에서 등록 + 보증서 생성
-  showToast('⏳ 사후관리 등록 중...');
+  // 보증서 생성 후 팝업 (보증서 PDF 링크 포함)
+  showToast('⏳ 사후관리 등록 + 보증서 생성 중...');
   try {
     const r = await apiPost({ action: 'setDoneDate', timestamp, name, carType, phone, category, summary, estPrice, doneDate });
     if (r.success) {
       showToast('✅ 등록 완료! 보증서 생성됨');
       cacheClear('customers_0'); cacheClear('aftercare');
-      allCustomers = [];
-      loadCustomers();
-      const btn = document.querySelector('[data-done-send]');
-      if (btn && r.pdfId) btn.setAttribute('data-pdf-id', r.pdfId);
+      const idx = allCustomers.findIndex(c => c.timestamp === timestamp);
+      if (idx !== -1) { allCustomers[idx].doneDate = doneDate; renderCustomers(allCustomers); }
+      // 보증서 PDF ID가 준비된 후 팝업 표시
+      showDoneAlimtalkPopup(name, carType, phone, doneDate, r.pdfId || '');
     } else {
       showToast('❌ 실패: ' + (r.error || ''));
     }
@@ -597,7 +594,8 @@ function showDoneAlimtalkPopup(name, carType, phone, doneDate, pdfId) {
     <div style="background:white;border-radius:16px;padding:24px;max-width:320px;width:100%;text-align:center">
       <div style="font-size:32px;margin-bottom:12px">📨</div>
       <div style="font-size:16px;font-weight:700;margin-bottom:8px">${name} 고객님께</div>
-      <div style="font-size:14px;color:#555;margin-bottom:20px">시공완료 알림톡을 발송할까요?</div>
+      <div style="font-size:14px;color:#555;margin-bottom:4px">시공완료 알림톡을 발송할까요?</div>
+      <div style="font-size:12px;color:#1a73e8;margin-bottom:20px">${pdfId ? '📄 보증서 PDF 포함' : '⚠️ 보증서 생성 중 또는 미생성'}</div>
       <div style="display:flex;gap:10px">
         <button onclick="this.closest('div[style*=fixed]').remove()" style="flex:1;padding:12px;background:#f5f5f5;color:#555;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">나중에</button>
         <button data-done-send data-pdf-id="${pdfId}" onclick="sendDoneAlimtalk('${name}','${carType}','${phone}','${doneDate}',this.getAttribute('data-pdf-id'),this.closest('div[style*=fixed]'))" style="flex:1;padding:12px;background:#1a73e8;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">발송</button>
@@ -1206,7 +1204,7 @@ function showCalendarDay(dateStr) {
           <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:6px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">💬 문자</button>
           <button onclick="editReservation(${c.rowIndex},'${c.work||''}')" style="padding:6px 8px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;cursor:pointer">✏️</button>
           <button onclick="editReservationDate(${c.rowIndex},'${c.date}','${dateStr}')" style="padding:6px 8px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:6px;font-size:12px;cursor:pointer">📅</button>
-          <button onclick="sendDoneAlimtalkFromAftercare('${c.name}','${c.carType}','${c.phone}','${c.date}','')" style="padding:6px 8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:12px;cursor:pointer">📨완료</button>
+          <button onclick="sendDoneWithWarranty('${c.name}','${c.carType}','${c.phone}','${c.date}')" style="padding:6px 8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:12px;cursor:pointer">📨완료</button>
           <button onclick="deleteReservation(${c.rowIndex},'${dateStr}')" style="padding:6px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px;cursor:pointer">🗑</button>
         </div>
       </div>` : `
@@ -1227,7 +1225,7 @@ function showCalendarDay(dateStr) {
           <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:6px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">💬 문자</button>
           <button onclick="openCalendarCustomerEdit('${c.timestamp}')" style="padding:6px 8px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:6px;font-size:12px;cursor:pointer">✏️수정</button>
           <button onclick="editCustomerEntryDate('${c.timestamp}','${dateStr}')" style="padding:6px 8px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:6px;font-size:12px;cursor:pointer">📅날짜</button>
-          <button onclick="sendDoneAlimtalkFromAftercare('${c.name}','${c.carType}','${c.phone}','${c.doneDate||dateStr}','${c.pdfId||''}')" style="padding:6px 8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:12px;cursor:pointer">📨완료</button>
+          <button onclick="sendDoneWithWarranty('${c.name}','${c.carType}','${c.phone}','${c.doneDate||dateStr}')" style="padding:6px 8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:12px;cursor:pointer">📨완료</button>
           <button onclick="deleteCustomerFromCalendar('${c.timestamp}','${dateStr}')" style="padding:6px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px;cursor:pointer">🗑</button>
         </div>
       </div>`).join('') : '<div style="color:#999;font-size:13px;margin-bottom:12px">입고 예정 없음</div>'}
@@ -1408,6 +1406,21 @@ async function addCalendarReservation(dateStr) {
     } else {
       showToast('❌ 실패: ' + (r.error || ''));
     }
+  } catch(e) { showToast('❌ ' + e.message); }
+}
+
+
+// 시공완료 알림톡 - 사후관리에서 보증서 PDF 찾아서 발송
+async function sendDoneWithWarranty(name, carType, phone, doneDate) {
+  if (!confirm(`${name} / ${carType}\n시공완료 알림톡을 발송할까요?\n(보증서 PDF 링크 포함)`)) return;
+  showToast('⏳ 발송 중...');
+  // 사후관리 로컬 데이터에서 warrantyPdfId 찾기
+  const afterItem = allAftercare.find(c => c.name === name && c.carType === carType);
+  const warrantyPdfId = afterItem ? (afterItem.warrantyPdfId || '') : '';
+  try {
+    const r = await apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate, pdfId: warrantyPdfId });
+    if (r === 'ok') showToast('✅ 시공완료 알림톡 발송 완료!' + (warrantyPdfId ? ' (보증서 포함)' : ''));
+    else showToast('❌ ' + (r.error || '발송 실패'));
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
