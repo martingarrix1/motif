@@ -1823,26 +1823,48 @@ async function submitCalendarForm(dateStr) {
   if (combinedM) summaryParts.push(combinedM);
   const summary = summaryParts.join(' / ');
 
+  // 알림톡 발송 여부 확인
+  const sendAlimtalk = ['상담','예약','예약안내'].includes(status)
+    ? confirm(`${name} / ${carType}\n📨 알림톡을 발송할까요?`)
+    : false;
+
+  // 발송 안 할 경우 status를 알림톡 트리거 안 되는 값으로 임시 변경
+  const submitStatus = sendAlimtalk ? status : '';
+
   showToast('⏳ 등록 중...');
   try {
-    // submitFromWebApp으로 전송 → 설문지 응답 시트6에 전체 데이터 저장 + 사후관리 + 보증서 생성 가능
     const r = await apiPost({
       action: 'submitFromWebApp',
-      name, phone, carType, category, summary, estPrice, status,
+      name, phone, carType, category, summary, estPrice,
+      status: submitStatus,
       note, deposit, ppfText, combinedM,
       tintF, tintS1, tintS2, tintR, tintSun,
       entryDate, blackbox, battery
     });
     if (r.success) {
-      showToast('✅ 예약 등록 완료! 알림톡 발송됨');
+      showToast(sendAlimtalk ? '✅ 예약 등록 완료! 알림톡 발송됨' : '✅ 예약 등록 완료!');
       document.getElementById('cal-full-form-popup').remove();
+
+      // 캐시 비우기
       cacheClear('customers_0');
+      const cy = calendarYear, cm = calendarMonth + 1;
+      cacheClear('cal_' + cy + '_' + cm);
+      cacheClear('reservations');
+
+      // 고객목록 새로 로드
       allCustomers = [];
       await loadCustomers();
-      // 캘린더 갱신
-      const y = calendarYear, m = calendarMonth + 1;
-      cacheClear('cal_' + y + '_' + m);
-      await loadCalendar();
+
+      // calendarCustomers에 즉시 추가 (달력에 바로 표시)
+      const newEntry = {
+        name, phone, carType, category, summary, estPrice, deposit,
+        entryDate, pdfId: '', doneDate: '',
+        timestamp: new Date().toISOString()
+      };
+      calendarCustomers = [...calendarCustomers.filter(c => !(c.name === name && c.phone === phone)), ...allCustomers.filter(c => c.phone === phone)];
+      if (calendarCustomers.length === 0) calendarCustomers = [newEntry];
+
+      renderCalendar();
       showCalendarDay(entryDate);
     } else {
       showToast('❌ 오류: ' + (r.error || ''));
