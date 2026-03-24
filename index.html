@@ -1175,6 +1175,20 @@ function renderCalendar() {
 }
 
 function showCalendarDay(dateStr) {
+  // 기존 선택 초기화 후 선택된 날짜 테두리 빨간색으로
+  document.querySelectorAll('#calendar-grid > div').forEach(el => {
+    const isToday = el.style.border.includes('2px solid #1a73e8');
+    if (!isToday) el.style.border = '1px solid #eee';
+    el.style.outline = '';
+  });
+  // 클릭한 셀 찾아서 빨간 테두리
+  const cells = document.querySelectorAll('#calendar-grid > div');
+  cells.forEach(el => {
+    if (el.getAttribute('onclick') && el.getAttribute('onclick').includes(dateStr)) {
+      el.style.border = '2px solid #e53935';
+      el.style.outline = 'none';
+    }
+  });
   const src = calendarCustomers.length ? calendarCustomers : allCustomers;
   const custEvents = src.filter(c => c.entryDate === dateStr).map(c => ({...c, _type:'customer'}));
   // 고객목록에 이미 있는 name+phone은 입고예약에서 제외 (중복 방지)
