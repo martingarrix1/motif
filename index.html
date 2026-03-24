@@ -1412,15 +1412,27 @@ async function addCalendarReservation(dateStr) {
 
 // 시공완료 알림톡 - 사후관리에서 보증서 PDF 찾아서 발송
 async function sendDoneWithWarranty(name, carType, phone, doneDate) {
-  if (!confirm(`${name} / ${carType}\n시공완료 알림톡을 발송할까요?\n(보증서 PDF 링크 포함)`)) return;
-  showToast('⏳ 발송 중...');
-  // 사후관리 로컬 데이터에서 warrantyPdfId 찾기
-  const afterItem = allAftercare.find(c => c.name === name && c.carType === carType);
-  const warrantyPdfId = afterItem ? (afterItem.warrantyPdfId || '') : '';
+  if (!confirm(`${name} / ${carType}\n시공완료 알림톡을 발송할까요?\n(보증서 생성 + PDF 링크 포함)`)) return;
+
+  showToast('⏳ 보증서 생성 중...');
   try {
-    const r = await apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate, pdfId: warrantyPdfId });
-    if (r === 'ok') showToast('✅ 시공완료 알림톡 발송 완료!' + (warrantyPdfId ? ' (보증서 포함)' : ''));
-    else showToast('❌ ' + (r.error || '발송 실패'));
+    // 1. setDoneDate로 보증서 생성 + T열 저장 (timestamp 없어도 name+carType으로 처리)
+    const sd = await apiPost({
+      action: 'setDoneDate',
+      timestamp: '', name, carType, phone,
+      category: '', summary: '', estPrice: '', doneDate
+    });
+    const pdfId = (sd && sd.pdfId) ? sd.pdfId : '';
+    console.log('sendDoneWithWarranty pdfId=' + pdfId);
+
+    // 2. 알림톡 발송
+    showToast('⏳ 알림톡 발송 중...');
+    const r = await apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate, pdfId });
+    if (r === 'ok') {
+      showToast('✅ 시공완료 알림톡 발송 완료!' + (pdfId ? ' (보증서 포함)' : ''));
+    } else {
+      showToast('❌ ' + (r.error || '발송 실패'));
+    }
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
