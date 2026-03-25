@@ -1210,6 +1210,7 @@ function showCalendarDay(dateStr) {
             <span style="color:#666;font-size:13px;margin-left:6px">${c.name}</span>
           </div>
           ${c.sent === '발송' ? '<span style="font-size:11px;color:#2e7d32">📨발송됨</span>' : ''}
+          ${localStorage.getItem('done_sent_' + c.name + '_' + c.carType) ? '<span style="font-size:11px;background:#e8f5e9;color:#2e7d32;border-radius:4px;padding:2px 6px;font-weight:700">✅ 완료발송</span>' : ''}
         </div>
         ${c.work ? `<div style="font-size:12px;color:#555;margin-top:4px">📋 ${c.work}</div>` : ''}
         <div style="font-size:12px;color:#999;margin-top:4px">${c.phone}</div>
@@ -1229,6 +1230,7 @@ function showCalendarDay(dateStr) {
             <span style="color:#666;font-size:13px;margin-left:6px">${c.name}</span>
           </div>
           ${c.estPrice ? `<span style="color:#1a73e8;font-weight:700">${c.estPrice}만원</span>` : ''}
+          ${localStorage.getItem('done_sent_' + c.name + '_' + c.carType) ? `<span style="font-size:11px;background:#e8f5e9;color:#2e7d32;border-radius:4px;padding:2px 6px;font-weight:700">✅ 완료발송</span>` : ''}
         </div>
         <div style="font-size:13px;color:#555;margin-top:6px">${c.category||''}</div>
         ${c.summary ? `<div style="font-size:12px;color:#999;margin-top:4px;line-height:1.5">${c.summary}</div>` : ''}
@@ -1444,6 +1446,11 @@ async function sendDoneWithWarranty(name, carType, phone, doneDate) {
     const r = await apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate, pdfId });
     if (r === 'ok') {
       showToast('✅ 시공완료 알림톡 발송 완료!' + (pdfId ? ' (보증서 포함)' : ''));
+      // 발송 기록 저장
+      const key = 'done_sent_' + name + '_' + carType;
+      localStorage.setItem(key, doneDate);
+      // 달력 표시 갱신
+      showCalendarDay(doneDate);
     } else {
       showToast('❌ ' + (r.error || '발송 실패'));
     }
