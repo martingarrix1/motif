@@ -16,7 +16,9 @@
   .header { background: #1a1a2e; color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: center; position: fixed; top: 0; width: 100%; z-index: 100; }
   .header h1 { font-size: clamp(14px, 4vw, 18px); font-weight: 800; letter-spacing: 3px; }
   .nav { display: flex; background: white; border-bottom: 2px solid #eee; position: fixed; top: 42px; width: 100%; z-index: 99; }
-  .nav button { flex: 1; padding: 10px 2px; border: none; background: none; font-size: clamp(11px, 3vw, 14px); color: #999; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; font-family: inherit; }
+  .nav button { flex: 1; padding: 8px 2px; border: none; background: none; font-size: 10px; color: #999; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; font-family: inherit; display: flex; flex-direction: column; align-items: center; gap: 2px; line-height: 1; }
+  .nav button span { font-size: 10px; }
+  .nav button { font-size: 18px; }
   .nav button.active { color: #1a1a2e; border-bottom-color: #1a1a2e; font-weight: 700; }
   .content { margin-top: 84px; padding: 12px; padding-bottom: 40px; }
   .page { display: none; }
@@ -76,14 +78,21 @@
 <div class="header"><h1>MOTIF</h1></div>
 
 <div class="nav">
-  <button class="active" onclick="showPage('consult', this)">📝 상담입력</button>
-  <button onclick="showPage('customers', this)">👥 고객목록</button>
-  <button onclick="showPage('aftercare', this)">📋 사후관리</button>
-  <button onclick="showPage('todo', this)">✅ 할일</button>
-  <button onclick="showPage('glass', this)">🔵 유리막</button>
-  <button onclick="showPage('calendar', this)">📅 캘린더</button>
-  <button onclick="showPage('memo', this)">📓 메모</button>
-  <button onclick="showPage('invoice', this)">📑 견적서</button>
+  <button class="active" id="nav-consult" onclick="showPage('consult', this)">📝<span>상담</span></button>
+  <button id="nav-customers" onclick="showPage('customers', this)">👥<span>고객</span></button>
+  <button id="nav-todo" onclick="showPage('todo', this)">✅<span>할일</span></button>
+  <button id="nav-calendar" onclick="showPage('calendar', this)">📅<span>캘린더</span></button>
+  <button id="nav-more" onclick="toggleMoreMenu()">☰<span>더보기</span></button>
+</div>
+
+<!-- 더보기 메뉴 -->
+<div id="more-menu" style="display:none;position:fixed;top:84px;right:0;left:0;background:white;z-index:98;border-bottom:2px solid #eee;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);padding:8px">
+    <button onclick="showPage('aftercare', document.getElementById('nav-more'));toggleMoreMenu()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📋<span>사후관리</span></button>
+    <button onclick="showPage('glass', document.getElementById('nav-more'));toggleMoreMenu()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🔵<span>유리막</span></button>
+    <button onclick="showPage('memo', document.getElementById('nav-more'));toggleMoreMenu()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📓<span>메모</span></button>
+    <button onclick="showPage('invoice', document.getElementById('nav-more'));toggleMoreMenu()" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📑<span>견적서</span></button>
+  </div>
 </div>
 
 <div class="content">
@@ -392,9 +401,15 @@ document.querySelectorAll('.check-item').forEach(label => {
   });
 });
 
+function toggleMoreMenu() {
+  const m = document.getElementById('more-menu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+
 function showPage(page, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('more-menu').style.display = 'none';
   document.getElementById('page-' + page).classList.add('active');
   if (btn) btn.classList.add('active');
   if (page === 'customers' && allCustomers.length === 0) loadCustomers();
