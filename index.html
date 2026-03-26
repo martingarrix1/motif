@@ -83,6 +83,7 @@
   <button onclick="showPage('glass', this)">🔵 유리막</button>
   <button onclick="showPage('calendar', this)">📅 캘린더</button>
   <button onclick="showPage('memo', this)">📓 메모</button>
+  <button onclick="showPage('invoice', this)">📑 견적서</button>
 </div>
 
 <div class="content">
@@ -291,6 +292,45 @@
     <div id="memo-list"></div>
   </div>
 
+  <div id="page-invoice" class="page">
+    <div class="card">
+      <div class="card-title">📑 견적서 작성</div>
+      <div class="form-group"><label>차량번호</label><input type="text" id="inv-carnumber" placeholder="예) 123가4567"></div>
+      <div class="form-group"><label>차종</label><input type="text" id="inv-cartype" placeholder="예) 팰리세이드"></div>
+      <div class="form-group"><label>날짜</label><input type="date" id="inv-date"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>품목</span>
+        <button onclick="addInvoiceItem()" style="padding:5px 12px;background:#1a1a2e;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer">+ 추가</button>
+      </div>
+      <div id="inv-items">
+        <div class="inv-item" style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+          <input type="text" placeholder="품목명" style="flex:2;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;font-family:inherit;outline:none">
+          <input type="number" placeholder="금액" inputmode="numeric" style="flex:1;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;font-family:inherit;outline:none" oninput="updateInvoiceTotal()">
+          <button onclick="removeInvoiceItem(this)" style="padding:8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:8px;font-size:14px;cursor:pointer;flex-shrink:0">✕</button>
+        </div>
+      </div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:#888">합계</span>
+        <div style="text-align:right">
+          <div id="inv-total" style="font-size:18px;font-weight:700;color:#1a73e8">0원</div>
+          <div id="inv-total-korean" style="font-size:12px;color:#999"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">특이사항</div>
+      <div class="form-group"><textarea id="inv-note" placeholder="특이사항 입력" style="height:80px;resize:none"></textarea></div>
+    </div>
+
+    <button class="btn btn-primary" onclick="submitInvoice()" id="inv-submit-btn">📑 견적서 생성</button>
+    <div id="inv-result" style="margin-top:12px"></div>
+    <div style="height:24px"></div>
+  </div>
+
 </div>
 
 <div id="customer-modal" class="modal">
@@ -362,6 +402,7 @@ function showPage(page, btn) {
   if (page === 'todo') initTodo();
   if (page === 'calendar') { loadCalendar(); }
   if (page === 'memo') { initMemo(); }
+  if (page === 'invoice') { initInvoice(); }
 }
 
 async function submitConsult() {
@@ -1915,6 +1956,100 @@ async function submitCalendarForm(dateStr) {
       showToast('❌ 오류: ' + (r.error || ''));
     }
   } catch(e) { showToast('❌ ' + e.message); }
+}
+
+
+// ─── 견적서 ──────────────────────────────────────────────
+
+function addInvoiceItem() {
+  const container = document.getElementById('inv-items');
+  const div = document.createElement('div');
+  div.className = 'inv-item';
+  div.style.cssText = 'display:flex;gap:8px;margin-bottom:10px;align-items:center';
+  div.innerHTML = `
+    <input type="text" placeholder="품목명" style="flex:2;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;font-family:inherit;outline:none">
+    <input type="number" placeholder="금액" inputmode="numeric" style="flex:1;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;font-family:inherit;outline:none" oninput="updateInvoiceTotal()">
+    <button onclick="removeInvoiceItem(this)" style="padding:8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:8px;font-size:14px;cursor:pointer;flex-shrink:0">✕</button>
+  `;
+  container.appendChild(div);
+}
+
+function removeInvoiceItem(btn) {
+  const items = document.querySelectorAll('.inv-item');
+  if (items.length <= 1) { showToast('품목은 최소 1개 필요해요'); return; }
+  btn.closest('.inv-item').remove();
+  updateInvoiceTotal();
+}
+
+function updateInvoiceTotal() {
+  const prices = [...document.querySelectorAll('.inv-item input[type="number"]')]
+    .map(el => parseInt(el.value) || 0);
+  const total = prices.reduce((a, b) => a + b, 0);
+  document.getElementById('inv-total').textContent = total.toLocaleString('ko-KR') + '원';
+  document.getElementById('inv-total-korean').textContent = total > 0 ? numberToKoreanJS(total) : '';
+}
+
+function numberToKoreanJS(num) {
+  if (!num) return '';
+  const digits = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+  const units  = ['', '만', '억', '조'];
+  let n = Math.floor(num), result = '';
+  let ui = 0;
+  while (n > 0) {
+    const chunk = n % 10000;
+    if (chunk > 0) {
+      let s = '';
+      const t = Math.floor(chunk/1000), h = Math.floor((chunk%1000)/100),
+            ten = Math.floor((chunk%100)/10), one = chunk%10;
+      if (t) s += (t===1?'':digits[t]) + '천';
+      if (h) s += (h===1?'':digits[h]) + '백';
+      if (ten) s += (ten===1?'':digits[ten]) + '십';
+      if (one) s += digits[one];
+      result = s + units[ui] + result;
+    }
+    n = Math.floor(n/10000); ui++;
+  }
+  return result + '원';
+}
+
+async function submitInvoice() {
+  const carNumber = document.getElementById('inv-carnumber').value.trim();
+  const carType   = document.getElementById('inv-cartype').value.trim();
+  const date      = document.getElementById('inv-date').value;
+  const note      = document.getElementById('inv-note').value.trim();
+
+  if (!carType || !date) { showToast('차종과 날짜를 입력해주세요'); return; }
+
+  const items = [...document.querySelectorAll('.inv-item')].map(el => ({
+    name:  el.querySelectorAll('input')[0].value.trim(),
+    price: el.querySelectorAll('input')[1].value || '0'
+  })).filter(it => it.name);
+
+  if (!items.length) { showToast('품목을 최소 1개 입력해주세요'); return; }
+
+  const btn = document.getElementById('inv-submit-btn');
+  btn.disabled = true; btn.textContent = '⏳ 생성 중...';
+
+  try {
+    const r = await apiPost({ action: 'createInvoice', carNumber, carType, date, items, note });
+    if (r && r.fileId) {
+      document.getElementById('inv-result').innerHTML = `
+        <div class="card" style="text-align:center">
+          <div style="font-size:16px;font-weight:700;margin-bottom:12px">✅ 견적서 생성 완료!</div>
+          <button class="btn btn-primary" onclick="window.open('https://drive.google.com/file/d/${r.fileId}/view','_blank')">📄 견적서 열기</button>
+        </div>`;
+      showToast('✅ 견적서 생성 완료!');
+    } else {
+      showToast('❌ 실패: ' + (r.error || JSON.stringify(r)));
+    }
+  } catch(e) { showToast('❌ ' + e.message); }
+
+  btn.disabled = false; btn.textContent = '📑 견적서 생성';
+}
+
+function initInvoice() {
+  const d = document.getElementById('inv-date');
+  if (!d.value) d.value = new Date().toISOString().slice(0,10);
 }
 
 function initMemo() {
