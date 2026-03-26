@@ -168,7 +168,7 @@
       <div class="form-group"><label>계약금 (만원)</label><input type="number" id="deposit" placeholder="0"></div>
       <div class="form-group"><label>구분</label>
         <select id="status" style="color:#c62828;font-weight:700;border-color:#ffcdd2;background:#ffebee">
-          <option value="">-</option><option>상담</option><option>예약</option><option>예약안내</option>
+          <option value="">-</option><option>기록</option><option>상담</option><option>예약</option><option>예약안내</option>
         </select>
       </div>
       <div class="form-group"><label>특이사항</label><textarea id="note" placeholder="특이사항 입력"></textarea></div>
@@ -1808,6 +1808,7 @@ function openCalendarFullForm(dateStr) {
             <option value="예약안내" selected>예약안내</option>
             <option value="상담">상담</option>
             <option value="예약">예약</option>
+            <option value="기록">기록</option>
           </select>
         </div>
         <div class="form-group"><label>특이사항</label><textarea id="cf-note" placeholder="특이사항 입력" style="height:80px;resize:none"></textarea></div>
@@ -1869,26 +1870,18 @@ async function submitCalendarForm(dateStr) {
   if (combinedM) summaryParts.push(combinedM);
   const summary = summaryParts.join(' / ');
 
-  // 알림톡 발송 여부 확인
-  const sendAlimtalk = ['상담','예약','예약안내'].includes(status)
-    ? confirm(`${name} / ${carType}\n📨 알림톡을 발송할까요?`)
-    : false;
-
-  // 발송 안 할 경우 status를 알림톡 트리거 안 되는 값으로 임시 변경
-  const submitStatus = sendAlimtalk ? status : '';
-
   showToast('⏳ 등록 중...');
   try {
     const r = await apiPost({
       action: 'submitFromWebApp',
       name, phone, carType, category, summary, estPrice,
-      status: submitStatus,
+      status,
       note, deposit, ppfText, combinedM,
       tintF, tintS1, tintS2, tintR, tintSun,
       entryDate, blackbox, battery
     });
     if (r.success) {
-      showToast(sendAlimtalk ? '✅ 예약 등록 완료! 알림톡 발송됨' : '✅ 예약 등록 완료!');
+      showToast('✅ 예약 등록 완료! 알림톡 발송됨');
       document.getElementById('cal-full-form-popup').remove();
 
       // 캐시 비우기
