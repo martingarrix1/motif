@@ -1984,9 +1984,11 @@ function removeInvoiceItem(btn) {
 function updateInvoiceTotal() {
   const prices = [...document.querySelectorAll('.inv-item input[type="number"]')]
     .map(el => parseInt(el.value) || 0);
-  const total = prices.reduce((a, b) => a + b, 0);
-  document.getElementById('inv-total').textContent = total.toLocaleString('ko-KR') + '원';
-  document.getElementById('inv-total-korean').textContent = total > 0 ? numberToKoreanJS(total) : '';
+  const sub = prices.reduce((a, b) => a + b, 0);
+  const tax = prices.reduce((a, b) => a + Math.round(b * 0.1), 0);
+  const total = sub + tax;
+  document.getElementById('inv-total').textContent = total.toLocaleString('ko-KR') + '원 (세포함)';
+  document.getElementById('inv-total-korean').textContent = total > 0 ? numberToKoreanJS(total).replace(/원$/, '') : '';
 }
 
 function numberToKoreanJS(num) {
@@ -2009,7 +2011,7 @@ function numberToKoreanJS(num) {
     }
     n = Math.floor(n/10000); ui++;
   }
-  return result + '원';
+  return result;
 }
 
 async function submitInvoice() {
