@@ -1953,6 +1953,8 @@ async function submitCalendarForm(dateStr) {
 
   if (!confirm(`${name} / ${carType}\n${entryDate} 입고 예약을 등록할까요?`)) return;
 
+  if (!confirm(`${name} / ${carType}\n${entryDate} 입고 예약을 등록할까요?`)) return;
+
   showToast('⏳ 등록 중...');
   try {
     const ts = new Date().toISOString().slice(0, 16).replace('T', ' ');
