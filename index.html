@@ -624,10 +624,19 @@ function renderCustomers(data) {
     </div>`;
   }
 
-  // 정렬된 순서로 allCustomers 재정렬 (showCustomerDetail 인덱스 일치)
-  allCustomers = sorted;
+  // phone+timestamp 기준 중복 제거
+  const seen = new Set();
+  const deduped = sorted.filter(c => {
+    const key = (c.phone || '') + '_' + (c.timestamp || '');
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 
-  html += sorted.slice(0, displayCount).map((c, i) => `
+  // 정렬된 순서로 allCustomers 재정렬 (showCustomerDetail 인덱스 일치)
+  allCustomers = deduped;
+
+  html += deduped.slice(0, displayCount).map((c, i) => `
     <div class="customer-card">
       <div onclick="showCustomerDetail(${i})" style="cursor:pointer">
         <div style="display:flex;justify-content:space-between;align-items:center">
@@ -684,9 +693,9 @@ function renderCustomers(data) {
     </div>
   `).join('');
   // 더보기 버튼
-  if (sorted.length > displayCount) {
+  if (deduped.length > displayCount) {
     html += `<div style="text-align:center;margin:12px 0">
-      <button onclick="loadMoreCustomers()" style="padding:10px 24px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer">⬇️ 더보기 (${sorted.length - displayCount}건 남음)</button>
+      <button onclick="loadMoreCustomers()" style="padding:10px 24px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer">⬇️ 더보기 (${deduped.length - displayCount}건 남음)</button>
     </div>`;
   }
   container.innerHTML = html;
@@ -878,26 +887,23 @@ let aftercareTotal = 0;
 const AFTERCARE_LIMIT = 15;
 
 async function loadAftercare() {
-  aftercareOffset = 0;
-  document.getElementById('aftercare-list').innerHTML = '<div class="loading">불러오는 중...</div>';
+  document.getElementById('aftercare-list').innerHTML = '<div class="loading">⚡ 불러오는 중...</div>';
   try {
-    const cached = cacheGet('aftercare_0');
-    if (cached) {
-      allAftercare = cached.data;
-      aftercareTotal = cached.total;
-      renderAftercare(allAftercare);
-      renderAftercarLoadMoreBtn();
-      return;
-    }
-    const res = await api({ action: 'getAftercare', offset: 0, limit: AFTERCARE_LIMIT });
-    const data = res.data || res;
-    const total = res.total || data.length;
-    allAftercare = data;
-    aftercareTotal = total;
-    cacheSet('aftercare_0', { data, total });
+    const snapshot = await db.collection('aftercare').get();
+    const raw = [];
+    snapshot.forEach(doc => raw.push(doc.data()));
+    // name+carType+doneDate 기준 중복 제거
+    const seen = new Set();
+    allAftercare = raw.filter(c => {
+      const key = (c.name||'') + '_' + (c.carType||'') + '_' + (c.doneDate||'');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
     renderAftercare(allAftercare);
-    renderAftercarLoadMoreBtn();
-  } catch(e) { document.getElementById('aftercare-list').innerHTML = '<div class="loading">❌ ' + e.message + '</div>'; }
+  } catch(e) {
+    document.getElementById('aftercare-list').innerHTML = '<div class="loading">❌ ' + e.message + '</div>';
+  }
 }
 
 async function loadMoreAftercare() {
@@ -1258,8 +1264,12 @@ function renderCalendar() {
 
   // 입고예정일 맵핑 (캘린더 전용 데이터 + 입고예약)
   const entryMap = {};
-  (calendarCustomers.length ? calendarCustomers : allCustomers).forEach(c => {
+  const calSeen = new Set();
+  (allCustomers).forEach(c => {
     if (c.entryDate) {
+      const key = (c.phone||'') + '_' + (c.timestamp||'');
+      if (calSeen.has(key)) return;
+      calSeen.add(key);
       if (!entryMap[c.entryDate]) entryMap[c.entryDate] = [];
       entryMap[c.entryDate].push({ ...c, _type: 'customer' });
     }
