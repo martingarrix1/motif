@@ -1358,22 +1358,36 @@ function showCalendarDay(dateStr) {
 let calendarCustomers = []; // 캘린더 전용 데이터
 
 async function loadCalendar() {
-  document.getElementById('calendar-grid').innerHTML =
-    Array(35).fill('<div style="min-height:52px;background:#f5f5f5;border-radius:8px"></div>').join('');
-
-  // 1. 고객 목록 - Firebase에서 로드
-  if (allCustomers.length === 0) await loadCustomers();
-
-  // 2. 예약 - Firebase에서 로드
-  try {
-    const snapshot = await db.collection('reservations').get();
-    allReservations = [];
-    snapshot.forEach(doc => allReservations.push(doc.data()));
-  } catch(e) {
-    allReservations = [];
-    console.log('예약 로드 실패:', e.message);
+  // 이미 데이터 있으면 즉시 렌더링 후 백그라운드 갱신
+  if (allCustomers.length > 0) {
+    renderCalendar();
+  } else {
+    document.getElementById('calendar-grid').innerHTML =
+      Array(35).fill('<div style="min-height:52px;background:#f5f5f5;border-radius:8px"></div>').join('');
   }
 
+  // 고객 + 예약 동시 로드
+  const promises = [];
+
+  if (allCustomers.length === 0) {
+    promises.push(
+      db.collection('customers').get().then(snap => {
+        allCustomers = [];
+        snap.forEach(doc => allCustomers.push(doc.data()));
+        // 최신순 정렬
+        allCustomers.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+      }).catch(() => {})
+    );
+  }
+
+  promises.push(
+    db.collection('reservations').get().then(snap => {
+      allReservations = [];
+      snap.forEach(doc => allReservations.push(doc.data()));
+    }).catch(() => {})
+  );
+
+  await Promise.all(promises);
   renderCalendar();
 }
 
