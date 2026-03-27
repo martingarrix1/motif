@@ -110,6 +110,9 @@ const db = firebase.firestore();
     <button onclick="showPage('invoice',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📑<span>견적서</span></button>
     <button onclick="showPage('tint',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🎫<span>썬팅보증서</span></button>
   </div>
+  <div style="padding:8px 12px;border-top:1px solid #eee">
+    <button onclick="migrateDataToFirebase()" style="width:100%;padding:10px;background:#fff3e0;color:#e65100;border:1px solid #ffb74d;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit">🚀 기존 시트 데이터 → Firebase 이사 (최초 1회)</button>
+  </div>
 </div>
 
 <div class="content">
@@ -527,6 +530,32 @@ async function loadCustomers() {
   } catch(e) {
     document.getElementById('customer-list').innerHTML = `<div class="loading" style="color:red">❌ ${e.message}<br><br>더보기(☰) → 🚀 데이터 이사하기 를 먼저 실행해주세요.</div>`;
   }
+}
+
+
+async function migrateDataToFirebase() {
+  if (!confirm('기존 시트 데이터를 Firebase로 이사할까요?\n(최초 1회만 진행하시면 됩니다!)')) return;
+  document.getElementById('more-menu').style.display = 'none';
+  showToast('⏳ 데이터 이사 중... 창 닫지 마세요!');
+  try {
+    const res = await api({ action: 'getCustomerList', offset: 0, limit: 1000 });
+    const data = res.data || res;
+    const chunks = [];
+    for (let i = 0; i < data.length; i += 400) chunks.push(data.slice(i, i + 400));
+    for (const chunk of chunks) {
+      const batch = db.batch();
+      chunk.forEach(c => {
+        if (c.timestamp) {
+          const docId = c.timestamp.replace(/[^0-9a-zA-Z]/g, '_');
+          batch.set(db.collection('customers').doc(docId), c);
+        }
+      });
+      await batch.commit();
+    }
+    showToast('✅ 이사 완료! 고객 ' + data.length + '명');
+    allCustomers = [];
+    loadCustomers();
+  } catch(e) { showToast('❌ 오류: ' + e.message); }
 }
 
 function loadMoreCustomers() {
