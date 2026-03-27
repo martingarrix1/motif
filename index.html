@@ -539,15 +539,19 @@ async function loadCustomers() {
   } catch(e) { document.getElementById('customer-list').innerHTML = '<div class="loading">❌ ' + e.message + '</div>'; }
 }
 
-async function loadMoreCustomers() {
-  customerOffset += 30;
-  try {
-    const data = await api({ action: 'getCustomerList', offset: customerOffset });
-    if (data.length === 0) { showToast('더 이상 데이터가 없어요'); return; }
-    allCustomers = [...allCustomers, ...data];
-    if (data.length < 150) hasMoreCustomers = false;
+function loadMoreCustomers() {
+  displayCount += 30;
+  const q = document.getElementById('search-input').value.trim().toLowerCase();
+  if (q) {
+    const filtered = allCustomers.filter(c =>
+      (c.name||'').toLowerCase().includes(q) ||
+      (c.carType||'').toLowerCase().includes(q) ||
+      (c.phone||'').includes(q)
+    );
+    renderCustomers(filtered);
+  } else {
     renderCustomers(allCustomers);
-  } catch(e) { showToast('❌ ' + e.message); }
+  }
 }
 
 function renderCustomers(data) {
