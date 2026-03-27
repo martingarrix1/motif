@@ -318,6 +318,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 
 <script>
+<script>
 // 🔥 파이어베이스 설정 및 연결 🔥
 const firebaseConfig = {
   apiKey: "AIzaSyDjB5b6T5m-xTIyTUbGK0QCe5hEr9kZDR4",
@@ -327,10 +328,11 @@ const firebaseConfig = {
   messagingSenderId: "339614788624",
   appId: "1:339614788624:web:2e697521ba5cd133172e95"
 };
-firebase.initializeApp(firebaseConfig);
+// 파이어베이스 중복 초기화 방지
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.firestore();
 
-// ★ 앱스크립트 웹앱 URL (PDF생성, 사후관리, 캘린더 등은 이쪽 유지)
+// ★ 앱스크립트 웹앱 URL (무거운 작업은 여기서 처리)
 const API_URL = 'https://script.google.com/macros/s/AKfycbzv3xVInSeTmisnUk7X9u2eRNeRbOgrCs--Wuaqh0BtCx4n4BV00Ik4RsoqoMKi071zDw/exec';
 
 let allCustomers = [];
@@ -338,39 +340,27 @@ let displayCount = 30; // 한 번에 보여줄 고객 수
 let allAftercare = [];
 let allReservations = [];
 
-// ─── 캐시 유틸 ───────────────────────────────────────────
-const CACHE_TTL = 10 * 60 * 1000; // 10분
+// ─── 캐시 유틸 ───
+const CACHE_TTL = 10 * 60 * 1000;
 function cacheSet(key, data) { try { sessionStorage.setItem(key, JSON.stringify({ t: Date.now(), d: data })); } catch(e) {} }
 function cacheGet(key) {
   try {
-    const v = sessionStorage.getItem(key);
-    if (!v) return null;
-    const p = JSON.parse(v);
-    if (Date.now() - p.t > CACHE_TTL) { sessionStorage.removeItem(key); return null; }
+    const v = sessionStorage.getItem(key); if (!v) return null;
+    const p = JSON.parse(v); if (Date.now() - p.t > CACHE_TTL) { sessionStorage.removeItem(key); return null; }
     return p.d;
   } catch(e) { return null; }
 }
 function cacheClear(key) { try { sessionStorage.removeItem(key); } catch(e) {} }
 
-async function api(params) {
-  const url = API_URL + '?' + new URLSearchParams(params);
-  const res = await fetch(url);
-  return res.json();
-}
-
-async function apiPost(body) {
-  const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(body) });
-  return res.json();
-}
+async function api(params) { const res = await fetch(API_URL + '?' + new URLSearchParams(params)); return res.json(); }
+async function apiPost(body) { const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(body) }); return res.json(); }
 
 function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// UI 탭 전환 로직
+// ─── UI 공통 로직 ───
 document.querySelectorAll('.check-item').forEach(label => {
   label.addEventListener('click', function() {
     const cb = this.querySelector('input[type="checkbox"]');
@@ -379,8 +369,7 @@ document.querySelectorAll('.check-item').forEach(label => {
 });
 
 function toggleMoreMenu() {
-  const m = document.getElementById('more-menu');
-  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+  const m = document.getElementById('more-menu'); m.style.display = m.style.display === 'none' ? 'block' : 'none';
 }
 
 function showPage(page, btn) {
@@ -400,21 +389,18 @@ function showPage(page, btn) {
 }
 
 // ----------------------------------------------------
-// 🚀 1. 파이어베이스 연동: 고객 목록 및 데이터 이사
+// 🚀 1. 파이어베이스 연동: 고객 관리 🚀
 // ----------------------------------------------------
 
 async function migrateDataToFirebase() {
-  if(!confirm('기존 엑셀 데이터를 초고속 서버(파이어베이스)로 이사할까요? \n(최초 1회만 진행하시면 됩니다!)')) return;
+  if(!confirm('기존 엑셀 데이터를 파이어베이스로 이사할까요? \n(최초 1회만 진행)')) return;
   document.getElementById('more-menu').style.display = 'none';
   showToast('데이터 이사 중입니다... ⏳ 창을 닫지 마세요!');
-  
   try {
-    const res = await api({ action: 'getCustomerList', offset: 0, limit: 500 });
+    const res = await api({ action: 'getCustomerList', offset: 0, limit: 1000 }); // 충분히 크게
     const data = res.data || res;
-    
     const chunks = [];
     for (let i = 0; i < data.length; i += 300) { chunks.push(data.slice(i, i + 300)); }
-
     for (const chunk of chunks) {
         const batch = db.batch();
         chunk.forEach(c => {
@@ -425,47 +411,31 @@ async function migrateDataToFirebase() {
         });
         await batch.commit();
     }
-    
-    alert('✅ 데이터 이사 완벽 성공! 🎉 이제 앱이 엄청나게 빠릅니다!');
-    loadCustomers();
-  } catch(e) {
-    alert('❌ 이사 중 오류가 발생했습니다: ' + e.message);
-  }
+    alert('✅ 데이터 이사 성공! 🎉'); loadCustomers();
+  } catch(e) { alert('❌ 오류: ' + e.message); }
 }
 
 async function loadCustomers() {
   document.getElementById('customer-list').innerHTML = '<div class="loading">⚡ 파이어베이스에서 불러오는 중...</div>';
   try {
     const snapshot = await db.collection('customers').get();
-    let data = [];
-    snapshot.forEach(doc => data.push(doc.data()));
+    let data = []; snapshot.forEach(doc => data.push(doc.data()));
     
     const todayD = new Date(); todayD.setHours(0,0,0,0);
     data.sort((a, b) => {
       const aDone = !!a.doneDate, bDone = !!b.doneDate;
-      if (aDone && !bDone) return 1;
-      if (!aDone && bDone) return -1;
-      const isNoShow = (c) => {
-        if (!c.entryDate || c.doneDate) return false;
-        const d = new Date(c.entryDate); d.setHours(0,0,0,0);
-        return (todayD - d) > 3 * 24 * 60 * 60 * 1000;
-      };
+      if (aDone && !bDone) return 1; if (!aDone && bDone) return -1;
+      const isNoShow = (c) => { if (!c.entryDate || c.doneDate) return false; const d = new Date(c.entryDate); d.setHours(0,0,0,0); return (todayD - d) > 3 * 24 * 60 * 60 * 1000; };
       const aNS = isNoShow(a), bNS = isNoShow(b);
-      if (aNS && !bNS) return 1;
-      if (!aNS && bNS) return -1;
+      if (aNS && !bNS) return 1; if (!aNS && bNS) return -1;
       const aEntry = a.entryDate, bEntry = b.entryDate;
-      if (aEntry && !bEntry) return -1;
-      if (!aEntry && bEntry) return 1;
+      if (aEntry && !bEntry) return -1; if (!aEntry && bEntry) return 1;
       if (aEntry && bEntry) return aEntry.localeCompare(bEntry);
       return (b.timestamp || '').localeCompare(a.timestamp || '');
     });
 
-    allCustomers = data;
-    displayCount = 30;
-    renderCustomers(allCustomers);
-  } catch(e) {
-    document.getElementById('customer-list').innerHTML = `<div class="loading" style="color:red;">❌ 오류.<br><br>더보기(☰) 메뉴를 누르고 <br><b>'🚀 기존 데이터 이사하기'</b><br>버튼을 먼저 눌러주세요!</div>`;
-  }
+    allCustomers = data; displayCount = 30; renderCustomers(allCustomers);
+  } catch(e) { document.getElementById('customer-list').innerHTML = `<div class="loading" style="color:red;">더보기(☰) 메뉴 > '🚀 기존 데이터 이사하기' 버튼을 먼저 눌러주세요!</div>`; }
 }
 
 function filterCustomers() {
@@ -484,36 +454,24 @@ function loadMoreCustomers() {
 function renderCustomers(data) {
   const container = document.getElementById('customer-list');
   if (!data.length) { container.innerHTML = '<div class="loading">데이터가 없습니다.</div>'; return; }
-
   const todayStr = new Date().toISOString().slice(0,10);
   const todayCustomers = data.filter(c => c.entryDate === todayStr);
 
   let html = '';
   if (todayCustomers.length && displayCount <= 30) {
-    html += `<div style="background:#fff3e0;border:2px solid #ff9800;border-radius:12px;padding:14px;margin-bottom:16px">
-      <div style="font-size:15px;font-weight:700;color:#e65100;margin-bottom:10px">🚗 오늘 입고 (${todayCustomers.length}건)</div>
-      ${todayCustomers.map(c => `
-        <div style="background:#fff;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <span style="font-weight:700;font-size:15px">${c.name}</span>
-            <span style="color:#666;font-size:13px;margin-left:8px">${c.carType}</span>
-            <span style="color:#999;font-size:12px;margin-left:8px">${c.phone}</span>
-          </div>
-        </div>`).join('')}
-    </div>`;
+    html += `<div style="background:#fff3e0;border:2px solid #ff9800;border-radius:12px;padding:14px;margin-bottom:16px"><div style="font-size:15px;font-weight:700;color:#e65100;margin-bottom:10px">🚗 오늘 입고 (${todayCustomers.length}건)</div>
+      ${todayCustomers.map(c => `<div style="background:#fff;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+          <div><span style="font-weight:700;font-size:15px">${c.name}</span><span style="color:#666;font-size:13px;margin-left:8px">${c.carType}</span></div>
+        </div>`).join('')}</div>`;
   }
 
-  const slicedData = data.slice(0, displayCount);
-
-  html += slicedData.map((c) => {
+  html += data.slice(0, displayCount).map((c) => {
     const idx = allCustomers.findIndex(x => x.timestamp === c.timestamp);
     return `
     <div class="customer-card">
       <div onclick="showCustomerDetail(${idx})" style="cursor:pointer">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <div style="display:flex;align-items:center;gap:6px">
-            <div class="customer-name">${c.name}</div>
-          </div>
+          <div style="display:flex;align-items:center;gap:6px"><div class="customer-name">${c.name}</div></div>
           <span class="badge ${(c.category||'').includes('PPF')?'badge-ppf':(c.category||'').includes('썬팅')?'badge-tinting':'badge-coating'}">${c.category||'-'}</span>
         </div>
         <div class="customer-car">${c.carType} · <span onclick="copyPhone('${c.phone}')" style="cursor:pointer;text-decoration:underline dotted">${c.phone}</span></div>
@@ -525,13 +483,11 @@ function renderCustomers(data) {
         </div>
       </div>
       <div style="display:flex;gap:8px;margin-top:12px">
-        <select onchange="updateCustomerField('${c.timestamp}','status',this.value)"
-          style="flex:1;font-size:clamp(13px,3.5vw,15px);border:1px solid #ddd;border-radius:8px;padding:8px;font-weight:600;background:${c.status==='예약'?'#ffebee':c.status==='예약안내'||c.status==='상담진행'?'#fff3e0':'#f5f5f5'};color:${c.status==='예약'?'#c62828':c.status==='예약안내'||c.status==='상담진행'?'#e65100':'#555'}">
-          <option value="">-</option>
-          <option value="상담" ${c.status==='상담'?'selected':''}>상담</option>
-          <option value="예약" ${c.status==='예약'?'selected':''}>예약</option>
-          <option value="예약안내" ${c.status==='예약안내'?'selected':''}>예약안내</option>
-          <option value="상담진행" ${c.status==='상담진행'?'selected':''}>상담진행</option>
+        <select onchange="updateCustomerField('${c.timestamp}','status',this.value)" style="flex:1;font-size:clamp(13px,3.5vw,15px);border:1px solid #ddd;border-radius:8px;padding:8px;font-weight:600;background:${c.status==='예약'?'#ffebee':c.status==='예약안내'||c.status==='상담진행'?'#fff3e0':'#f5f5f5'};color:${c.status==='예약'?'#c62828':c.status==='예약안내'||c.status==='상담진행'?'#e65100':'#555'}">
+          <option value="">-</option><option value="상담" ${c.status==='상담'?'selected':''}>상담</option><option value="예약" ${c.status==='예약'?'selected':''}>예약</option><option value="예약안내" ${c.status==='예약안내'?'selected':''}>예약안내</option><option value="상담진행" ${c.status==='상담진행'?'selected':''}>상담진행</option>
+        </select>
+        <select onchange="updateCustomerField('${c.timestamp}','resend',this.value)" style="flex:1;font-size:clamp(13px,3.5vw,15px);border:1px solid #ddd;border-radius:8px;padding:8px;font-weight:600;background:${c.resend?'#e8f5e9':'#f5f5f5'};color:${c.resend?'#2e7d32':'#999'}">
+          <option value="">재전송-</option><option value="재전송 1차" ${c.resend==='재전송 1차'?'selected':''}>재전송 1차</option><option value="재전송 2차" ${c.resend==='재전송 2차'?'selected':''}>재전송 2차</option>
         </select>
       </div>
       <div style="display:flex;gap:6px;margin-top:10px">
@@ -540,94 +496,62 @@ function renderCustomers(data) {
         <button onclick="completeCustomer('${c.timestamp}')" style="padding:8px 12px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">✅</button>
         <button onclick="deleteCustomer('${c.timestamp}')" style="padding:8px 12px;background:#fff0f0;color:#d32f2f;border:1px solid #ffcdd2;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">🗑</button>
       </div>
-    </div>
-  `}).join('');
+      <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:12px;color:#e65100;white-space:nowrap">입고예정일</span><input type="date" value="${c.entryDate||''}" onchange="changeEntryDate('${c.timestamp}',this.value)" style="flex:1;font-size:13px;border:1px solid #ffcc80;border-radius:8px;padding:6px 8px">
+      </div>
+      <div style="margin-top:6px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:12px;color:#666;white-space:nowrap">시공완료일</span><input type="date" value="${c.doneDate||''}" onchange="setDoneDate('${c.timestamp}','${c.name}','${c.carType}','${c.phone}','${c.category}','${c.summary}','${c.estPrice}',this.value)" style="flex:1;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:6px 8px">
+      </div>
+    </div>`}).join('');
 
-  if (data.length > displayCount) {
-    html += `<div style="text-align:center;margin:12px 0">
-      <button onclick="loadMoreCustomers()" style="padding:10px 24px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer">⬇️ 더보기 (${data.length - displayCount}건 남음)</button>
-    </div>`;
-  }
+  if (data.length > displayCount) html += `<div style="text-align:center;margin:12px 0"><button onclick="loadMoreCustomers()" style="padding:10px 24px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer">⬇️ 더보기 (${data.length - displayCount}건 남음)</button></div>`;
   container.innerHTML = html;
 }
 
+// ─── 상담 폼 전송 (동시 저장) ───
 async function submitConsult() {
-  const name = document.getElementById('name').value.trim();
-  const carType = document.getElementById('carType').value.trim();
-  const phone = document.getElementById('phone').value.trim();
+  const name = document.getElementById('name').value.trim(); const carType = document.getElementById('carType').value.trim(); const phone = document.getElementById('phone').value.trim();
   if (!name || !carType || !phone) { showToast('차종, 고객명, 연락처를 입력해주세요!'); return; }
   
   const category = [...document.querySelectorAll('#category-group input:checked')].map(c => c.value).join(' / ');
   const ppfText = [...document.querySelectorAll('#ppf-group input:checked')].map(c => c.value).join(', ');
   const coatingText = [...document.querySelectorAll('#coating-group input:checked')].map(c => c.value).join(', ');
-  const tintF = document.getElementById('tintF').value;
-  const tintS1 = document.getElementById('tintS1').value;
-  const tintS2 = document.getElementById('tintS2').value;
-  const tintR = document.getElementById('tintR').value;
-  const tintSun = document.getElementById('tintSun').value;
-  const blackbox = document.getElementById('blackbox').value;
-  const battery = document.getElementById('battery').value;
-  const etcValue = document.getElementById('etcValue').value;
+  const tintF = document.getElementById('tintF').value, tintS1 = document.getElementById('tintS1').value, tintS2 = document.getElementById('tintS2').value, tintR = document.getElementById('tintR').value, tintSun = document.getElementById('tintSun').value;
+  const blackbox = document.getElementById('blackbox').value, battery = document.getElementById('battery').value, etcValue = document.getElementById('etcValue').value;
   const combinedM = [coatingText, etcValue].filter(Boolean).join(' / ');
   
-  let summaryParts = [];
-  if (category) summaryParts.push('시공: ' + category);
-  if (tintF || tintS1 || tintS2 || tintR || tintSun) summaryParts.push('틴팅: O');
-  if (ppfText) summaryParts.push('PPF: ' + ppfText);
-  if (combinedM) summaryParts.push(combinedM);
+  let summaryParts = []; if (category) summaryParts.push('시공: ' + category); if (tintF || tintS1 || tintS2 || tintR || tintSun) summaryParts.push('틴팅: O'); if (ppfText) summaryParts.push('PPF: ' + ppfText); if (combinedM) summaryParts.push(combinedM);
   const summary = summaryParts.join(' / ');
-  
-  const entryDate = document.getElementById('entryDate').value;
-  const estPrice = document.getElementById('estPrice').value;
-  const deposit = document.getElementById('deposit').value;
-  const status = document.getElementById('status').value;
-  const note = document.getElementById('note').value;
+  const entryDate = document.getElementById('entryDate').value, estPrice = document.getElementById('estPrice').value, deposit = document.getElementById('deposit').value, status = document.getElementById('status').value, note = document.getElementById('note').value;
   
   showToast('전송 중... ⏳');
   try {
     const ts = new Date().toISOString().slice(0, 16).replace('T', ' '); 
     const newCustomer = { timestamp: ts, name, phone, carType, category, summary, estPrice, status, note, deposit, ppf: ppfText, etc: combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, doneDate: '' };
     
-    // 파이어베이스에 즉시 추가
+    // 파이어베이스 1차 저장 (즉각 반영)
     await db.collection('customers').doc(ts).set(newCustomer);
-    // 구글 시트에 백그라운드 전송
+    // 구글 시트에 백그라운드 2차 저장 & 알림톡/PDF 생성
     apiPost({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery });
 
-    showToast('✅ 전송 완료!');
-    resetForm(); 
-    loadCustomers();
+    showToast('✅ 전송 완료!'); resetForm(); loadCustomers();
   } catch(e) { showToast('❌ 오류: ' + e.message); }
 }
 
 async function updateCustomerField(timestamp, field, value) {
-  try {
-    await db.collection('customers').doc(timestamp).update({ [field]: value });
-    apiPost({ action: 'updateCustomerField', timestamp, field, value });
-    showToast('✅ 업데이트 완료! ⚡');
-    const c = allCustomers.find(x => x.timestamp === timestamp);
-    if (c) c[field] = value;
-  } catch(e) { showToast('❌ ' + e.message); }
+  try { await db.collection('customers').doc(timestamp).update({ [field]: value }); apiPost({ action: 'updateCustomerField', timestamp, field, value }); showToast('✅ 업데이트 완료!'); const c = allCustomers.find(x => x.timestamp === timestamp); if (c) c[field] = value; } catch(e) { showToast('❌ ' + e.message); }
 }
+async function changeEntryDate(timestamp, value) { updateCustomerField(timestamp, 'entryDate', value); }
+async function clearEntryDate(timestamp) { if(confirm('입고 취소?')) updateCustomerField(timestamp, 'entryDate', ''); }
 
 async function deleteCustomer(timestamp) {
-  if (!confirm('이 고객을 삭제할까요?')) return;
-  try {
-    await db.collection('customers').doc(timestamp).delete();
-    apiPost({ action: 'deleteCustomer', timestamp });
-    showToast('✅ 삭제 완료! ⚡');
-    loadCustomers();
-  } catch(e) { showToast('❌ ' + e.message); }
+  if (!confirm('삭제하시겠습니까?')) return;
+  try { await db.collection('customers').doc(timestamp).delete(); apiPost({ action: 'deleteCustomer', timestamp }); showToast('✅ 삭제 완료!'); loadCustomers(); } catch(e) { showToast('❌ ' + e.message); }
 }
 
 async function completeCustomer(timestamp) {
-  if (!confirm('이 고객을 완료 처리할까요? 목록 맨 아래로 이동합니다.')) return;
-  try {
-    const today = new Date().toISOString().split('T')[0];
-    await db.collection('customers').doc(timestamp).update({ doneDate: today });
-    apiPost({ action: 'completeCustomer', timestamp });
-    showToast('✅ 완료 처리됨 ⚡');
-    loadCustomers();
-  } catch(e) { showToast('❌ ' + e.message); }
+  if (!confirm('완료 처리할까요?')) return;
+  try { const today = new Date().toISOString().split('T')[0]; await db.collection('customers').doc(timestamp).update({ doneDate: today }); apiPost({ action: 'completeCustomer', timestamp }); showToast('✅ 완료 처리됨'); loadCustomers(); } catch(e) { showToast('❌ ' + e.message); }
 }
 
 function resetForm() {
@@ -642,25 +566,13 @@ function showCustomerDetail(idx) {
     <div class="detail-row"><span class="detail-label">연락처</span><span class="detail-value">${c.phone}</span></div>
     <div class="detail-row"><span class="detail-label">상담일시</span><span class="detail-value">${c.timestamp}</span></div>
     <div style="margin-top:14px;border-top:1px solid #eee;padding-top:14px">
-      <div style="font-size:12px;color:#999;margin-bottom:8px">✏️ 수정 가능 항목 (수정 시 자동 저장)</div>
-      <div style="margin-bottom:10px">
-        <div style="font-size:12px;color:#666;margin-bottom:4px">상담내용</div>
-        <textarea rows="2" onblur="updateCustomerField('${c.timestamp}','summary',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box;resize:none">${c.summary||''}</textarea>
-      </div>
+      <div style="font-size:12px;color:#999;margin-bottom:8px">✏️ 수정 가능 항목 (자동 저장)</div>
+      <div style="margin-bottom:10px"><div style="font-size:12px;color:#666;margin-bottom:4px">상담내용</div><textarea rows="2" onblur="updateCustomerField('${c.timestamp}','summary',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;resize:none">${c.summary||''}</textarea></div>
       <div style="display:flex;gap:8px;margin-bottom:10px">
-        <div style="flex:1">
-          <div style="font-size:12px;color:#666;margin-bottom:4px">예상금액(만원)</div>
-          <input type="text" inputmode="numeric" value="${c.estPrice||''}" onblur="updateCustomerField('${c.timestamp}','estPrice',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
-        </div>
-        <div style="flex:1">
-          <div style="font-size:12px;color:#666;margin-bottom:4px">계약금(만원)</div>
-          <input type="text" inputmode="numeric" value="${c.deposit||''}" onblur="updateCustomerField('${c.timestamp}','deposit',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
-        </div>
+        <div style="flex:1"><div style="font-size:12px;color:#666;margin-bottom:4px">예상금액(만원)</div><input type="text" inputmode="numeric" value="${c.estPrice||''}" onblur="updateCustomerField('${c.timestamp}','estPrice',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px"></div>
+        <div style="flex:1"><div style="font-size:12px;color:#666;margin-bottom:4px">계약금(만원)</div><input type="text" inputmode="numeric" value="${c.deposit||''}" onblur="updateCustomerField('${c.timestamp}','deposit',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px"></div>
       </div>
-      <div style="margin-bottom:10px">
-        <div style="font-size:12px;color:#666;margin-bottom:4px">특이사항/메모</div>
-        <textarea rows="2" onblur="updateCustomerField('${c.timestamp}','note',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box;resize:none">${c.note||''}</textarea>
-      </div>
+      <div style="margin-bottom:10px"><div style="font-size:12px;color:#666;margin-bottom:4px">특이사항/메모</div><textarea rows="2" onblur="updateCustomerField('${c.timestamp}','note',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;resize:none">${c.note||''}</textarea></div>
     </div>
   `;
   document.getElementById('customer-modal').classList.add('active');
@@ -668,8 +580,9 @@ function showCustomerDetail(idx) {
 function closeModal() { document.getElementById('customer-modal').classList.remove('active'); }
 function copyPhone(phone) { navigator.clipboard.writeText(phone).then(() => showToast('📋 ' + phone + ' 복사됨!')); }
 
+
 // ----------------------------------------------------
-// 📅 2. 캘린더 기능 복원
+// 📅 2. 완벽 복원된 캘린더 기능 (예약, 수정, 삭제, 하위메뉴 포함)
 // ----------------------------------------------------
 let calendarYear = new Date().getFullYear();
 let calendarMonth = new Date().getMonth();
@@ -679,21 +592,11 @@ function calendarNext() { calendarMonth++; if (calendarMonth > 11) { calendarMon
 
 async function loadCalendar() {
   document.getElementById('calendar-grid').innerHTML = Array(35).fill('<div style="min-height:52px;background:#f5f5f5;border-radius:8px;animation:pulse 1s infinite"></div>').join('');
+  if(allCustomers.length === 0) await loadCustomers();
   
-  if(allCustomers.length === 0) await loadCustomers(); // 고객 목록 없으면 파이어베이스에서 로드
-  
-  // 예약 데이터는 구글 시트에서 로드
   const resCached = cacheGet('reservations');
-  if (resCached) {
-    allReservations = resCached;
-    renderCalendar();
-  } else {
-    api({ action: 'getReservations' }).then(r => {
-      allReservations = r;
-      cacheSet('reservations', r);
-      renderCalendar();
-    }).catch(() => {});
-  }
+  if (resCached) { allReservations = resCached; renderCalendar(); }
+  else { api({ action: 'getReservations' }).then(r => { allReservations = r; cacheSet('reservations', r); renderCalendar(); }).catch(() => {}); }
 }
 
 function renderCalendar() {
@@ -702,34 +605,21 @@ function renderCalendar() {
   document.getElementById('calendar-title').textContent = y + '년 ' + (m+1) + '월';
 
   const entryMap = {};
-  allCustomers.forEach(c => {
-    if (c.entryDate) {
-      if (!entryMap[c.entryDate]) entryMap[c.entryDate] = [];
-      entryMap[c.entryDate].push({ ...c, _type: 'customer' });
-    }
-  });
+  allCustomers.forEach(c => { if (c.entryDate) { if (!entryMap[c.entryDate]) entryMap[c.entryDate] = []; entryMap[c.entryDate].push({ ...c, _type: 'customer' }); } });
   allReservations.forEach(r => {
     if (r.date) {
-      const existing = entryMap[r.date] || [];
-      const isDup = existing.some(c => c.name === r.name && c.phone === r.phone);
-      if (!isDup) {
-        if (!entryMap[r.date]) entryMap[r.date] = [];
-        entryMap[r.date].push({ ...r, _type: 'reservation' });
-      }
+      const existing = entryMap[r.date] || []; const isDup = existing.some(c => c.name === r.name && c.phone === r.phone);
+      if (!isDup) { if (!entryMap[r.date]) entryMap[r.date] = []; entryMap[r.date].push({ ...r, _type: 'reservation' }); }
     }
   });
 
-  const firstDay = new Date(y, m, 1).getDay();
-  const lastDate = new Date(y, m+1, 0).getDate();
-  let cells = '';
-
-  for (let i = 0; i < firstDay; i++) cells += '<div></div>';
+  const firstDay = new Date(y, m, 1).getDay(); const lastDate = new Date(y, m+1, 0).getDate();
+  let cells = ''; for (let i = 0; i < firstDay; i++) cells += '<div></div>';
 
   for (let d = 1; d <= lastDate; d++) {
     const dateStr = y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
     const isToday = new Date(y,m,d).getTime() === today.getTime();
-    const events = entryMap[dateStr] || [];
-    const dow = new Date(y,m,d).getDay();
+    const events = entryMap[dateStr] || []; const dow = new Date(y,m,d).getDay();
     const color = dow===0?'#e53935':dow===6?'#1a73e8':'#333';
 
     cells += `<div onclick="showCalendarDay('${dateStr}')" style="min-height:52px;border-radius:8px;padding:4px;cursor:pointer;background:${isToday?'#e3f2fd':events.length?'#fff8e1':'transparent'};border:${isToday?'2px solid #1a73e8':'1px solid #eee'};overflow:hidden;min-width:0;box-sizing:border-box">
@@ -738,33 +628,36 @@ function renderCalendar() {
       ${events.length>2?`<div style="font-size:10px;color:#999;text-align:center">+${events.length-2}</div>`:''}
     </div>`;
   }
-  document.getElementById('calendar-grid').innerHTML = cells;
-  document.getElementById('calendar-events').innerHTML = '';
+  document.getElementById('calendar-grid').innerHTML = cells; document.getElementById('calendar-events').innerHTML = '';
 }
 
+// 🌟 여기가 복구된 캘린더 하위 버튼들입니다! 🌟
 function showCalendarDay(dateStr) {
-  document.querySelectorAll('#calendar-grid > div').forEach(el => {
-    const isToday = el.style.border.includes('2px solid #1a73e8');
-    if (!isToday) el.style.border = '1px solid #eee';
-  });
-  document.querySelectorAll('#calendar-grid > div').forEach(el => {
-    if (el.getAttribute('onclick') && el.getAttribute('onclick').includes(dateStr)) el.style.border = '2px solid #e53935';
-  });
-
+  document.querySelectorAll('#calendar-grid > div').forEach(el => { const isToday = el.style.border.includes('2px solid #1a73e8'); if (!isToday) el.style.border = '1px solid #eee'; el.style.outline = ''; });
+  document.querySelectorAll('#calendar-grid > div').forEach(el => { if (el.getAttribute('onclick') && el.getAttribute('onclick').includes(dateStr)) { el.style.border = '2px solid #e53935'; el.style.outline = 'none'; } });
+  
   const custEvents = allCustomers.filter(c => c.entryDate === dateStr).map(c => ({...c, _type:'customer'}));
   const resEvents = allReservations.filter(r => r.date === dateStr && !custEvents.some(c => c.name === r.name && c.phone === r.phone)).map(r => ({...r, _type:'reservation'}));
   const events = [...custEvents, ...resEvents];
-  const el = document.getElementById('calendar-events');
-
-  el.innerHTML = `<div class="card">
+  
+  document.getElementById('calendar-events').innerHTML = `<div class="card">
     <div style="font-size:14px;font-weight:700;margin-bottom:10px">🚗 ${dateStr} 입고 (${events.length}건)</div>
     ${events.length ? events.map(c=> c._type === 'reservation' ? `
       <div style="background:#e8f5e9;border-radius:8px;padding:12px;margin-bottom:8px;border:1px solid #c8e6c9">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div><span style="font-size:10px;background:#2e7d32;color:white;border-radius:4px;padding:1px 5px;margin-right:6px">예약</span><span style="font-weight:700;font-size:15px">${c.carType}</span><span style="color:#666;font-size:13px;margin-left:6px">${c.name}</span></div>
+          ${c.sent === '발송' ? '<span style="font-size:11px;color:#2e7d32">📨발송됨</span>' : ''}
         </div>
         ${c.work ? `<div style="font-size:12px;color:#555;margin-top:4px">📋 ${c.work}</div>` : ''}
         <div style="font-size:12px;color:#999;margin-top:4px">${c.phone}</div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button onclick="window.location.href='tel:${c.phone}'" style="flex:1;padding:6px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:6px;font-size:12px;font-weight:600">📞 전화</button>
+          <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:6px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;font-weight:600">💬 문자</button>
+          <button onclick="editReservation(${c.rowIndex},'${c.work||''}')" style="padding:6px 8px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px">✏️</button>
+          <button onclick="editReservationDate(${c.rowIndex},'${c.date}')" style="padding:6px 8px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:6px;font-size:12px">📅</button>
+          <button onclick="sendDoneWithWarranty('${c.name}','${c.carType}','${c.phone}','${c.date}')" style="padding:6px 8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:12px">📨완료</button>
+          <button onclick="deleteReservation(${c.rowIndex},'${dateStr}')" style="padding:6px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px">🗑</button>
+        </div>
       </div>` : `
       <div style="background:#f5f5f5;border-radius:8px;padding:12px;margin-bottom:8px">
         <div style="display:flex;justify-content:space-between;align-items:center">
@@ -772,232 +665,197 @@ function showCalendarDay(dateStr) {
           ${c.estPrice ? `<span style="color:#1a73e8;font-weight:700">${c.estPrice}만원</span>` : ''}
         </div>
         <div style="font-size:13px;color:#555;margin-top:6px">${c.category||''}</div>
+        ${c.summary ? `<div style="font-size:12px;color:#999;margin-top:4px;line-height:1.5">${c.summary}</div>` : ''}
+        ${c.deposit ? `<div style="font-size:12px;color:#e65100;margin-top:4px;font-weight:600">계약금 ${c.deposit}만원</div>` : ''}
         <div style="font-size:12px;color:#999;margin-top:4px">${c.phone}</div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button onclick="window.location.href='tel:${c.phone}'" style="flex:1;padding:6px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:6px;font-size:12px;font-weight:600">📞 전화</button>
+          <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:6px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;font-weight:600">💬 문자</button>
+          <button onclick="openCalendarCustomerEdit('${c.timestamp}')" style="padding:6px 8px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:6px;font-size:12px">✏️수정</button>
+          <button onclick="editCustomerEntryDate('${c.timestamp}','${dateStr}')" style="padding:6px 8px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:6px;font-size:12px">📅날짜</button>
+          <button onclick="sendDoneWithWarranty('${c.name}','${c.carType}','${c.phone}','${c.doneDate||dateStr}')" style="padding:6px 8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:12px">📨완료</button>
+          <button onclick="deleteCustomerFromCalendar('${c.timestamp}','${dateStr}')" style="padding:6px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px">🗑</button>
+        </div>
       </div>`).join('') : '<div style="color:#999;font-size:13px;margin-bottom:12px">입고 예정 없음</div>'}
+    <div style="border-top:1px solid #eee;padding-top:14px;margin-top:4px">
+      <button onclick="openCalendarFullForm('${dateStr}')" style="width:100%;padding:12px;background:#1a73e8;color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">➕ 입고 예약 상담 입력</button>
+    </div>
   </div>`;
 }
 
+// 캘린더 기능 버튼들
+async function deleteReservation(rowIndex, dateStr) { if (!confirm('삭제할까요?')) return; const r = await apiPost({ action: 'deleteReservation', rowIndex }); if (r === 'ok') { showToast('✅ 삭제 완료'); cacheClear('reservations'); loadCalendar(); } else showToast('❌ 실패'); }
+function openCalendarCustomerEdit(timestamp) { const idx = allCustomers.findIndex(x => x.timestamp === timestamp); if(idx >= 0) showCustomerDetail(idx); }
+async function deleteCustomerFromCalendar(timestamp, dateStr) { if (!confirm('삭제할까요?')) return; await db.collection('customers').doc(timestamp).delete(); apiPost({ action: 'deleteCustomer', timestamp }); showToast('✅ 삭제 완료'); loadCustomers(); loadCalendar(); }
+async function editReservationDate(rowIndex, currentDate) { const newDate = prompt('날짜 변경:', currentDate); if (!newDate || newDate === currentDate) return; const r = await apiPost({ action: 'updateReservationDate', rowIndex, date: newDate }); if (r === 'ok') { showToast('✅ 날짜 변경됨'); cacheClear('reservations'); loadCalendar(); } else showToast('❌ 실패'); }
+async function editCustomerEntryDate(timestamp, dateStr) { const newDate = prompt('입고예정일 변경:', dateStr); if (!newDate) return; await updateCustomerField(timestamp, 'entryDate', newDate); loadCalendar(); }
+async function editReservation(rowIndex, currentWork) { const newWork = prompt('작업내용 수정:', currentWork); if (!newWork) return; const r = await apiPost({ action: 'updateReservation', rowIndex, work: newWork }); if (r === 'ok') { showToast('✅ 수정 완료'); cacheClear('reservations'); loadCalendar(); } }
+
+// 시공완료 알림톡 + 보증서 (캘린더에서 버튼 누름)
+async function sendDoneWithWarranty(name, carType, phone, doneDate) {
+  if (!confirm(`${name} / ${carType}\n시공완료 알림톡을 발송할까요?\n(보증서 생성 포함)`)) return;
+  showToast('⏳ 백그라운드 처리 중...');
+  try {
+    const sd = await apiPost({ action: 'setDoneDate', timestamp: '', name, carType, phone, category: '', summary: '', estPrice: '', doneDate });
+    const pdfId = (sd && sd.pdfId) ? sd.pdfId : '';
+    const r = await apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate, pdfId });
+    if (r === 'ok') showToast('✅ 알림톡 발송 완료!'); else showToast('❌ 발송 실패');
+  } catch(e) { showToast('❌ ' + e.message); }
+}
+
+// 캘린더 전용 상담 입력 폼 열기
+function openCalendarFullForm(dateStr) {
+  const tintOptions = ['LX70','LX55','LX40','LX25','LX15','보그40','보그30','보그20','보그10','제니스50','제니스30','제니스15','제니스05','퀀텀37','퀀텀28','퀀텀19','퀀텀14','퀀텀08','티타늄26','티타늄16','티타늄06','G라인30','G라인10','S라인30','S라인10','XRPLUS55','XRPLUS30','XRPLUS20','XRPLUS15','XRPLUS05'];
+  const tintOpts = tintOptions.map(o => `<option>${o}</option>`).join('');
+
+  const popup = document.createElement('div'); popup.id = 'cal-full-form-popup'; popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:white;z-index:9999;display:flex;flex-direction:column;overflow:hidden';
+  popup.innerHTML = `
+    <div style="background:#1a1a2e;color:white;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0"><div style="font-size:15px;font-weight:700">📅 입고예약 (${dateStr})</div><button onclick="document.getElementById('cal-full-form-popup').remove()" style="background:none;border:none;color:white;font-size:26px;cursor:pointer;line-height:1;padding:0 4px">×</button></div>
+    <div style="flex:1;overflow-y:auto;padding:12px">
+      <div class="card"><div class="card-title">기본정보</div><div class="form-group"><label>차종</label><input type="text" id="cf-carType"></div><div class="form-group"><label>고객명</label><input type="text" id="cf-name"></div><div class="form-group"><label>연락처</label><input type="tel" id="cf-phone"></div></div>
+      <div class="card"><div class="card-title">시공분류</div><div class="check-group" id="cf-category-group"><label class="check-item"><input type="checkbox" value="썬팅"> 썬팅</label><label class="check-item"><input type="checkbox" value="PPF"> PPF</label><label class="check-item"><input type="checkbox" value="가죽"> 가죽</label><label class="check-item"><input type="checkbox" value="유리막"> 유리막</label><label class="check-item"><input type="checkbox" value="전장"> 전장</label><label class="check-item"><input type="checkbox" value="복합"> 복합</label></div></div>
+      <div class="card"><div class="card-title">틴팅</div><div class="form-group"><label>전면</label><select id="cf-tintF"><option value="">-</option>${tintOpts}</select></div><div class="form-group"><label>측면1열</label><select id="cf-tintS1"><option value="">-</option>${tintOpts}</select></div><div class="form-group"><label>측면2열</label><select id="cf-tintS2"><option value="">-</option>${tintOpts}</select></div><div class="form-group"><label>후면</label><select id="cf-tintR"><option value="">-</option>${tintOpts}</select></div><div class="form-group"><label>썬루프</label><select id="cf-tintSun"><option value="">-</option>${tintOpts}</select></div></div>
+      <div class="card"><div class="card-title">PPF & 코팅</div>
+        <div class="check-group" id="cf-ppf-group" style="margin-bottom:10px"><label class="check-item"><input type="checkbox" value="본넷"> 본넷</label><label class="check-item"><input type="checkbox" value="문콕"> 문콕</label><label class="check-item"><input type="checkbox" value="프런트A"> 프A</label><label class="check-item"><input type="checkbox" value="프런트F"> 프F</label><label class="check-item"><input type="checkbox" value="생활보호"> 생보</label><label class="check-item"><input type="checkbox" value="전체"> 전체</label></div>
+        <div class="check-group" id="cf-coating-group"><label class="check-item"><input type="checkbox" value="유리막"> 유리막</label><label class="check-item"><input type="checkbox" value="그래핀"> 그래핀</label><label class="check-item"><input type="checkbox" value="가죽기본"> 가죽기본</label><label class="check-item"><input type="checkbox" value="UG가죽"> UG</label><label class="check-item"><input type="checkbox" value="야와라A"> 야A</label><label class="check-item"><input type="checkbox" value="야와라B"> 야B</label></div>
+      </div>
+      <div class="card"><div class="card-title">견적정보</div><div class="form-group"><label>예상금액(만)</label><input type="number" id="cf-estPrice"></div><div class="form-group"><label>계약금(만)</label><input type="number" id="cf-deposit"></div>
+      <div class="form-group"><label>구분</label><select id="cf-status" style="color:#c62828;font-weight:700;border-color:#ffcdd2;background:#ffebee"><option value="예약안내" selected>예약안내</option><option value="상담">상담</option><option value="예약">예약</option></select></div></div>
+    </div>
+    <div style="padding:12px;display:flex;gap:10px;background:white"><button onclick="submitCalendarForm('${dateStr}')" style="flex:1;padding:14px;background:#1a73e8;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700">📤 예약 등록</button></div>`;
+  document.body.appendChild(popup);
+  popup.querySelectorAll('.check-item').forEach(label => { label.addEventListener('click', function() { const cb = this.querySelector('input[type="checkbox"]'); setTimeout(() => { this.classList.toggle('checked', cb.checked); }, 0); }); });
+}
+
+async function submitCalendarForm(dateStr) {
+  const name = document.getElementById('cf-name').value.trim(); const carType = document.getElementById('cf-carType').value.trim(); const phone = document.getElementById('cf-phone').value.trim();
+  if (!name || !carType || !phone) { showToast('입력 누락'); return; }
+  const category = [...document.querySelectorAll('#cf-category-group input:checked')].map(c => c.value).join(' / ');
+  const ppfText = [...document.querySelectorAll('#cf-ppf-group input:checked')].map(c => c.value).join(', ');
+  const coatingText = [...document.querySelectorAll('#cf-coating-group input:checked')].map(c => c.value).join(', ');
+  const tintF = document.getElementById('cf-tintF').value, tintS1 = document.getElementById('cf-tintS1').value, tintS2 = document.getElementById('cf-tintS2').value, tintR = document.getElementById('cf-tintR').value, tintSun = document.getElementById('cf-tintSun').value;
+  const estPrice = document.getElementById('cf-estPrice').value, deposit = document.getElementById('cf-deposit').value, status = document.getElementById('cf-status').value;
+  let summaryParts = []; if(category) summaryParts.push(category); if(tintF) summaryParts.push('틴팅'); if(ppfText) summaryParts.push('PPF'); const summary = summaryParts.join(' / ');
+
+  showToast('등록 중... ⏳');
+  try {
+    const ts = new Date().toISOString().slice(0, 16).replace('T', ' ');
+    const newCustomer = { timestamp: ts, name, phone, carType, category, summary, estPrice, status, deposit, ppf: ppfText, etc: coatingText, tintF, tintS1, tintS2, tintR, tintSun, entryDate: dateStr, doneDate: '' };
+    await db.collection('customers').doc(ts).set(newCustomer);
+    apiPost({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, deposit, ppfText, combinedM: coatingText, tintF, tintS1, tintS2, tintR, tintSun, entryDate: dateStr });
+    showToast('✅ 예약 완료!'); document.getElementById('cal-full-form-popup').remove(); loadCustomers(); loadCalendar();
+  } catch(e) { showToast('❌ ' + e.message); }
+}
+
+
 // ----------------------------------------------------
-// 📋 3. 할일(Todo) 복원 (로컬 스토리지)
+// 📋 3. 할일 & 📓 4. 메모 (로컬 스토리지)
 // ----------------------------------------------------
 function getTodos() { try { return JSON.parse(localStorage.getItem('motif_todos') || '[]'); } catch(e) { return []; } }
 function saveTodos(todos) { localStorage.setItem('motif_todos', JSON.stringify(todos)); }
-
-function addTodo() {
-  const date = document.getElementById('todo-date').value;
-  const text = document.getElementById('todo-text').value.trim();
-  if (!date || !text) { showToast('날짜와 내용을 입력해주세요!'); return; }
-  const todos = getTodos();
-  todos.push({ id: Date.now(), date, text, done: false });
-  saveTodos(todos);
-  document.getElementById('todo-text').value = '';
-  renderTodos();
-  showToast('✅ 할일 추가 완료!');
-}
-
-function toggleTodo(id) {
-  const todos = getTodos();
-  const t = todos.find(t => t.id === id);
-  if (t) t.done = !t.done;
-  saveTodos(todos);
-  renderTodos();
-}
-
-function deleteTodo(id) {
-  saveTodos(getTodos().filter(t => t.id !== id));
-  renderTodos();
-}
-
+function addTodo() { const date = document.getElementById('todo-date').value; const text = document.getElementById('todo-text').value.trim(); if (!date || !text) return; const todos = getTodos(); todos.push({ id: Date.now(), date, text, done: false }); saveTodos(todos); document.getElementById('todo-text').value = ''; renderTodos(); }
+function toggleTodo(id) { const todos = getTodos(); const t = todos.find(t => t.id === id); if (t) t.done = !t.done; saveTodos(todos); renderTodos(); }
+function deleteTodo(id) { saveTodos(getTodos().filter(t => t.id !== id)); renderTodos(); }
 function renderTodos() {
-  const todos = getTodos();
-  const container = document.getElementById('todo-list');
-  if (!todos.length) { container.innerHTML = '<div class="loading">할일이 없어요 😊</div>'; return; }
-  const groups = {};
-  todos.sort((a,b) => a.date.localeCompare(b.date)).forEach(t => {
-    if (!groups[t.date]) groups[t.date] = [];
-    groups[t.date].push(t);
-  });
-  const today = new Date().toISOString().slice(0,10);
-  let html = '';
+  const todos = getTodos(); const container = document.getElementById('todo-list'); if (!todos.length) { container.innerHTML = '<div class="loading">할일이 없어요 😊</div>'; return; }
+  const groups = {}; todos.sort((a,b) => a.date.localeCompare(b.date)).forEach(t => { if (!groups[t.date]) groups[t.date] = []; groups[t.date].push(t); });
+  const today = new Date().toISOString().slice(0,10); let html = '';
   Object.keys(groups).sort().forEach(date => {
-    const isToday = date === today;
-    const dateLabel = date.replace(/-/g, '.') + (isToday ? ' 📌 오늘' : '');
+    const isToday = date === today; const dateLabel = date.replace(/-/g, '.') + (isToday ? ' 📌 오늘' : '');
     html += `<div class="card" style="margin-bottom:12px"><div class="card-title">${dateLabel}</div>`;
     groups[date].forEach(t => {
-      html += `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f5f5">
-        <div onclick="toggleTodo(${t.id})" style="width:24px;height:24px;border-radius:50%;border:2px solid ${t.done?'#1a1a2e':'#ddd'};background:${t.done?'#1a1a2e':'white'};cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          ${t.done ? '<span style="color:white;font-size:13px">✓</span>' : ''}
-        </div>
-        <span style="flex:1;font-size:clamp(14px,3.5vw,16px);text-decoration:${t.done?'line-through':'none'};color:${t.done?'#bbb':'#222'}">${t.text}</span>
-        <button onclick="deleteTodo(${t.id})" style="background:none;border:none;color:#ddd;font-size:20px;cursor:pointer;padding:4px">×</button>
-      </div>`;
-    });
-    html += '</div>';
-  });
-  container.innerHTML = html;
+      html += `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f5f5"><div onclick="toggleTodo(${t.id})" style="width:24px;height:24px;border-radius:50%;border:2px solid ${t.done?'#1a1a2e':'#ddd'};background:${t.done?'#1a1a2e':'white'};cursor:pointer;display:flex;align-items:center;justify-content:center">${t.done ? '<span style="color:white;font-size:13px">✓</span>' : ''}</div><span style="flex:1;font-size:clamp(14px,3.5vw,16px);text-decoration:${t.done?'line-through':'none'};color:${t.done?'#bbb':'#222'}">${t.text}</span><button onclick="deleteTodo(${t.id})" style="background:none;border:none;color:#ddd;font-size:20px;cursor:pointer">×</button></div>`;
+    }); html += '</div>';
+  }); container.innerHTML = html;
 }
-function initTodo() {
-  const dateInput = document.getElementById('todo-date');
-  if (!dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
-  renderTodos();
-}
+function initTodo() { const d = document.getElementById('todo-date'); if (!d.value) d.value = new Date().toISOString().slice(0,10); renderTodos(); }
 
-// ----------------------------------------------------
-// 📓 4. 메모(Memo) 복원 (로컬 스토리지)
-// ----------------------------------------------------
 let _memoCurrentFilter = '전체';
 function getMemos() { try { return JSON.parse(localStorage.getItem('motif_memos') || '[]'); } catch(e) { return []; } }
 function saveMemos(memos) { try { localStorage.setItem('motif_memos', JSON.stringify(memos)); } catch(e) {} }
-
-function addMemo() {
-  const title = document.getElementById('memo-title').value.trim();
-  const content = document.getElementById('memo-content').value.trim();
-  const tag = document.getElementById('memo-tag').value;
-  if (!content) { showToast('내용을 입력해주세요!'); return; }
-  const memos = getMemos();
-  memos.unshift({ id: Date.now(), title, content, tag, date: new Date().toLocaleDateString('ko-KR'), pinned: false });
-  saveMemos(memos);
-  document.getElementById('memo-title').value = ''; document.getElementById('memo-content').value = '';
-  renderMemos(); showToast('✅ 메모 저장됨!');
-}
-
+function addMemo() { const title = document.getElementById('memo-title').value.trim(); const content = document.getElementById('memo-content').value.trim(); const tag = document.getElementById('memo-tag').value; if (!content) return; const memos = getMemos(); memos.unshift({ id: Date.now(), title, content, tag, date: new Date().toLocaleDateString('ko-KR'), pinned: false }); saveMemos(memos); document.getElementById('memo-title').value = ''; document.getElementById('memo-content').value = ''; renderMemos(); }
 function deleteMemo(id) { saveMemos(getMemos().filter(m => m.id !== id)); renderMemos(); }
 function toggleMemoPin(id) { const memos = getMemos(); const m = memos.find(m => m.id === id); if (m) m.pinned = !m.pinned; saveMemos(memos); renderMemos(); }
 function filterMemo(tag) { _memoCurrentFilter = tag; renderMemos(); }
-
 function renderMemos() {
-  const container = document.getElementById('memo-list');
-  if (!container) return;
-  const all = getMemos();
-  const filtered = _memoCurrentFilter === '전체' ? all : all.filter(m => m.tag === _memoCurrentFilter);
+  const container = document.getElementById('memo-list'); if (!container) return; const all = getMemos(); const filtered = _memoCurrentFilter === '전체' ? all : all.filter(m => m.tag === _memoCurrentFilter);
   if (!filtered.length) { container.innerHTML = '<div class="loading">메모가 없어요 📓</div>'; return; }
   const sorted = [...filtered.filter(m => m.pinned), ...filtered.filter(m => !m.pinned)];
   container.innerHTML = sorted.map(m => `
     <div class="card" style="border-left:4px solid #ddd;${m.pinned ? 'box-shadow:0 2px 12px rgba(0,0,0,0.13)' : ''}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-        <div style="font-size:14px;font-weight:700;">${m.tag} ${m.title ? '- ' + m.title : ''}</div>
-        <div style="display:flex;gap:6px;">
-          <button onclick="toggleMemoPin(${m.id})" style="padding:4px;cursor:pointer">${m.pinned ? '📌' : '📍'}</button>
-          <button onclick="if(confirm('삭제?'))deleteMemo(${m.id})" style="padding:4px;cursor:pointer">🗑</button>
-        </div>
-      </div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px"><div style="font-size:14px;font-weight:700;">${m.tag} ${m.title ? '- ' + m.title : ''}</div><div style="display:flex;gap:6px;"><button onclick="toggleMemoPin(${m.id})" style="padding:4px;cursor:pointer">${m.pinned ? '📌' : '📍'}</button><button onclick="if(confirm('삭제?'))deleteMemo(${m.id})" style="padding:4px;cursor:pointer">🗑</button></div></div>
       <div style="font-size:14px;color:#333;white-space:pre-wrap;">${m.content}</div>
     </div>`).join('');
 }
 function initMemo() { filterMemo(_memoCurrentFilter); }
 
-// ----------------------------------------------------
-// 📋 5. 사후관리 (Aftercare) 복원 (구글 시트 연동 유지)
-// ----------------------------------------------------
-const AFTERCARE_LIMIT = 15;
-let aftercareOffset = 0;
 
+// ----------------------------------------------------
+// 📋 5. 사후관리 (구글 시트 연동 유지)
+// ----------------------------------------------------
+const AFTERCARE_LIMIT = 15; let aftercareOffset = 0;
 async function loadAftercare() {
   document.getElementById('aftercare-list').innerHTML = '<div class="loading">불러오는 중...</div>';
-  try {
-    const res = await api({ action: 'getAftercare', offset: 0, limit: AFTERCARE_LIMIT });
-    allAftercare = res.data || res;
-    renderAftercare(allAftercare);
-  } catch(e) { document.getElementById('aftercare-list').innerHTML = '<div class="loading">❌ ' + e.message + '</div>'; }
+  try { const res = await api({ action: 'getAftercare', offset: 0, limit: AFTERCARE_LIMIT }); allAftercare = res.data || res; renderAftercare(allAftercare); } catch(e) { document.getElementById('aftercare-list').innerHTML = '<div class="loading">❌ ' + e.message + '</div>'; }
 }
-
 function renderAftercare(data) {
-  const container = document.getElementById('aftercare-list');
-  if (!data.length) { container.innerHTML = '<div class="loading">데이터가 없습니다.</div>'; return; }
+  const container = document.getElementById('aftercare-list'); if (!data.length) { container.innerHTML = '<div class="loading">데이터가 없습니다.</div>'; return; }
   container.innerHTML = data.map((c, i) => `
     <div class="aftercare-card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div class="customer-name">${c.name}</div>
-        <span style="font-size:12px;color:#888;">${c.doneDate || '시공일 미정'}</span>
-      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center"><div class="customer-name">${c.name}</div><span style="font-size:12px;color:#888;">${c.doneDate || '시공일 미정'}</span></div>
       <div class="customer-car">${c.carType} · ${c.phone}</div>
       <div style="font-size:13px;color:#555;margin-top:6px">${c.category||''}</div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
+function filterAftercare() { const q = document.getElementById('aftercare-search').value.toLowerCase(); renderAftercare(allAftercare.filter(c => c.name.toLowerCase().includes(q) || c.carType.toLowerCase().includes(q) || c.phone.includes(q))); }
 
-function filterAftercare() {
-  const q = document.getElementById('aftercare-search').value.toLowerCase();
-  renderAftercare(allAftercare.filter(c => c.name.toLowerCase().includes(q) || c.carType.toLowerCase().includes(q) || c.phone.includes(q)));
-}
 
 // ----------------------------------------------------
-// 📑 6. 견적서 및 썬팅/유리막 보증서 (비동기 처리)
+// 📑 6. 보증서 & 견적서 백그라운드 생성
 // ----------------------------------------------------
 async function submitInvoice() {
-  const carNumber = document.getElementById('inv-carnumber').value.trim();
-  const carType   = document.getElementById('inv-cartype').value.trim();
-  const date      = document.getElementById('inv-date').value;
-  const note      = document.getElementById('inv-note').value.trim();
-  if (!carType || !date) { showToast('차종과 날짜를 입력해주세요'); return; }
-
-  const items = [...document.querySelectorAll('.inv-item')].map(el => ({
-    name:  el.querySelectorAll('input')[0].value.trim(),
-    price: el.querySelectorAll('input')[1].value || '0'
-  })).filter(it => it.name);
-
-  if (!items.length) { showToast('품목을 1개 이상 입력해주세요'); return; }
-
-  const btn = document.getElementById('inv-submit-btn');
-  btn.disabled = true; btn.textContent = '⏳ 백그라운드 생성 중...';
-  showToast('견적서 생성을 요청했습니다! 다른 작업을 하셔도 됩니다.');
-
+  const carNumber = document.getElementById('inv-carnumber').value.trim(); const carType = document.getElementById('inv-cartype').value.trim(); const date = document.getElementById('inv-date').value; const note = document.getElementById('inv-note').value.trim();
+  if (!carType || !date) { showToast('입력 확인'); return; }
+  const items = [...document.querySelectorAll('.inv-item')].map(el => ({ name: el.querySelectorAll('input')[0].value.trim(), price: el.querySelectorAll('input')[1].value || '0' })).filter(it => it.name);
+  const btn = document.getElementById('inv-submit-btn'); btn.disabled = true; btn.textContent = '⏳ 백그라운드 생성 중...'; showToast('견적서 생성 요청완료!');
   apiPost({ action: 'createInvoice', carNumber, carType, date, items, note }).then(r => {
-    if (r && r.fileId) {
-      document.getElementById('inv-result').innerHTML = `<button class="btn btn-primary" onclick="window.open('https://drive.google.com/file/d/${r.fileId}/view','_blank')">📄 견적서 열기</button>`;
-      showToast('✅ 견적서 생성 완료!');
-    }
+    if (r && r.fileId) { document.getElementById('inv-result').innerHTML = `<button class="btn btn-primary" onclick="window.open('https://drive.google.com/file/d/${r.fileId}/view','_blank')">📄 견적서 열기</button>`; showToast('✅ 생성 완료!'); }
     btn.disabled = false; btn.textContent = '📑 견적서 생성';
-  }).catch(e => { showToast('❌ ' + e.message); btn.disabled = false; btn.textContent = '📑 견적서 생성'; });
+  });
 }
-
-function addInvoiceItem() {
-  const container = document.getElementById('inv-items');
-  const div = document.createElement('div');
-  div.className = 'inv-item';
-  div.style.cssText = 'display:flex;gap:8px;margin-bottom:10px;align-items:center';
-  div.innerHTML = `<input type="text" placeholder="품목명" style="flex:2;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;font-family:inherit;outline:none"><input type="number" placeholder="금액" inputmode="numeric" style="flex:1;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;font-family:inherit;outline:none" oninput="updateInvoiceTotal()"><button onclick="removeInvoiceItem(this)" style="padding:8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:8px;font-size:14px;cursor:pointer;flex-shrink:0">✕</button>`;
-  container.appendChild(div);
-}
+function addInvoiceItem() { const container = document.getElementById('inv-items'); const div = document.createElement('div'); div.className = 'inv-item'; div.style.cssText = 'display:flex;gap:8px;margin-bottom:10px;align-items:center'; div.innerHTML = `<input type="text" placeholder="품목명" style="flex:2;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;outline:none"><input type="number" placeholder="금액" inputmode="numeric" style="flex:1;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;outline:none" oninput="updateInvoiceTotal()"><button onclick="removeInvoiceItem(this)" style="padding:8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:8px;font-size:14px;cursor:pointer">✕</button>`; container.appendChild(div); }
 function removeInvoiceItem(btn) { btn.closest('.inv-item').remove(); updateInvoiceTotal(); }
-function updateInvoiceTotal() {
-  const prices = [...document.querySelectorAll('.inv-item input[type="number"]')].map(el => parseInt(el.value) || 0);
-  const total = prices.reduce((a, b) => a + b + Math.round(b * 0.1), 0);
-  document.getElementById('inv-total').textContent = total.toLocaleString('ko-KR') + '원 (세포함)';
-}
+function updateInvoiceTotal() { const prices = [...document.querySelectorAll('.inv-item input[type="number"]')].map(el => parseInt(el.value) || 0); const total = prices.reduce((a, b) => a + b + Math.round(b * 0.1), 0); document.getElementById('inv-total').textContent = total.toLocaleString('ko-KR') + '원 (세포함)'; }
 function initInvoice() { const d = document.getElementById('inv-date'); if (!d.value) d.value = new Date().toISOString().slice(0,10); }
 
 async function submitTintWarranty() {
-  const name = document.getElementById('tw-name').value.trim();
-  const phone = document.getElementById('tw-phone').value.trim();
-  const carType = document.getElementById('tw-cartype').value.trim();
-  const date = document.getElementById('tw-date').value;
-  if (!name || !phone || !carType || !date) { showToast('입력 누락이 있습니다.'); return; }
+  const name = document.getElementById('tw-name').value.trim(); const phone = document.getElementById('tw-phone').value.trim(); const carNumber = document.getElementById('tw-carnumber').value.trim(); const carType = document.getElementById('tw-cartype').value.trim(); const date = document.getElementById('tw-date').value;
+  const tintF = document.getElementById('tw-tintF').value, tintS1 = document.getElementById('tw-tintS1').value, tintS2 = document.getElementById('tw-tintS2').value, tintR = document.getElementById('tw-tintR').value, tintSun = document.getElementById('tw-tintSun').value, totalPrice = document.getElementById('tw-price').value;
+  if (!name || !phone || !carType || !date) { showToast('입력 누락'); return; }
 
-  const btn = document.getElementById('tw-submit-btn');
-  btn.disabled = true; btn.textContent = '⏳ 백그라운드 생성 중...';
-  showToast('보증서 생성을 요청했습니다! 다른 작업을 하셔도 됩니다.');
-
-  apiPost({ action: 'createTintWarranty', name, phone, carType, date, /* 나머지 변수 생략 */ }).then(r => {
-    if (r && r.fileId) {
-      document.getElementById('tw-result').innerHTML = `<button class="btn btn-primary" onclick="window.open('https://drive.google.com/file/d/${r.fileId}/view','_blank')">📄 썬팅 보증서 열기</button>`;
-      showToast('✅ 썬팅 보증서 생성 완료!');
-    }
-    btn.disabled = false; btn.textContent = '🎫 보증서 생성';
+  const btn = document.getElementById('tw-submit-btn'); btn.disabled = true; btn.textContent = '⏳ 백그라운드 생성 중...'; showToast('보증서 생성 요청완료!');
+  apiPost({ action: 'createTintWarranty', name, phone, carNumber, carType, date, tintF, tintS1, tintS2, tintR, tintSun, totalPrice }).then(r => {
+    if (r && r.fileId) { document.getElementById('tw-result').innerHTML = `<button class="btn btn-primary" onclick="window.open('https://drive.google.com/file/d/${r.fileId}/view','_blank')" style="margin-bottom:10px">📄 썬팅 보증서 열기</button><button class="btn" style="background:#ff6b35;color:white" onclick="sendTintDoneAlimtalk('${name}','${carType}','${phone}','${date}','${r.fileId}')">📨 알림톡 발송</button>`; showToast('✅ 생성 완료!'); }
+    btn.disabled = false; btn.textContent = '🎫 보증서 생성 + 시공완료 알림톡 발송';
   });
 }
 function initTint() { const d = document.getElementById('tw-date'); if (!d.value) d.value = new Date().toISOString().slice(0,10); }
 
 async function submitGlassWarranty() {
-  const carType = document.getElementById('glass-cartype').value.trim();
-  if (!carType) return;
-  const btn = document.getElementById('glass-submit-btn');
-  btn.disabled = true; btn.textContent = '⏳ 생성 중...';
-  apiPost({ action: 'createGlassWarranty', carType /* 나머지 생략 */ }).then(r => {
+  const carType = document.getElementById('glass-cartype').value.trim(), carNumber = document.getElementById('glass-carnumber').value.trim(), phone = document.getElementById('glass-phone').value.trim(), date = document.getElementById('glass-date').value, price = document.getElementById('glass-price').value.trim();
+  if (!carType || !carNumber) return;
+  const btn = document.getElementById('glass-submit-btn'); btn.disabled = true; btn.textContent = '⏳ 백그라운드 생성 중...'; showToast('보증서 생성 요청완료!');
+  apiPost({ action: 'createGlassWarranty', carType, carNumber, phone, date, price }).then(r => {
     if (r && r.fileId) document.getElementById('glass-result').innerHTML = `<button class="btn btn-primary" onclick="window.open('https://drive.google.com/file/d/${r.fileId}/view','_blank')">📄 보증서 열기</button>`;
     btn.disabled = false; btn.textContent = '📄 보증서 생성';
   });
 }
+async function sendTintDoneAlimtalk(name, carType, phone, date, pdfId) {
+  if (!confirm('발송할까요?')) return; showToast('발송 중...');
+  apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate: date, pdfId }).then(r => { if (r === 'ok') showToast('✅ 발송 완료!'); else showToast('❌ 실패'); });
+}
+
+</script>
 </script>
 </body>
 </html>
