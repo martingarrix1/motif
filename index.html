@@ -85,7 +85,6 @@
   <button id="nav-more" onclick="toggleMoreMenu()">☰<span>더보기</span></button>
 </div>
 
-<!-- 더보기 메뉴 -->
 <div id="more-menu" style="display:none;position:fixed;top:84px;right:0;left:0;background:white;z-index:98;border-bottom:2px solid #eee;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
   <div style="display:grid;grid-template-columns:repeat(5,1fr);padding:8px">
     <button onclick="showPage('aftercare',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📋<span>사후관리</span></button>
@@ -384,7 +383,22 @@
 
 <div id="toast" class="toast"></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+
 <script>
+// 🔥 파이어베이스 설정 및 연결 🔥
+const firebaseConfig = {
+  apiKey: "AIzaSyDjB5b6T5m-xTIyTUbGK0QCe5hEr9kZDR4",
+  authDomain: "motif-crm.firebaseapp.com",
+  projectId: "motif-crm",
+  storageBucket: "motif-crm.firebasestorage.app",
+  messagingSenderId: "339614788624",
+  appId: "1:339614788624:web:2e697521ba5cd133172e95"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
 // ★ 앱스크립트 웹앱 URL - 배포 후 여기에 붙여넣기
 const API_URL = 'https://script.google.com/macros/s/AKfycbzv3xVInSeTmisnUk7X9u2eRNeRbOgrCs--Wuaqh0BtCx4n4BV00Ik4RsoqoMKi071zDw/exec';
 
