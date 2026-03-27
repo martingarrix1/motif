@@ -72,6 +72,22 @@
   .toast.show { opacity: 1; }
   .price-text { font-size: clamp(13px, 3.5vw, 16px); color: #1a73e8; font-weight: 700; }
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDjB5b6T5m-xTIyTUbGK0QCe5hEr9kZDR4",
+  authDomain: "motif-crm.firebaseapp.com",
+  projectId: "motif-crm",
+  storageBucket: "motif-crm.firebasestorage.app",
+  messagingSenderId: "339614788624",
+  appId: "1:339614788624:web:2e697521ba5cd133172e95"
+};
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.firestore();
+</script>
 </head>
 <body>
 
@@ -1934,6 +1950,8 @@ async function submitCalendarForm(dateStr) {
   if (ppfText) summaryParts.push('PPF: ' + ppfText);
   if (combinedM) summaryParts.push(combinedM);
   const summary = summaryParts.join(' / ');
+
+  if (!confirm(`${name} / ${carType}\n${entryDate} 입고 예약을 등록할까요?`)) return;
 
   showToast('⏳ 등록 중...');
   try {
