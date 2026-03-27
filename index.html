@@ -318,7 +318,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 
 <script>
-<script>
 // 🔥 파이어베이스 설정 및 연결 🔥
 const firebaseConfig = {
   apiKey: "AIzaSyDjB5b6T5m-xTIyTUbGK0QCe5hEr9kZDR4",
@@ -855,7 +854,6 @@ async function sendTintDoneAlimtalk(name, carType, phone, date, pdfId) {
   apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate: date, pdfId }).then(r => { if (r === 'ok') showToast('✅ 발송 완료!'); else showToast('❌ 실패'); });
 }
 
-</script>
 </script>
 </body>
 </html>
