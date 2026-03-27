@@ -516,27 +516,17 @@ function resetForm() {
 }
 
 async function loadCustomers() {
-  customerOffset = 0;
-  hasMoreCustomers = true;
-  document.getElementById('customer-list').innerHTML = '<div class="loading">불러오는 중...</div>';
+  document.getElementById('customer-list').innerHTML = '<div class="loading">⚡ 불러오는 중...</div>';
   try {
-    const cached = cacheGet('customers_0');
-    if (cached) {
-      allCustomers = cached.data;
-      window._customerTotal = cached.total;
-      hasMoreCustomers = allCustomers.length < cached.total;
-      renderCustomers(allCustomers);
-      return;
-    }
-    const res = await api({ action: 'getCustomerList', offset: 0, limit: 15 });
-    const data = res.data || res;
-    const total = res.total || data.length;
-    allCustomers = data;
-    hasMoreCustomers = allCustomers.length < total;
-    window._customerTotal = total;
-    cacheSet('customers_0', { data, total });
-    renderCustomers(data);
-  } catch(e) { document.getElementById('customer-list').innerHTML = '<div class="loading">❌ ' + e.message + '</div>'; }
+    const snapshot = await db.collection('customers').get();
+    allCustomers = [];
+    snapshot.forEach(doc => allCustomers.push(doc.data()));
+    allCustomers.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+    displayCount = 30;
+    renderCustomers(allCustomers);
+  } catch(e) {
+    document.getElementById('customer-list').innerHTML = `<div class="loading" style="color:red">❌ ${e.message}<br><br>더보기(☰) → 🚀 데이터 이사하기 를 먼저 실행해주세요.</div>`;
+  }
 }
 
 function loadMoreCustomers() {
