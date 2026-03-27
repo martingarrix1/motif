@@ -608,7 +608,7 @@ function renderCustomers(data) {
   // 정렬된 순서로 allCustomers 재정렬 (showCustomerDetail 인덱스 일치)
   allCustomers = sorted;
 
-  html += sorted.map((c, i) => `
+  html += sorted.slice(0, displayCount).map((c, i) => `
     <div class="customer-card">
       <div onclick="showCustomerDetail(${i})" style="cursor:pointer">
         <div style="display:flex;justify-content:space-between;align-items:center">
@@ -665,9 +665,9 @@ function renderCustomers(data) {
     </div>
   `).join('');
   // 더보기 버튼
-  if (hasMoreCustomers) {
+  if (sorted.length > displayCount) {
     html += `<div style="text-align:center;margin:12px 0">
-      <button onclick="loadMoreCustomers()" style="padding:10px 24px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer">⬇️ 더보기 (${(window._customerTotal||0) - allCustomers.length}건 남음)</button>
+      <button onclick="loadMoreCustomers()" style="padding:10px 24px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer">⬇️ 더보기 (${sorted.length - displayCount}건 남음)</button>
     </div>`;
   }
   container.innerHTML = html;
