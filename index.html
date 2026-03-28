@@ -602,7 +602,15 @@ function renderCustomers(data) {
   });
 
   const todayStr = new Date().toISOString().slice(0,10);
-  const todayCustomers = sorted.filter(c => c.entryDate === todayStr);
+  // 오늘 입고 - deduped 기준으로 중복제거
+  const todaySeen = new Set();
+  const todayCustomers = deduped.filter(c => {
+    if (c.entryDate !== todayStr) return false;
+    const key = (c.phone||'') + '_' + (c.name||'') + '_' + (c.carType||'');
+    if (todaySeen.has(key)) return false;
+    todaySeen.add(key);
+    return true;
+  });
 
   let html = '';
   if (todayCustomers.length) {
