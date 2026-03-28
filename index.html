@@ -624,13 +624,17 @@ function renderCustomers(data) {
     </div>`;
   }
 
-  // phone+timestamp 기준 중복 제거
-  const seen = new Set();
+  // phone+name+carType 기준 중복제거 (최신 타임스탬프 우선)
+  const seenMap = {};
+  sorted.forEach(c => {
+    const key = (c.phone||'') + '_' + (c.name||'') + '_' + (c.carType||'');
+    if (!seenMap[key] || (c.timestamp||'') > (seenMap[key].timestamp||'')) {
+      seenMap[key] = c;
+    }
+  });
   const deduped = sorted.filter(c => {
-    const key = (c.phone || '') + '_' + (c.timestamp || '');
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
+    const key = (c.phone||'') + '_' + (c.name||'') + '_' + (c.carType||'');
+    return seenMap[key] === c;
   });
 
   // 정렬된 순서로 allCustomers 재정렬 (showCustomerDetail 인덱스 일치)
@@ -889,15 +893,25 @@ const AFTERCARE_LIMIT = 15;
 async function loadAftercare() {
   document.getElementById('aftercare-list').innerHTML = '<div class="loading">⚡ 불러오는 중...</div>';
   try {
-    const snapshot = await db.collection('aftercare').get();
-    const raw = [];
-    snapshot.forEach(doc => raw.push(doc.data()));
+    let raw = [];
+    // Firebase 시도
+    try {
+      const snapshot = await db.collection('aftercare').get();
+      snapshot.forEach(doc => raw.push(doc.data()));
+    } catch(e2) {}
+
+    // Firebase 비어있으면 GAS에서 로드
+    if (raw.length === 0) {
+      const res = await api({ action: 'getAftercare', offset: 0, limit: 300 });
+      raw = (res.data || res || []);
+    }
+
     // name+carType+doneDate 기준 중복 제거
-    const seen = new Set();
+    const seenA = new Set();
     allAftercare = raw.filter(c => {
       const key = (c.name||'') + '_' + (c.carType||'') + '_' + (c.doneDate||'');
-      if (seen.has(key)) return false;
-      seen.add(key);
+      if (seenA.has(key)) return false;
+      seenA.add(key);
       return true;
     });
     renderAftercare(allAftercare);
@@ -1267,7 +1281,7 @@ function renderCalendar() {
   const calSeen = new Set();
   (allCustomers).forEach(c => {
     if (c.entryDate) {
-      const key = (c.phone||'') + '_' + (c.timestamp||'');
+      const key = (c.phone||'') + '_' + (c.name||'') + '_' + (c.carType||'');
       if (calSeen.has(key)) return;
       calSeen.add(key);
       if (!entryMap[c.entryDate]) entryMap[c.entryDate] = [];
