@@ -511,9 +511,19 @@ async function submitConsult() {
   const note = document.getElementById('note').value;
   showToast('전송 중... ⏳');
   try {
-    const r = await apiPost({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery });
-    if (r.success) { showToast('✅ 전송 완료!'); resetForm(); allCustomers = []; }
-    else showToast('❌ 오류: ' + (r.error || ''));
+    const ts = new Date().toISOString().slice(0, 16).replace('T', ' ');
+    const newCustomer = { timestamp: ts, name, phone, carType, category, summary, estPrice, status, note, deposit, ppf: ppfText, etc: combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, doneDate: '' };
+
+    // Firebase 즉시 저장
+    await db.collection('customers').doc(ts).set(newCustomer);
+
+    // GAS 백그라운드 (알림톡 + 시트)
+    apiPost({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery });
+
+    showToast('✅ 전송 완료!');
+    resetForm();
+    cacheClear('customers_all');
+    allCustomers = [];
   } catch(e) { showToast('❌ 오류: ' + e.message); }
 }
 
@@ -840,6 +850,7 @@ function copyPhone(phone) {
 
 async function changeEntryDate(timestamp, value) {
   try {
+    try { await db.collection('customers').doc(timestamp).update({ entryDate: value }); } catch(fe) {}
     const r = await apiPost({ action: 'updateCustomerField', timestamp, field: 'entryDate', value });
     if (r === 'ok') {
       showToast('✅ 날짜 변경됨');
@@ -853,6 +864,7 @@ async function changeEntryDate(timestamp, value) {
 async function clearEntryDate(timestamp) {
   if (!confirm('입고를 취소할까요? (입고예정일이 삭제됩니다)')) return;
   try {
+    try { await db.collection('customers').doc(timestamp).update({ entryDate: '' }); } catch(fe) {}
     const r = await apiPost({ action: 'updateCustomerField', timestamp, field: 'entryDate', value: '' });
     if (r === 'ok') {
       showToast('✅ 입고 취소됨');
@@ -1311,6 +1323,8 @@ async function generateWarranty(name, carType, doneDate, btn) {
 
 async function updateCustomerField(timestamp, field, value) {
   try {
+    // Firebase 동기화
+    try { await db.collection('customers').doc(timestamp).update({ [field]: value }); } catch(fe) {}
     const r = await apiPost({ action: 'updateCustomerField', timestamp, field, value });
     showToast(r === 'ok' ? '✅ 업데이트!' : '❌ 행을 찾지 못했어');
   } catch(e) { showToast('❌ ' + e.message); }
@@ -1324,10 +1338,12 @@ async function openPDF(fileId, event) {
 async function deleteCustomer(timestamp) {
   if (!confirm('이 고객을 삭제할까요?')) return;
   try {
+    // Firebase 삭제
+    try { await db.collection('customers').doc(timestamp).delete(); } catch(fe) {}
     const r = await apiPost({ action: 'deleteCustomer', timestamp });
     if (r === 'ok') {
       showToast('✅ 삭제 완료!');
-      cacheClear('customers_0');
+      cacheClear('customers_all');
       allCustomers = allCustomers.filter(c => c.timestamp !== timestamp);
       renderCustomers(allCustomers);
     } else {
