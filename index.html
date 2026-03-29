@@ -443,10 +443,13 @@ async function updateCustomerInFirebase(timestamp, updates) {
   const refs = await findCustomerDocs(timestamp);
   if (refs.length > 0) {
     for (const ref of refs) await ref.update(updates);
+    console.log('Firebase update OK, refs:', refs.length);
   } else {
-    const c = allCustomers.find(x => x.timestamp === timestamp);
+    const c = allCustomers.find(x => x.timestamp === timestamp) || {};
     const docId = timestamp.replace(/[^0-9a-zA-Z]/g, '_');
-    await db.collection('customers').doc(docId).set({ ...c, ...updates, timestamp });
+    const fullData = { ...c, ...updates, timestamp };
+    await db.collection('customers').doc(docId).set(fullData);
+    console.log('Firebase set (new doc):', docId);
   }
 }
 
@@ -1815,15 +1818,12 @@ async function saveCalendarCustomerEdit(timestamp) {
   const popup = document.getElementById('cal-edit-popup');
   if (popup) popup.remove();
   renderCalendar();
-  showToast('✅ 수정 완료!');
 
-  // Firebase + GAS 백그라운드 저장
-  (async () => {
-    try {
-      await updateCustomerInFirebase(timestamp, updates);
-      showToast('✅ 저장 완료!');
-    } catch(fe) { showToast('⚠️ Firebase 저장 실패: ' + fe.message); }
-  })();
+  // Firebase 저장 (await로 완료 보장)
+  try {
+    await updateCustomerInFirebase(timestamp, updates);
+    showToast('✅ 저장 완료!');
+  } catch(fe) { showToast('⚠️ Firebase 저장 실패: ' + fe.message); }
   } catch(e) { showToast('❌ 저장 오류: ' + e.message); }
 }
 
