@@ -1675,19 +1675,17 @@ async function addCalendarReservation(dateStr) {
 }
 
 
-// 시공완료 알림톡 - 사후관리에서 보증서 PDF 찾아서 발송
+// 시공완료 처리 (보증서 생성 + 고객목록/사후관리 반영) → 알림톡은 선택
 async function sendDoneWithWarranty(name, carType, phone, doneDate) {
-  if (!confirm(`${name} / ${carType}\n시공완료 알림톡을 발송할까요?\n(보증서 생성 + PDF 링크 포함)`)) return;
-
-  showToast('⏳ 보증서 생성 중...');
+  showToast('⏳ 시공완료 처리 중...');
   try {
-    // Firebase 고객목록에 doneDate 반영
+    // 1. Firebase 고객목록에 doneDate 반영
     const custSnap = await db.collection('customers')
       .where('name','==',name).where('carType','==',carType).get();
     const batch = db.batch();
     custSnap.forEach(doc => batch.update(doc.ref, { doneDate }));
 
-    // Firebase 사후관리에 추가/업데이트
+    // 2. Firebase 사후관리에 추가/업데이트
     const acSnap = await db.collection('aftercare')
       .where('name','==',name).where('carType','==',carType).get();
     if (!acSnap.empty) {
@@ -1703,7 +1701,7 @@ async function sendDoneWithWarranty(name, carType, phone, doneDate) {
     }
     await batch.commit();
 
-    // 1. GAS에 보증서 생성 요청
+    // 3. GAS에 보증서 생성 요청
     const sd = await apiPost({
       action: 'setDoneDate',
       timestamp: '', name, carType, phone,
@@ -1711,16 +1709,20 @@ async function sendDoneWithWarranty(name, carType, phone, doneDate) {
     });
     const pdfId = (sd && sd.pdfId) ? sd.pdfId : '';
 
-    // 2. 알림톡 발송
-    showToast('⏳ 알림톡 발송 중...');
-    const r = await apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate, pdfId });
-    if (r === 'ok') {
-      showToast('✅ 시공완료 알림톡 발송 완료!' + (pdfId ? ' (보증서 포함)' : ''));
-      const key = 'done_sent_' + name + '_' + carType;
-      localStorage.setItem(key, doneDate);
-      showCalendarDay(doneDate);
-    } else {
-      showToast('❌ ' + (r.error || '발송 실패'));
+    showToast('✅ 시공완료 + 보증서 생성 완료!');
+    showCalendarDay(doneDate);
+
+    // 4. 알림톡 발송 여부 확인
+    if (confirm(`${name} / ${carType}\n시공완료 알림톡을 발송할까요?` + (pdfId ? '\n(보증서 PDF 포함)' : ''))) {
+      showToast('⏳ 알림톡 발송 중...');
+      const r = await apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate, pdfId });
+      if (r === 'ok') {
+        showToast('✅ 알림톡 발송 완료!');
+        localStorage.setItem('done_sent_' + name + '_' + carType, doneDate);
+        showCalendarDay(doneDate);
+      } else {
+        showToast('❌ ' + (r.error || '발송 실패'));
+      }
     }
   } catch(e) { showToast('❌ ' + e.message); }
 }
