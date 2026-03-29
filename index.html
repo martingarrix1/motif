@@ -428,17 +428,26 @@ function esc(str) {
 // Firebase 고객 문서 찾기 (doc ID가 timestamp 또는 변환된 형태일 수 있음)
 async function findCustomerDocs(timestamp) {
   const docId = timestamp.replace(/[^0-9a-zA-Z]/g, '_');
-  // 1) 변환된 ID로 시도
   let doc = await db.collection('customers').doc(docId).get();
   if (doc.exists) return [doc.ref];
-  // 2) 원본 timestamp로 시도
   doc = await db.collection('customers').doc(timestamp).get();
   if (doc.exists) return [doc.ref];
-  // 3) where 쿼리로 시도
   const snap = await db.collection('customers').where('timestamp','==',timestamp).get();
   const refs = [];
   snap.forEach(d => refs.push(d.ref));
   return refs;
+}
+
+// Firebase 고객 문서 업데이트 (못 찾으면 새로 생성)
+async function updateCustomerInFirebase(timestamp, updates) {
+  const refs = await findCustomerDocs(timestamp);
+  if (refs.length > 0) {
+    for (const ref of refs) await ref.update(updates);
+  } else {
+    const c = allCustomers.find(x => x.timestamp === timestamp);
+    const docId = timestamp.replace(/[^0-9a-zA-Z]/g, '_');
+    await db.collection('customers').doc(docId).set({ ...c, ...updates, timestamp });
+  }
 }
 
 let allCustomers = [];
@@ -839,7 +848,7 @@ async function setDoneDate(timestamp, name, carType, phone, category, summary, e
   (async () => {
     try {
       if (timestamp) {
-        try { const refs = await findCustomerDocs(timestamp); for (const ref of refs) await ref.update({ doneDate }); } catch(fe) {}
+        try { await updateCustomerInFirebase(timestamp, { doneDate }); } catch(fe) {}
       }
       try {
         const asnap = await db.collection('aftercare')
@@ -915,7 +924,7 @@ function copyPhone(phone) {
 
 async function changeEntryDate(timestamp, value) {
   try {
-    try { const refs = await findCustomerDocs(timestamp); for (const ref of refs) await ref.update({ entryDate: value }); } catch(fe) {}
+    try { await updateCustomerInFirebase(timestamp, { entryDate: value }); } catch(fe) {}
     const r = await apiPost({ action: 'updateCustomerField', timestamp, field: 'entryDate', value });
     if (r === 'ok') {
       showToast('✅ 날짜 변경됨');
@@ -929,7 +938,7 @@ async function changeEntryDate(timestamp, value) {
 async function clearEntryDate(timestamp) {
   if (!confirm('입고를 취소할까요? (입고예정일이 삭제됩니다)')) return;
   try {
-    try { const refs = await findCustomerDocs(timestamp); for (const ref of refs) await ref.update({ entryDate: '' }); } catch(fe) {}
+    try { await updateCustomerInFirebase(timestamp, { entryDate: '' }); } catch(fe) {}
     const r = await apiPost({ action: 'updateCustomerField', timestamp, field: 'entryDate', value: '' });
     if (r === 'ok') {
       showToast('✅ 입고 취소됨');
@@ -1376,7 +1385,7 @@ async function generateWarranty(name, carType, doneDate, btn) {
 async function updateCustomerField(timestamp, field, value) {
   try {
     // Firebase 동기화
-    try { const refs = await findCustomerDocs(timestamp); for (const ref of refs) await ref.update({ [field]: value }); } catch(fe) {}
+    try { await updateCustomerInFirebase(timestamp, { [field]: value }); } catch(fe) {}
     const r = await apiPost({ action: 'updateCustomerField', timestamp, field, value });
     showToast(r === 'ok' ? '✅ 업데이트!' : '❌ 행을 찾지 못했어');
   } catch(e) { showToast('❌ ' + e.message); }
@@ -1811,12 +1820,9 @@ async function saveCalendarCustomerEdit(timestamp) {
   // Firebase + GAS 백그라운드 저장
   (async () => {
     try {
-      const refs = await findCustomerDocs(timestamp);
-      for (const ref of refs) await ref.update(updates);
-    } catch(fe) {}
-    for (const [field, value] of Object.entries(updates)) {
-      apiPost({ action: 'updateCustomerField', timestamp, field, value });
-    }
+      await updateCustomerInFirebase(timestamp, updates);
+      showToast('✅ 저장 완료!');
+    } catch(fe) { showToast('⚠️ Firebase 저장 실패: ' + fe.message); }
   })();
   } catch(e) { showToast('❌ 저장 오류: ' + e.message); }
 }
