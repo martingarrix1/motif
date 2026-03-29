@@ -1759,7 +1759,7 @@ function openCalendarCustomerEdit(timestamp) {
 
     <div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:10px;flex-shrink:0;background:white">
       <button onclick="document.getElementById('cal-edit-popup').remove()" style="flex:1;padding:14px;background:#f5f5f5;color:#555;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">취소</button>
-      <button onclick="saveCalendarCustomerEdit('${c.timestamp}')" style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">💾 저장</button>
+      <button onclick="saveCalendarCustomerEdit(decodeURIComponent('${encodeURIComponent(c.timestamp)}'))" style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">💾 저장</button>
     </div>
   `;
   document.body.appendChild(popup);
@@ -1773,6 +1773,7 @@ function openCalendarCustomerEdit(timestamp) {
 }
 
 async function saveCalendarCustomerEdit(timestamp) {
+  try {
   const category = [...document.querySelectorAll('#ce-category-group input:checked')].map(c => c.value).join(' / ');
   const ppfText = [...document.querySelectorAll('#ce-ppf-group input:checked')].map(c => c.value).join(', ');
   const tintF = document.getElementById('ce-tintF').value;
@@ -1812,7 +1813,8 @@ async function saveCalendarCustomerEdit(timestamp) {
   // 로컬 즉시 반영
   const c = allCustomers.find(x => x.timestamp === timestamp);
   if (c) Object.assign(c, updates);
-  document.getElementById('cal-edit-popup').remove();
+  const popup = document.getElementById('cal-edit-popup');
+  if (popup) popup.remove();
   renderCalendar();
   showToast('✅ 수정 완료!');
 
@@ -1826,6 +1828,7 @@ async function saveCalendarCustomerEdit(timestamp) {
       apiPost({ action: 'updateCustomerField', timestamp, field, value });
     }
   })();
+  } catch(e) { showToast('❌ 저장 오류: ' + e.message); }
 }
 
 async function deleteCustomerFromCalendar(timestamp, dateStr) {
