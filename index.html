@@ -987,17 +987,17 @@ async function loadAftercare() {
   document.getElementById('aftercare-list').innerHTML = '<div class="loading">⚡ 불러오는 중...</div>';
   try {
     let raw = [];
-    // Firebase 시도
+    // Firebase + GAS 양쪽에서 로드 후 합치기
     try {
       const snapshot = await db.collection('aftercare').get();
       snapshot.forEach(doc => raw.push(doc.data()));
     } catch(e2) {}
 
-    // Firebase 비어있으면 GAS에서 로드
-    if (raw.length === 0) {
+    try {
       const res = await api({ action: 'getAftercare', offset: 0, limit: 300 });
-      raw = (res.data || res || []);
-    }
+      const gasData = (res.data || res || []);
+      raw = [...raw, ...gasData];
+    } catch(e3) {}
 
     // name+carType+doneDate 기준 중복 제거
     const seenA = new Set();
