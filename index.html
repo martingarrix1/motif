@@ -416,6 +416,35 @@ let allCustomers = [];
 let allAftercare = [];
 let allReservations = [];
 
+// ─── 실시간 동기화 (백그라운드) ────────────────────────────
+db.collection('customers').onSnapshot(snap => {
+  allCustomers = [];
+  snap.forEach(doc => allCustomers.push(doc.data()));
+  allCustomers.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+  if (document.getElementById('page-customers').classList.contains('active')) {
+    displayCount = displayCount || 30;
+    renderCustomers(allCustomers);
+  }
+});
+db.collection('aftercare').onSnapshot(snap => {
+  let fbData = [];
+  snap.forEach(doc => fbData.push(doc.data()));
+  if (fbData.length > 0) {
+    const seenA = {};
+    [...fbData, ...allAftercare].forEach(c => {
+      const key = (c.name||'') + '_' + (c.carType||'') + '_' + (c.phone||'');
+      if (!seenA[key] || (c.doneDate||'') > (seenA[key].doneDate||'')) seenA[key] = c;
+    });
+    allAftercare = Object.values(seenA);
+    if (document.getElementById('page-aftercare').classList.contains('active')) renderAftercare(allAftercare);
+  }
+});
+db.collection('reservations').onSnapshot(snap => {
+  allReservations = [];
+  snap.forEach(doc => allReservations.push(doc.data()));
+  if (document.getElementById('page-calendar').classList.contains('active')) renderCalendar();
+});
+
 // ─── 캐시 유틸 ───────────────────────────────────────────
 const CACHE_TTL = 10 * 60 * 1000; // 10분
 function cacheSet(key, data) {
