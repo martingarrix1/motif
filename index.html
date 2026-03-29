@@ -1649,9 +1649,11 @@ async function deleteReservation(rowIndex, dateStr) {
   })();
 }
 
+let _editingTimestamp = null;
 function openCalendarCustomerEdit(timestamp) {
   const c = allCustomers.find(x => x.timestamp === timestamp);
   if (!c) { showToast('❌ 고객 정보 없음'); return; }
+  _editingTimestamp = timestamp;
 
   // 틴팅 옵션 HTML 생성
   function tintOptHtml(selected) {
@@ -1761,7 +1763,7 @@ function openCalendarCustomerEdit(timestamp) {
 
     <div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:10px;flex-shrink:0;background:white">
       <button onclick="document.getElementById('cal-edit-popup').remove()" style="flex:1;padding:14px;background:#f5f5f5;color:#555;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">취소</button>
-      <button onclick="saveCalendarCustomerEdit(decodeURIComponent('${encodeURIComponent(c.timestamp)}'))" style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">💾 저장</button>
+      <button onclick="saveCalendarCustomerEdit()" style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">💾 저장</button>
     </div>
   `;
   document.body.appendChild(popup);
@@ -1774,7 +1776,9 @@ function openCalendarCustomerEdit(timestamp) {
   });
 }
 
-async function saveCalendarCustomerEdit(timestamp) {
+async function saveCalendarCustomerEdit() {
+  const timestamp = _editingTimestamp;
+  if (!timestamp) { showToast('❌ 수정 대상 없음'); return; }
   try {
   const category = [...document.querySelectorAll('#ce-category-group input:checked')].map(c => c.value).join(' / ');
   const ppfText = [...document.querySelectorAll('#ce-ppf-group input:checked')].map(c => c.value).join(', ');
