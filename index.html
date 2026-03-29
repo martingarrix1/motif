@@ -1651,9 +1651,181 @@ function openCalendarCustomerEdit(timestamp) {
   const c = allCustomers.find(x => x.timestamp === timestamp);
   if (!c) { showToast('❌ 고객 정보 없음'); return; }
 
-  // 기존 showCustomerDetail 팝업 재사용
-  const idx = allCustomers.indexOf(c);
-  showCustomerDetail(idx);
+  // 틴팅 옵션 HTML 생성
+  function tintOptHtml(selected) {
+    const td = [
+      {b:'LX',o:['LX','LX70','LX55','LX40','LX25','LX15']},
+      {b:'제니스',o:['제니스','제니스50','제니스30','제니스15','제니스05']},
+      {b:'퀀텀',o:['퀀텀','퀀텀37','퀀텀28','퀀텀19','퀀텀14','퀀텀08']},
+      {b:'보그',o:['보그','보그40','보그30','보그20','보그10']},
+      {b:'티타늄',o:['티타늄','티타늄26','티타늄16','티타늄06']},
+      {b:'G라인',o:['G라인','G라인30','G라인10']},
+      {b:'S라인',o:['S라인','S라인30','S라인10']},
+      {b:'XRPLUS',o:['XRPLUS','XRPLUS55','XRPLUS30','XRPLUS20','XRPLUS15','XRPLUS05']},
+    ];
+    let h = '<option value="">-</option>';
+    td.forEach(g => { h += `<optgroup label="${g.b}">`; g.o.forEach(o => { h += `<option ${o===selected?'selected':''}>${o}</option>`; }); h += '</optgroup>'; });
+    return h;
+  }
+
+  const cats = (c.category||'').split(' / ').filter(Boolean);
+  const ppfs = (c.ppf||c.ppfText||'').split(', ').filter(Boolean);
+  const coatings = (c.etc||c.combinedM||'').split(' / ').filter(Boolean);
+
+  function chk(arr, val) { return arr.includes(val) ? 'checked' : ''; }
+  function chkCls(arr, val) { return arr.includes(val) ? 'checked' : ''; }
+
+  const popup = document.createElement('div');
+  popup.id = 'cal-edit-popup';
+  popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:white;z-index:9999;display:flex;flex-direction:column;overflow:hidden';
+  popup.innerHTML = `
+    <div style="background:#1a1a2e;color:white;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div style="font-size:15px;font-weight:700">✏️ 고객 수정</div>
+      <button onclick="document.getElementById('cal-edit-popup').remove()" style="background:none;border:none;color:white;font-size:26px;cursor:pointer;line-height:1;padding:0 4px">×</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px">
+
+      <div class="card">
+        <div class="card-title">기본정보</div>
+        <div class="form-group"><label>차종</label><input type="text" id="ce-carType" value="${esc(c.carType||'')}"></div>
+        <div class="form-group"><label>고객명</label><input type="text" id="ce-name" value="${esc(c.name||'')}"></div>
+        <div class="form-group"><label>연락처</label><input type="tel" id="ce-phone" value="${esc(c.phone||'')}"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">시공분류</div>
+        <div class="check-group" id="ce-category-group">
+          <label class="check-item ${chkCls(cats,'썬팅')}"><input type="checkbox" value="썬팅" ${chk(cats,'썬팅')}> 썬팅</label>
+          <label class="check-item ${chkCls(cats,'PPF')}"><input type="checkbox" value="PPF" ${chk(cats,'PPF')}> PPF</label>
+          <label class="check-item ${chkCls(cats,'가죽')}"><input type="checkbox" value="가죽" ${chk(cats,'가죽')}> 가죽</label>
+          <label class="check-item ${chkCls(cats,'유리막')}"><input type="checkbox" value="유리막" ${chk(cats,'유리막')}> 유리막</label>
+          <label class="check-item ${chkCls(cats,'전장')}"><input type="checkbox" value="전장" ${chk(cats,'전장')}> 전장</label>
+          <label class="check-item ${chkCls(cats,'복합')}"><input type="checkbox" value="복합" ${chk(cats,'복합')}> 신차패키지</label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">틴팅</div>
+        <div class="form-group"><label>전면</label><select id="ce-tintF">${tintOptHtml(c.tintF||'')}</select></div>
+        <div class="form-group"><label>측면1열</label><select id="ce-tintS1">${tintOptHtml(c.tintS1||'')}</select></div>
+        <div class="form-group"><label>측면2열</label><select id="ce-tintS2">${tintOptHtml(c.tintS2||'')}</select></div>
+        <div class="form-group"><label>후면</label><select id="ce-tintR">${tintOptHtml(c.tintR||'')}</select></div>
+        <div class="form-group"><label>썬루프</label><select id="ce-tintSun">${tintOptHtml(c.tintSun||'')}</select></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">PPF</div>
+        <div class="check-group" id="ce-ppf-group">
+          <label class="check-item ${chkCls(ppfs,'본넷')}"><input type="checkbox" value="본넷" ${chk(ppfs,'본넷')}> 본넷PPF</label>
+          <label class="check-item ${chkCls(ppfs,'문콕')}"><input type="checkbox" value="문콕" ${chk(ppfs,'문콕')}> 문콕패키지</label>
+          <label class="check-item ${chkCls(ppfs,'프런트A')}"><input type="checkbox" value="프런트A" ${chk(ppfs,'프런트A')}> 프런트A</label>
+          <label class="check-item ${chkCls(ppfs,'프런트F')}"><input type="checkbox" value="프런트F" ${chk(ppfs,'프런트F')}> 프런트F</label>
+          <label class="check-item ${chkCls(ppfs,'생활보호4종')}"><input type="checkbox" value="생활보호4종" ${chk(ppfs,'생활보호4종')}> 생활보호4종</label>
+          <label class="check-item ${chkCls(ppfs,'생활보호5종')}"><input type="checkbox" value="생활보호5종" ${chk(ppfs,'생활보호5종')}> 생활보호5종</label>
+          <label class="check-item ${chkCls(ppfs,'생활보호7종')}"><input type="checkbox" value="생활보호7종" ${chk(ppfs,'생활보호7종')}> 생활보호7종</label>
+          <label class="check-item ${chkCls(ppfs,'전체')}"><input type="checkbox" value="전체" ${chk(ppfs,'전체')}> 전체PPF</label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">전장작업</div>
+        <div class="form-group"><label>블랙박스</label>
+          <select id="ce-blackbox"><option value="">-</option><option ${c.blackbox==='파인뷰'?'selected':''}>파인뷰</option><option ${c.blackbox==='아이나비z'?'selected':''}>아이나비z</option><option ${c.blackbox==='아이나비q'?'selected':''}>아이나비q</option></select>
+        </div>
+        <div class="form-group"><label>보조배터리</label>
+          <select id="ce-battery"><option value="">-</option><option ${c.battery==='6A'?'selected':''}>6A</option><option ${c.battery==='12A'?'selected':''}>12A</option><option ${c.battery==='18A'?'selected':''}>18A</option></select>
+        </div>
+        <div class="form-group"><label>기타</label><input type="text" id="ce-etc" value="${esc(c.etc||'')}"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">견적정보</div>
+        <div class="form-group"><label>예상견적 (만원)</label><input type="text" id="ce-estPrice" value="${esc(c.estPrice||'')}"></div>
+        <div class="form-group"><label>계약금 (만원)</label><input type="text" id="ce-deposit" value="${esc(c.deposit||'')}"></div>
+        <div class="form-group"><label>구분</label>
+          <select id="ce-status" style="color:#c62828;font-weight:700">
+            <option value="">-</option>
+            <option value="기록" ${c.status==='기록'?'selected':''}>기록</option>
+            <option value="상담" ${c.status==='상담'?'selected':''}>상담</option>
+            <option value="예약" ${c.status==='예약'?'selected':''}>예약금</option>
+            <option value="예약안내" ${c.status==='예약안내'?'selected':''}>예약확정</option>
+            <option value="상담진행" ${c.status==='상담진행'?'selected':''}>상담진행</option>
+          </select>
+        </div>
+        <div class="form-group"><label>특이사항</label><textarea id="ce-note" style="height:80px;resize:none">${c.note||''}</textarea></div>
+      </div>
+      <div style="height:16px"></div>
+    </div>
+
+    <div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:10px;flex-shrink:0;background:white">
+      <button onclick="document.getElementById('cal-edit-popup').remove()" style="flex:1;padding:14px;background:#f5f5f5;color:#555;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">취소</button>
+      <button onclick="saveCalendarCustomerEdit('${c.timestamp}')" style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">💾 저장</button>
+    </div>
+  `;
+  document.body.appendChild(popup);
+
+  popup.querySelectorAll('.check-item').forEach(label => {
+    label.addEventListener('click', function() {
+      const cb = this.querySelector('input[type="checkbox"]');
+      setTimeout(() => { this.classList.toggle('checked', cb.checked); }, 0);
+    });
+  });
+}
+
+async function saveCalendarCustomerEdit(timestamp) {
+  const category = [...document.querySelectorAll('#ce-category-group input:checked')].map(c => c.value).join(' / ');
+  const ppfText = [...document.querySelectorAll('#ce-ppf-group input:checked')].map(c => c.value).join(', ');
+  const tintF = document.getElementById('ce-tintF').value;
+  const tintS1 = document.getElementById('ce-tintS1').value;
+  const tintS2 = document.getElementById('ce-tintS2').value;
+  const tintR = document.getElementById('ce-tintR').value;
+  const tintSun = document.getElementById('ce-tintSun').value;
+
+  let summaryParts = [];
+  if (category) summaryParts.push('시공: ' + category);
+  let tintParts = [];
+  if (tintF) tintParts.push('전면: ' + tintF);
+  if (tintS1) tintParts.push('측면1열: ' + tintS1);
+  if (tintS2) tintParts.push('측면2열: ' + tintS2);
+  if (tintR) tintParts.push('후면: ' + tintR);
+  if (tintSun) tintParts.push('썬루프: ' + tintSun);
+  if (tintParts.length) summaryParts.push('틴팅: ' + tintParts.join(', '));
+  if (ppfText) summaryParts.push('PPF: ' + ppfText);
+  const etc = document.getElementById('ce-etc').value.trim();
+  if (etc) summaryParts.push(etc);
+  const summary = summaryParts.join(' / ');
+
+  const updates = {
+    name: document.getElementById('ce-name').value.trim(),
+    carType: document.getElementById('ce-carType').value.trim(),
+    phone: document.getElementById('ce-phone').value.trim(),
+    category, summary, ppf: ppfText, etc,
+    tintF, tintS1, tintS2, tintR, tintSun,
+    blackbox: document.getElementById('ce-blackbox').value,
+    battery: document.getElementById('ce-battery').value,
+    estPrice: document.getElementById('ce-estPrice').value.trim(),
+    deposit: document.getElementById('ce-deposit').value.trim(),
+    status: document.getElementById('ce-status').value,
+    note: document.getElementById('ce-note').value.trim(),
+  };
+
+  // 로컬 즉시 반영
+  const c = allCustomers.find(x => x.timestamp === timestamp);
+  if (c) Object.assign(c, updates);
+  document.getElementById('cal-edit-popup').remove();
+  renderCalendar();
+  showToast('✅ 수정 완료!');
+
+  // Firebase + GAS 백그라운드 저장
+  (async () => {
+    try {
+      const refs = await findCustomerDocs(timestamp);
+      for (const ref of refs) await ref.update(updates);
+    } catch(fe) {}
+    for (const [field, value] of Object.entries(updates)) {
+      apiPost({ action: 'updateCustomerField', timestamp, field, value });
+    }
+  })();
 }
 
 async function deleteCustomerFromCalendar(timestamp, dateStr) {
