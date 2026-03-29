@@ -197,7 +197,7 @@ const db = firebase.firestore();
     <div class="card">
       <div class="card-title">견적정보</div>
       <div class="form-group"><label>입고예정일</label><input type="date" id="entryDate"></div>
-      <div class="form-group"><label>예상견적 (만원)</label><input type="number" id="estPrice" placeholder="0"></div>
+      <div class="form-group"><label>예상견적 (만원)</label><input type="text" id="estPrice" inputmode="text" placeholder="예) 150 또는 현금가"></div>
       <div class="form-group"><label>계약금 (만원)</label><input type="number" id="deposit" placeholder="0"></div>
       <div class="form-group"><label>구분</label>
         <select id="status" style="color:#c62828;font-weight:700;border-color:#ffcdd2;background:#ffebee">
@@ -2188,7 +2188,7 @@ function openCalendarFullForm(dateStr) {
       <div class="card">
         <div class="card-title">견적정보</div>
         <div class="form-group"><label>입고예정일</label><input type="date" id="cf-entryDate" value="${dateStr}"></div>
-        <div class="form-group"><label>예상견적 (만원)</label><input type="number" id="cf-estPrice" placeholder="0"></div>
+        <div class="form-group"><label>예상견적 (만원)</label><input type="text" id="cf-estPrice" inputmode="text" placeholder="예) 150 또는 현금가"></div>
         <div class="form-group"><label>계약금 (만원)</label><input type="number" id="cf-deposit" placeholder="0"></div>
         <div class="form-group"><label>구분</label>
           <select id="cf-status" style="color:#c62828;font-weight:700;border-color:#ffcdd2;background:#ffebee">
