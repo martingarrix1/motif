@@ -432,10 +432,19 @@ let allCustomers = [];
 let allAftercare = [];
 let allReservations = [];
 
+// ─── 삭제 추적 (onSnapshot이 삭제된 항목을 되살리지 않도록) ────
+const _deletedKeys = new Set();
+function markDeleted(c) {
+  _deletedKeys.add((c.name||'') + '_' + (c.carType||'') + '_' + (c.phone||''));
+}
+function isDeleted(c) {
+  return _deletedKeys.has((c.name||'') + '_' + (c.carType||'') + '_' + (c.phone||''));
+}
+
 // ─── 실시간 동기화 (백그라운드) ────────────────────────────
 db.collection('customers').onSnapshot(snap => {
   allCustomers = [];
-  snap.forEach(doc => allCustomers.push(doc.data()));
+  snap.forEach(doc => { const d = doc.data(); if (!isDeleted(d)) allCustomers.push(d); });
   allCustomers.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
   if (document.getElementById('page-customers').classList.contains('active')) {
     displayCount = displayCount || 30;
@@ -444,10 +453,11 @@ db.collection('customers').onSnapshot(snap => {
 });
 db.collection('aftercare').onSnapshot(snap => {
   let fbData = [];
-  snap.forEach(doc => fbData.push(doc.data()));
+  snap.forEach(doc => { const d = doc.data(); if (!isDeleted(d)) fbData.push(d); });
   if (fbData.length > 0) {
     const seenA = {};
     [...fbData, ...allAftercare].forEach(c => {
+      if (isDeleted(c)) return;
       const key = (c.name||'') + '_' + (c.carType||'') + '_' + (c.phone||'');
       if (!seenA[key] || (c.doneDate||'') > (seenA[key].doneDate||'')) seenA[key] = c;
     });
@@ -1375,6 +1385,7 @@ async function openPDF(fileId, event) {
 async function deleteCustomer(timestamp) {
   if (!confirm('이 고객을 삭제할까요?')) return;
   const c = allCustomers.find(x => x.timestamp === timestamp);
+  if (c) markDeleted(c);
 
   // 로컬 즉시 제거
   allCustomers = allCustomers.filter(x => x.timestamp !== timestamp);
@@ -1633,6 +1644,7 @@ function openCalendarCustomerEdit(timestamp) {
 async function deleteCustomerFromCalendar(timestamp, dateStr) {
   if (!confirm('이 고객을 삭제할까요? 고객목록과 사후관리에서 모두 삭제됩니다.')) return;
   const c = allCustomers.find(x => x.timestamp === timestamp);
+  if (c) markDeleted(c);
 
   // 로컬 즉시 제거
   allCustomers = allCustomers.filter(x => x.timestamp !== timestamp);
