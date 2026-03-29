@@ -1718,6 +1718,7 @@ async function addCalendarReservation(dateStr) {
 
 // 시공완료 처리 (보증서 생성 + 고객목록/사후관리 반영) → 알림톡은 선택
 async function sendDoneWithWarranty(name, carType, phone, doneDate) {
+  if (!confirm(`${name} / ${carType}\n시공완료 처리를 진행할까요?`)) return;
   showToast('⏳ 시공완료 처리 중...');
   try {
     // 1. Firebase 고객목록에 doneDate 반영
