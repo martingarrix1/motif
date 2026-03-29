@@ -1824,12 +1824,16 @@ async function saveCalendarCustomerEdit() {
   if (popup) popup.remove();
   renderCalendar();
 
-  // Firebase 저장 (await로 완료 보장)
+  // Firebase 저장
   try {
     await updateCustomerInFirebase(timestamp, updates);
-    showToast('✅ 저장 완료!');
-  } catch(fe) { showToast('⚠️ Firebase 저장 실패: ' + fe.message); }
-  } catch(e) { showToast('❌ 저장 오류: ' + e.message); }
+    alert('Firebase 저장 성공!');
+  } catch(fe) {
+    alert('Firebase 실패: ' + fe.message);
+  }
+  } catch(e) {
+    alert('전체 오류: ' + e.message);
+  }
 }
 
 async function deleteCustomerFromCalendar(timestamp, dateStr) {
