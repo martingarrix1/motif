@@ -197,7 +197,17 @@ const db = firebase.firestore();
     <div class="card">
       <div class="card-title">견적정보</div>
       <div class="form-group"><label>입고예정일</label><input type="date" id="entryDate"></div>
-      <div class="form-group"><label>예상견적 (만원)</label><input type="text" id="estPrice" inputmode="text" placeholder="예) 150 또는 현금가"></div>
+      <div class="form-group"><label>예상견적 (만원)</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="number" id="estPrice" inputmode="numeric" placeholder="0" style="flex:2">
+          <select id="estPriceTag" style="flex:1;padding:clamp(10px,2.5vw,13px);border:1.5px solid #e8e8e8;border-radius:10px;font-size:clamp(13px,3.5vw,15px);background:#fafafa;font-family:inherit;-webkit-appearance:none;appearance:none">
+            <option value="">-</option>
+            <option value="현금가">현금가</option>
+            <option value="카드가">카드가</option>
+            <option value="부가세별도">부가세별도</option>
+          </select>
+        </div>
+      </div>
       <div class="form-group"><label>계약금 (만원)</label><input type="number" id="deposit" placeholder="0"></div>
       <div class="form-group"><label>구분</label>
         <select id="status" style="color:#c62828;font-weight:700;border-color:#ffcdd2;background:#ffebee">
@@ -576,7 +586,9 @@ async function submitConsult() {
   if (combinedM) summaryParts.push(combinedM);
   const summary = summaryParts.join(' / ');
   const entryDate = document.getElementById('entryDate').value;
-  const estPrice = document.getElementById('estPrice').value;
+  const _estVal = document.getElementById('estPrice').value;
+  const _estTag = document.getElementById('estPriceTag').value;
+  const estPrice = _estTag ? _estVal + '(' + _estTag + ')' : _estVal;
   const deposit = document.getElementById('deposit').value;
   const status = document.getElementById('status').value;
   const note = document.getElementById('note').value;
@@ -595,7 +607,7 @@ async function submitConsult() {
 
 function resetForm() {
   ['carType','name','phone','estPrice','deposit','note','etcValue'].forEach(id => document.getElementById(id).value = '');
-  ['tintF','tintS1','tintS2','tintR','tintSun','blackbox','battery','status','entryDate'].forEach(id => document.getElementById(id).value = '');
+  ['tintF','tintS1','tintS2','tintR','tintSun','blackbox','battery','status','entryDate','estPriceTag'].forEach(id => document.getElementById(id).value = '');
   document.querySelectorAll('.check-item').forEach(el => { el.querySelector('input').checked = false; el.classList.remove('checked'); });
 }
 
@@ -2188,7 +2200,17 @@ function openCalendarFullForm(dateStr) {
       <div class="card">
         <div class="card-title">견적정보</div>
         <div class="form-group"><label>입고예정일</label><input type="date" id="cf-entryDate" value="${dateStr}"></div>
-        <div class="form-group"><label>예상견적 (만원)</label><input type="text" id="cf-estPrice" inputmode="text" placeholder="예) 150 또는 현금가"></div>
+        <div class="form-group"><label>예상견적 (만원)</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="number" id="cf-estPrice" inputmode="numeric" placeholder="0" style="flex:2">
+            <select id="cf-estPriceTag" style="flex:1;padding:clamp(10px,2.5vw,13px);border:1.5px solid #e8e8e8;border-radius:10px;font-size:clamp(13px,3.5vw,15px);background:#fafafa;font-family:inherit;-webkit-appearance:none;appearance:none">
+              <option value="">-</option>
+              <option value="현금가">현금가</option>
+              <option value="카드가">카드가</option>
+              <option value="부가세별도">부가세별도</option>
+            </select>
+          </div>
+        </div>
         <div class="form-group"><label>계약금 (만원)</label><input type="number" id="cf-deposit" placeholder="0"></div>
         <div class="form-group"><label>구분</label>
           <select id="cf-status" style="color:#c62828;font-weight:700;border-color:#ffcdd2;background:#ffebee">
@@ -2239,7 +2261,9 @@ async function submitCalendarForm(dateStr) {
   const etcValue  = document.getElementById('cf-etcValue').value;
   const combinedM = [coatingText, etcValue].filter(Boolean).join(' / ');
   const entryDate = document.getElementById('cf-entryDate').value || dateStr;
-  const estPrice  = document.getElementById('cf-estPrice').value;
+  const _cfEstVal  = document.getElementById('cf-estPrice').value;
+  const _cfEstTag  = document.getElementById('cf-estPriceTag').value;
+  const estPrice   = _cfEstTag ? _cfEstVal + '(' + _cfEstTag + ')' : _cfEstVal;
   const deposit   = document.getElementById('cf-deposit').value;
   const status    = document.getElementById('cf-status').value;
   const note      = document.getElementById('cf-note').value;
