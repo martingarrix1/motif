@@ -1777,6 +1777,7 @@ function openCalendarCustomerEdit(timestamp) {
 }
 
 async function saveCalendarCustomerEdit() {
+  alert('저장 시작: ' + _editingTimestamp);
   const timestamp = _editingTimestamp;
   if (!timestamp) { showToast('❌ 수정 대상 없음'); return; }
   try {
