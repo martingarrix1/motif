@@ -1471,11 +1471,22 @@ function showCalendarDay(dateStr) {
     }
   });
   const src = calendarCustomers.length ? calendarCustomers : allCustomers;
-  const custEvents = src.filter(c => c.entryDate === dateStr).map(c => ({...c, _type:'customer'}));
+  // 고객 중복 제거 (name+phone+carType 기준)
+  const custSeen = new Set();
+  const custEvents = src.filter(c => {
+    if (c.entryDate !== dateStr) return false;
+    const key = (c.name||'') + '_' + (c.phone||'') + '_' + (c.carType||'');
+    if (custSeen.has(key)) return false;
+    custSeen.add(key);
+    return true;
+  }).map(c => ({...c, _type:'customer'}));
   // 고객목록에 이미 있는 name+phone은 입고예약에서 제외 (중복 방지)
   const resEvents = allReservations.filter(r => {
     if (r.date !== dateStr) return false;
-    return !custEvents.some(c => c.name === r.name && c.phone === r.phone);
+    const key = (r.name||'') + '_' + (r.phone||'') + '_' + (r.carType||'');
+    if (custSeen.has(key)) return false;
+    custSeen.add(key);
+    return true;
   }).map(r => ({...r, _type:'reservation'}));
   const events = [...custEvents, ...resEvents];
   const el = document.getElementById('calendar-events');
