@@ -211,7 +211,7 @@ const db = firebase.firestore();
       <div class="form-group"><label>계약금 (만원)</label><input type="number" id="deposit" placeholder="0"></div>
       <div class="form-group"><label>구분</label>
         <select id="status" style="color:#c62828;font-weight:700;border-color:#ffcdd2;background:#ffebee">
-          <option value="">-</option><option>기록</option><option>상담</option><option>예약</option><option>예약안내</option>
+          <option value="">-</option><option>기록</option><option>상담</option><option value="예약">예약금</option><option value="예약안내">예약확정</option>
         </select>
       </div>
       <div class="form-group"><label>특이사항</label><textarea id="note" placeholder="특이사항 입력"></textarea></div>
@@ -768,8 +768,8 @@ function renderCustomers(data) {
           style="flex:1;font-size:clamp(13px,3.5vw,15px);border:1px solid #ddd;border-radius:8px;padding:8px;font-weight:600;background:${c.status==='예약'?'#ffebee':c.status==='예약안내'||c.status==='상담진행'?'#fff3e0':'#f5f5f5'};color:${c.status==='예약'?'#c62828':c.status==='예약안내'||c.status==='상담진행'?'#e65100':'#555'}">
           <option value="">-</option>
           <option value="상담" ${c.status==='상담'?'selected':''}>상담</option>
-          <option value="예약" ${c.status==='예약'?'selected':''}>예약</option>
-          <option value="예약안내" ${c.status==='예약안내'?'selected':''}>예약안내</option>
+          <option value="예약" ${c.status==='예약'?'selected':''}>예약금</option>
+          <option value="예약안내" ${c.status==='예약안내'?'selected':''}>예약확정</option>
           <option value="상담진행" ${c.status==='상담진행'?'selected':''}>상담진행</option>
         </select>
         <select onchange="updateCustomerField('${c.timestamp}','resend',this.value)"
@@ -2214,9 +2214,9 @@ function openCalendarFullForm(dateStr) {
         <div class="form-group"><label>계약금 (만원)</label><input type="number" id="cf-deposit" placeholder="0"></div>
         <div class="form-group"><label>구분</label>
           <select id="cf-status" style="color:#c62828;font-weight:700;border-color:#ffcdd2;background:#ffebee">
-            <option value="예약안내" selected>예약안내</option>
+            <option value="예약안내" selected>예약확정</option>
             <option value="상담">상담</option>
-            <option value="예약">예약</option>
+            <option value="예약">예약금</option>
             <option value="기록">기록</option>
           </select>
         </div>
