@@ -949,31 +949,26 @@ function filterCustomers() {
     return;
   }
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(async () => {
-    document.getElementById('customer-list').innerHTML = '<div class="loading">검색 중...</div>';
-    try {
-      const results = await api({ action: 'searchCustomers', q });
-      allCustomers = results;
-      window._customerTotal = results.length;
-      window._isSearchMode = true;
-      renderCustomers(results);
-      const lb = document.getElementById('load-more-btn');
-      if (lb) lb.remove();
-    } catch(e) { showToast('❌ ' + e.message); }
+  searchTimer = setTimeout(() => {
+    const qLower = q.toLowerCase();
+    const results = allCustomers.filter(c =>
+      (c.name || '').toLowerCase().includes(qLower) ||
+      (c.carType || '').toLowerCase().includes(qLower) ||
+      (c.phone || '').replace(/-/g, '').includes(q.replace(/-/g, ''))
+    );
+    window._customerTotal = results.length;
+    window._isSearchMode = true;
+    renderCustomers(results);
+    const lb = document.getElementById('load-more-btn');
+    if (lb) lb.remove();
   }, 400);
 }
 
 async function showCustomerDetail(idx) {
   const c = allCustomers[idx];
 
-  // 같은 전화번호 전체 이력 서버에서 검색
-  let history = [];
-  try {
-    const all = await api({ action: 'searchCustomers', q: c.phone });
-    history = all.filter(x => x.timestamp !== c.timestamp);
-  } catch(e) {
-    history = allCustomers.filter(x => x.phone === c.phone && x.timestamp !== c.timestamp);
-  }
+  // 같은 전화번호 전체 이력 로컬 검색
+  let history = allCustomers.filter(x => x.phone === c.phone && x.timestamp !== c.timestamp);
   const historyHtml = history.length ? `
     <div style="margin-top:16px;padding-top:14px;border-top:1px solid #eee">
       <div style="font-size:13px;font-weight:700;color:#e65100;margin-bottom:8px">🔄 재방문 이력 (${history.length}건)</div>
@@ -1054,20 +1049,14 @@ async function loadAftercare() {
   if (allAftercare.length > 0) renderAftercare(allAftercare);
   else document.getElementById('aftercare-list').innerHTML = '<div class="loading">⚡ 불러오는 중...</div>';
 
-  // GAS 데이터 아직 안 불러왔으면 합치기
+  // Firebase에서 로드
   if (!_aftercareGasLoaded) {
     try {
-      // Firebase에서도 직접 로드 (onSnapshot 안 왔을 수 있으므로)
       let fbData = [];
-      try {
-        const snap = await db.collection('aftercare').get();
-        snap.forEach(doc => fbData.push(doc.data()));
-      } catch(e2) {}
-
-      const res = await api({ action: 'getAftercare', offset: 0, limit: 300 });
-      const gasData = (res.data || res || []);
+      const snap = await db.collection('aftercare').get();
+      snap.forEach(doc => fbData.push(doc.data()));
       const seenA = {};
-      [...fbData, ...gasData].forEach(c => {
+      fbData.forEach(c => {
         const key = (c.name||'') + '_' + (c.carType||'') + '_' + (c.phone||'');
         if (!seenA[key] || (c.doneDate||'') > (seenA[key].doneDate||'')) {
           seenA[key] = c;
@@ -1081,15 +1070,10 @@ async function loadAftercare() {
   else document.getElementById('aftercare-list').innerHTML = '<div class="loading">데이터가 없습니다.</div>';
 }
 
-async function loadMoreAftercare() {
+function loadMoreAftercare() {
   aftercareOffset += AFTERCARE_LIMIT;
-  try {
-    const res = await api({ action: 'getAftercare', offset: aftercareOffset, limit: AFTERCARE_LIMIT });
-    const more = res.data || [];
-    allAftercare = [...allAftercare, ...more];
-    renderAftercare(allAftercare);
-    renderAftercarLoadMoreBtn();
-  } catch(e) { showToast('❌ ' + e.message); }
+  renderAftercare(allAftercare);
+  renderAftercarLoadMoreBtn();
 }
 
 function renderAftercarLoadMoreBtn() {
