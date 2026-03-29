@@ -521,10 +521,7 @@ function showPage(page, btn) {
     if (allCustomers.length > 0) { displayCount = displayCount || 30; renderCustomers(allCustomers); }
     else loadCustomers();
   }
-  if (page === 'aftercare') {
-    if (allAftercare.length > 0) renderAftercare(allAftercare);
-    else loadAftercare();
-  }
+  if (page === 'aftercare') loadAftercare();
   if (page === 'todo') initTodo();
   if (page === 'calendar') { loadCalendar(); }
   if (page === 'memo') { initMemo(); }
@@ -591,12 +588,21 @@ function resetForm() {
 }
 
 async function loadCustomers() {
-  // 실시간 리스너가 이미 데이터를 갖고 있으면 즉시 렌더링
   if (allCustomers.length > 0) {
     displayCount = 30;
     renderCustomers(allCustomers);
-  } else {
-    document.getElementById('customer-list').innerHTML = '<div class="loading">⚡ 불러오는 중...</div>';
+    return;
+  }
+  document.getElementById('customer-list').innerHTML = '<div class="loading">⚡ 불러오는 중...</div>';
+  try {
+    const snapshot = await db.collection('customers').get();
+    allCustomers = [];
+    snapshot.forEach(doc => allCustomers.push(doc.data()));
+    allCustomers.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+    displayCount = 30;
+    renderCustomers(allCustomers);
+  } catch(e) {
+    document.getElementById('customer-list').innerHTML = `<div class="loading" style="color:red">❌ ${e.message}<br><br>더보기(☰) → 🚀 데이터 이사하기 를 먼저 실행해주세요.</div>`;
   }
 }
 
@@ -1025,30 +1031,37 @@ let aftercareOffset = 0;
 let aftercareTotal = 0;
 const AFTERCARE_LIMIT = 15;
 
+let _aftercareGasLoaded = false;
 async function loadAftercare() {
-  // 실시간 리스너가 데이터를 갖고 있으면 즉시 렌더링
-  if (allAftercare.length > 0) {
-    renderAftercare(allAftercare);
-    return;
+  // 이미 있으면 먼저 표시
+  if (allAftercare.length > 0) renderAftercare(allAftercare);
+  else document.getElementById('aftercare-list').innerHTML = '<div class="loading">⚡ 불러오는 중...</div>';
+
+  // GAS 데이터 아직 안 불러왔으면 합치기
+  if (!_aftercareGasLoaded) {
+    try {
+      // Firebase에서도 직접 로드 (onSnapshot 안 왔을 수 있으므로)
+      let fbData = [];
+      try {
+        const snap = await db.collection('aftercare').get();
+        snap.forEach(doc => fbData.push(doc.data()));
+      } catch(e2) {}
+
+      const res = await api({ action: 'getAftercare', offset: 0, limit: 300 });
+      const gasData = (res.data || res || []);
+      const seenA = {};
+      [...fbData, ...gasData].forEach(c => {
+        const key = (c.name||'') + '_' + (c.carType||'') + '_' + (c.phone||'');
+        if (!seenA[key] || (c.doneDate||'') > (seenA[key].doneDate||'')) {
+          seenA[key] = c;
+        }
+      });
+      allAftercare = Object.values(seenA);
+      _aftercareGasLoaded = true;
+    } catch(e) {}
   }
-  document.getElementById('aftercare-list').innerHTML = '<div class="loading">⚡ 불러오는 중...</div>';
-  // GAS에서도 한 번 로드해서 합치기 (최초 1회)
-  try {
-    const res = await api({ action: 'getAftercare', offset: 0, limit: 300 });
-    const gasData = (res.data || res || []);
-    const seenA = {};
-    [...allAftercare, ...gasData].forEach(c => {
-      const key = (c.name||'') + '_' + (c.carType||'') + '_' + (c.phone||'');
-      if (!seenA[key] || (c.doneDate||'') > (seenA[key].doneDate||'')) {
-        seenA[key] = c;
-      }
-    });
-    allAftercare = Object.values(seenA);
-    renderAftercare(allAftercare);
-  } catch(e) {
-    if (allAftercare.length > 0) renderAftercare(allAftercare);
-    else document.getElementById('aftercare-list').innerHTML = '<div class="loading">❌ ' + e.message + '</div>';
-  }
+  if (allAftercare.length > 0) renderAftercare(allAftercare);
+  else document.getElementById('aftercare-list').innerHTML = '<div class="loading">데이터가 없습니다.</div>';
 }
 
 async function loadMoreAftercare() {
