@@ -1598,15 +1598,27 @@ function renderCalendarSkeleton() {
 
 async function deleteReservation(rowIndex, dateStr) {
   if (!confirm('이 예약을 삭제할까요?')) return;
-  const r = await apiPost({ action: 'deleteReservation', rowIndex });
-  if (r === 'ok') {
-    showToast('✅ 삭제 완료');
-    allReservations = allReservations.filter(r => r.rowIndex !== rowIndex);
-    // rowIndex 재정렬
-    allReservations.forEach((r, i) => { if (r.rowIndex > rowIndex) r.rowIndex--; });
-    showCalendarDay(dateStr);
-    renderCalendar();
-  } else showToast('❌ 실패');
+  const res = allReservations.find(r => r.rowIndex === rowIndex);
+
+  // 로컬 즉시 제거
+  allReservations = allReservations.filter(r => r.rowIndex !== rowIndex);
+  allReservations.forEach((r, i) => { if (r.rowIndex > rowIndex) r.rowIndex--; });
+  showCalendarDay(dateStr);
+  renderCalendar();
+  showToast('✅ 삭제 완료');
+
+  // Firebase + GAS 백그라운드 삭제
+  (async () => {
+    try {
+      // Firebase reservations에서 삭제
+      if (res) {
+        const snap = await db.collection('reservations')
+          .where('name','==',res.name).where('carType','==',res.carType).where('date','==',res.date).get();
+        snap.forEach(doc => doc.ref.delete());
+      }
+      await apiPost({ action: 'deleteReservation', rowIndex });
+    } catch(e) {}
+  })();
 }
 
 function openCalendarCustomerEdit(timestamp) {
@@ -1620,15 +1632,32 @@ function openCalendarCustomerEdit(timestamp) {
 
 async function deleteCustomerFromCalendar(timestamp, dateStr) {
   if (!confirm('이 고객을 삭제할까요? 고객목록과 사후관리에서 모두 삭제됩니다.')) return;
-  try {
-    const r = await apiPost({ action: 'deleteCustomer', timestamp });
-    if (r === 'ok') {
-      showToast('✅ 삭제 완료');
-      allCustomers = allCustomers.filter(c => c.timestamp !== timestamp);
-      renderCalendar();
-      showCalendarDay(dateStr);
-    } else showToast('❌ 실패');
-  } catch(e) { showToast('❌ ' + e.message); }
+  const c = allCustomers.find(x => x.timestamp === timestamp);
+
+  // 로컬 즉시 제거
+  allCustomers = allCustomers.filter(x => x.timestamp !== timestamp);
+  renderCalendar();
+  showCalendarDay(dateStr);
+  showToast('✅ 삭제 완료');
+
+  // Firebase + GAS 백그라운드 삭제
+  (async () => {
+    try {
+      let deleted = false;
+      try {
+        const refs = await findCustomerDocs(timestamp);
+        for (const ref of refs) { await ref.delete(); deleted = true; }
+      } catch(fe) {}
+      if (!deleted && c) {
+        try {
+          const snap = await db.collection('customers')
+            .where('name','==',c.name).where('carType','==',c.carType).where('phone','==',c.phone).get();
+          snap.forEach(doc => doc.ref.delete());
+        } catch(fe2) {}
+      }
+      await apiPost({ action: 'deleteCustomer', timestamp });
+    } catch(e) { showToast('❌ 서버 삭제 실패: ' + e.message); }
+  })();
 }
 
 async function editReservationDate(rowIndex, currentDate, oldDateStr) {
