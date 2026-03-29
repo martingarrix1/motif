@@ -536,8 +536,14 @@ function showPage(page, btn) {
   if (btn) btn.classList.add('active');
   // 현재 탭 저장 (새로고침 시 복원용)
   try { localStorage.setItem('motif_last_page', page); } catch(e) {}
-  if (page === 'customers') loadCustomers();
-  if (page === 'aftercare') loadAftercare();
+  if (page === 'customers') {
+    if (allCustomers.length > 0) { displayCount = displayCount || 30; renderCustomers(allCustomers); }
+    else loadCustomers();
+  }
+  if (page === 'aftercare') {
+    if (allAftercare.length > 0) renderAftercare(allAftercare);
+    else loadAftercare();
+  }
   if (page === 'todo') initTodo();
   if (page === 'calendar') { loadCalendar(); }
   if (page === 'memo') { initMemo(); }
