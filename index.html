@@ -412,6 +412,22 @@ function esc(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
+// Firebase 고객 문서 찾기 (doc ID가 timestamp 또는 변환된 형태일 수 있음)
+async function findCustomerDocs(timestamp) {
+  const docId = timestamp.replace(/[^0-9a-zA-Z]/g, '_');
+  // 1) 변환된 ID로 시도
+  let doc = await db.collection('customers').doc(docId).get();
+  if (doc.exists) return [doc.ref];
+  // 2) 원본 timestamp로 시도
+  doc = await db.collection('customers').doc(timestamp).get();
+  if (doc.exists) return [doc.ref];
+  // 3) where 쿼리로 시도
+  const snap = await db.collection('customers').where('timestamp','==',timestamp).get();
+  const refs = [];
+  snap.forEach(d => refs.push(d.ref));
+  return refs;
+}
+
 let allCustomers = [];
 let allAftercare = [];
 let allReservations = [];
@@ -784,15 +800,9 @@ async function setDoneDate(timestamp, name, carType, phone, category, summary, e
     // 1. Firebase 고객목록 즉시 업데이트
     if (timestamp) {
       try {
-        await db.collection('customers').doc(timestamp).update({ doneDate });
-      } catch(fe) {
-        // timestamp 포맷이 다를 수 있어 검색 후 업데이트
-        const snap = await db.collection('customers')
-          .where('name','==',name).where('carType','==',carType).get();
-        const batch = db.batch();
-        snap.forEach(doc => batch.update(doc.ref, { doneDate }));
-        await batch.commit();
-      }
+        const refs = await findCustomerDocs(timestamp);
+        for (const ref of refs) await ref.update({ doneDate });
+      } catch(fe) {}
     }
 
     // 2. Firebase 사후관리 업데이트
@@ -881,7 +891,7 @@ function copyPhone(phone) {
 
 async function changeEntryDate(timestamp, value) {
   try {
-    try { await db.collection('customers').doc(timestamp).update({ entryDate: value }); } catch(fe) {}
+    try { const refs = await findCustomerDocs(timestamp); for (const ref of refs) await ref.update({ entryDate: value }); } catch(fe) {}
     const r = await apiPost({ action: 'updateCustomerField', timestamp, field: 'entryDate', value });
     if (r === 'ok') {
       showToast('✅ 날짜 변경됨');
@@ -895,7 +905,7 @@ async function changeEntryDate(timestamp, value) {
 async function clearEntryDate(timestamp) {
   if (!confirm('입고를 취소할까요? (입고예정일이 삭제됩니다)')) return;
   try {
-    try { await db.collection('customers').doc(timestamp).update({ entryDate: '' }); } catch(fe) {}
+    try { const refs = await findCustomerDocs(timestamp); for (const ref of refs) await ref.update({ entryDate: '' }); } catch(fe) {}
     const r = await apiPost({ action: 'updateCustomerField', timestamp, field: 'entryDate', value: '' });
     if (r === 'ok') {
       showToast('✅ 입고 취소됨');
@@ -1358,7 +1368,7 @@ async function generateWarranty(name, carType, doneDate, btn) {
 async function updateCustomerField(timestamp, field, value) {
   try {
     // Firebase 동기화
-    try { await db.collection('customers').doc(timestamp).update({ [field]: value }); } catch(fe) {}
+    try { const refs = await findCustomerDocs(timestamp); for (const ref of refs) await ref.update({ [field]: value }); } catch(fe) {}
     const r = await apiPost({ action: 'updateCustomerField', timestamp, field, value });
     showToast(r === 'ok' ? '✅ 업데이트!' : '❌ 행을 찾지 못했어');
   } catch(e) { showToast('❌ ' + e.message); }
@@ -1373,7 +1383,10 @@ async function deleteCustomer(timestamp) {
   if (!confirm('이 고객을 삭제할까요?')) return;
   try {
     // Firebase 삭제
-    try { await db.collection('customers').doc(timestamp).delete(); } catch(fe) {}
+    try {
+      const refs = await findCustomerDocs(timestamp);
+      for (const ref of refs) await ref.delete();
+    } catch(fe) {}
     const r = await apiPost({ action: 'deleteCustomer', timestamp });
     if (r === 'ok') {
       showToast('✅ 삭제 완료!');
@@ -1729,7 +1742,24 @@ async function sendDoneWithWarranty(name, carType, phone, doneDate) {
     }
     await batch.commit();
 
-    // 3. GAS에 보증서 생성 요청
+    // 3. 로컬 배열 즉시 업데이트 (고객목록 + 사후관리)
+    const custLocal = allCustomers.find(x => x.name === name && x.carType === carType);
+    if (custLocal) custLocal.doneDate = doneDate;
+
+    const acIdx = allAftercare.findIndex(x => x.name === name && x.carType === carType);
+    if (acIdx !== -1) {
+      allAftercare[acIdx].doneDate = doneDate;
+    } else {
+      const c = custLocal || {};
+      allAftercare.unshift({
+        name, phone, carType, doneDate,
+        category: c.category||'', summary: c.summary||'', estPrice: c.estPrice||'',
+        status: '', warranty: '', warrantyPdfId: '', pin: '',
+        addedDate: new Date().toISOString().slice(0,10)
+      });
+    }
+
+    // 4. GAS에 보증서 생성 요청
     const sd = await apiPost({
       action: 'setDoneDate',
       timestamp: '', name, carType, phone,
@@ -1738,6 +1768,7 @@ async function sendDoneWithWarranty(name, carType, phone, doneDate) {
     const pdfId = (sd && sd.pdfId) ? sd.pdfId : '';
 
     showToast('✅ 시공완료 + 보증서 생성 완료!');
+    renderCalendar();
     showCalendarDay(doneDate);
 
     // 4. 알림톡 발송 여부 확인
