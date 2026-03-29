@@ -567,22 +567,17 @@ async function submitConsult() {
   const deposit = document.getElementById('deposit').value;
   const status = document.getElementById('status').value;
   const note = document.getElementById('note').value;
-  showToast('전송 중... ⏳');
-  try {
-    const ts = new Date().toISOString().slice(0, 16).replace('T', ' ');
-    const newCustomer = { timestamp: ts, name, phone, carType, category, summary, estPrice, status, note, deposit, ppf: ppfText, etc: combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, doneDate: '' };
+  const ts = new Date().toISOString().slice(0, 16).replace('T', ' ');
+  const newCustomer = { timestamp: ts, name, phone, carType, category, summary, estPrice, status, note, deposit, ppf: ppfText, etc: combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, doneDate: '' };
 
-    // Firebase 즉시 저장
-    await db.collection('customers').doc(ts).set(newCustomer);
+  // 즉시 완료 표시 + 폼 초기화
+  showToast('✅ 전송 완료!');
+  resetForm();
+  allCustomers = [];
 
-    // GAS 백그라운드 (알림톡 + 시트)
-    apiPost({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery });
-
-    showToast('✅ 전송 완료!');
-    resetForm();
-    cacheClear('customers_all');
-    allCustomers = [];
-  } catch(e) { showToast('❌ 오류: ' + e.message); }
+  // Firebase + GAS 백그라운드 저장
+  db.collection('customers').doc(ts).set(newCustomer).catch(e => showToast('❌ Firebase: ' + e.message));
+  apiPost({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery });
 }
 
 function resetForm() {
@@ -795,53 +790,51 @@ async function setDoneDate(timestamp, name, carType, phone, category, summary, e
   if (!confirm(`${name} / ${carType} 시공완료일을 ${doneDate}로 등록할까요?`)) return;
 
   // 보증서 생성 후 팝업 (보증서 PDF 링크 포함)
-  showToast('⏳ 사후관리 등록 + 보증서 생성 중...');
-  try {
-    // 1. Firebase 고객목록 즉시 업데이트
-    if (timestamp) {
-      try {
-        const refs = await findCustomerDocs(timestamp);
-        for (const ref of refs) await ref.update({ doneDate });
-      } catch(fe) {}
-    }
+  // 로컬 즉시 업데이트 → 화면 바로 반영
+  const idx = allCustomers.findIndex(c =>
+    c.timestamp === timestamp || (c.name === name && c.carType === carType)
+  );
+  if (idx !== -1) { allCustomers[idx].doneDate = doneDate; }
 
-    // 2. Firebase 사후관리 업데이트
+  const aidx = allAftercare.findIndex(c => c.name === name && c.carType === carType);
+  if (aidx !== -1) { allAftercare[aidx].doneDate = doneDate; }
+  else { allAftercare.unshift({ name, phone, carType, category, doneDate, summary, estPrice, status:'', warranty:'', warrantyPdfId:'', pin:'' }); }
+
+  renderCustomers(allCustomers);
+  showToast('✅ 시공완료 등록!');
+  showDoneAlimtalkPopup(name, carType, phone, doneDate, '');
+
+  // Firebase + GAS 백그라운드 처리
+  (async () => {
     try {
-      const asnap = await db.collection('aftercare')
-        .where('name','==',name).where('carType','==',carType).get();
-      if (!asnap.empty) {
-        const batch2 = db.batch();
-        asnap.forEach(doc => batch2.update(doc.ref, { doneDate }));
-        await batch2.commit();
-      } else {
-        // 사후관리에 없으면 새로 추가
-        await db.collection('aftercare').add({
-          name, phone, carType, category, doneDate,
-          summary, estPrice, status: '', warranty: '',
-          warrantyPdfId: '', pin: '',
-          addedDate: new Date().toISOString().slice(0,10)
-        });
+      if (timestamp) {
+        try { const refs = await findCustomerDocs(timestamp); for (const ref of refs) await ref.update({ doneDate }); } catch(fe) {}
       }
-    } catch(fe2) {}
-
-    // 3. GAS 백그라운드 (보증서 생성)
-    const r = await apiPost({ action: 'setDoneDate', timestamp, name, carType, phone, category, summary, estPrice, doneDate });
-
-    // 4. 로컬 allCustomers 업데이트
-    const idx = allCustomers.findIndex(c =>
-      c.timestamp === timestamp || (c.name === name && c.carType === carType)
-    );
-    if (idx !== -1) { allCustomers[idx].doneDate = doneDate; }
-
-    // 5. 사후관리 로컬 업데이트
-    const aidx = allAftercare.findIndex(c => c.name === name && c.carType === carType);
-    if (aidx !== -1) { allAftercare[aidx].doneDate = doneDate; }
-    else { allAftercare.unshift({ name, phone, carType, category, doneDate, summary, estPrice, status:'', warranty:'', warrantyPdfId:'', pin:'' }); }
-
-    renderCustomers(allCustomers);
-    showToast('✅ 등록 완료! 보증서 생성됨');
-    showDoneAlimtalkPopup(name, carType, phone, doneDate, (r && r.pdfId) ? r.pdfId : '');
-  } catch(e) { showToast('❌ ' + e.message); }
+      try {
+        const asnap = await db.collection('aftercare')
+          .where('name','==',name).where('carType','==',carType).get();
+        if (!asnap.empty) {
+          const batch2 = db.batch();
+          asnap.forEach(doc => batch2.update(doc.ref, { doneDate }));
+          await batch2.commit();
+        } else {
+          await db.collection('aftercare').add({
+            name, phone, carType, category, doneDate,
+            summary, estPrice, status: '', warranty: '',
+            warrantyPdfId: '', pin: '',
+            addedDate: new Date().toISOString().slice(0,10)
+          });
+        }
+      } catch(fe2) {}
+      const r = await apiPost({ action: 'setDoneDate', timestamp, name, carType, phone, category, summary, estPrice, doneDate });
+      if (r && r.pdfId) {
+        // 보증서 PDF 생성 완료 시 팝업 내 버튼 업데이트
+        const sendBtn = document.querySelector('[data-done-send]');
+        if (sendBtn) sendBtn.setAttribute('data-pdf-id', r.pdfId);
+        showToast('✅ 보증서 생성 완료!');
+      }
+    } catch(e) { showToast('❌ ' + e.message); }
+  })();
 }
 
 function showDoneAlimtalkPopup(name, carType, phone, doneDate, pdfId) {
@@ -1718,73 +1711,79 @@ async function addCalendarReservation(dateStr) {
 
 // 시공완료 처리 (보증서 생성 + 고객목록/사후관리 반영) → 알림톡은 선택
 async function sendDoneWithWarranty(name, carType, phone, doneDate) {
+  // 1. 확인 대화상자 먼저 다 띄우기
   if (!confirm(`${name} / ${carType}\n시공완료 처리를 진행할까요?`)) return;
-  showToast('⏳ 시공완료 처리 중...');
-  try {
-    // 1. Firebase 고객목록에 doneDate 반영
-    const custSnap = await db.collection('customers')
-      .where('name','==',name).where('carType','==',carType).get();
-    const batch = db.batch();
-    custSnap.forEach(doc => batch.update(doc.ref, { doneDate }));
+  const sendAlimtalk = confirm(`${name} / ${carType}\n시공완료 알림톡도 발송할까요?`);
 
-    // 2. Firebase 사후관리에 추가/업데이트
-    const acSnap = await db.collection('aftercare')
-      .where('name','==',name).where('carType','==',carType).get();
-    if (!acSnap.empty) {
-      acSnap.forEach(doc => batch.update(doc.ref, { doneDate }));
-    } else {
-      const c = allCustomers.find(x => x.name === name && x.carType === carType) || {};
-      batch.set(db.collection('aftercare').doc(), {
-        name, phone, carType, doneDate,
-        category: c.category||'', summary: c.summary||'', estPrice: c.estPrice||'',
-        status: '', warranty: '', warrantyPdfId: '', pin: '',
-        addedDate: new Date().toISOString().slice(0,10)
-      });
-    }
-    await batch.commit();
+  // 2. 로컬 배열 즉시 업데이트 → 화면 즉시 반영
+  const custLocal = allCustomers.find(x => x.name === name && x.carType === carType);
+  if (custLocal) custLocal.doneDate = doneDate;
 
-    // 3. 로컬 배열 즉시 업데이트 (고객목록 + 사후관리)
-    const custLocal = allCustomers.find(x => x.name === name && x.carType === carType);
-    if (custLocal) custLocal.doneDate = doneDate;
-
-    const acIdx = allAftercare.findIndex(x => x.name === name && x.carType === carType);
-    if (acIdx !== -1) {
-      allAftercare[acIdx].doneDate = doneDate;
-    } else {
-      const c = custLocal || {};
-      allAftercare.unshift({
-        name, phone, carType, doneDate,
-        category: c.category||'', summary: c.summary||'', estPrice: c.estPrice||'',
-        status: '', warranty: '', warrantyPdfId: '', pin: '',
-        addedDate: new Date().toISOString().slice(0,10)
-      });
-    }
-
-    // 4. GAS에 보증서 생성 요청
-    const sd = await apiPost({
-      action: 'setDoneDate',
-      timestamp: '', name, carType, phone,
-      category: '', summary: '', estPrice: '', doneDate
+  const acIdx = allAftercare.findIndex(x => x.name === name && x.carType === carType);
+  if (acIdx !== -1) {
+    allAftercare[acIdx].doneDate = doneDate;
+  } else {
+    const c = custLocal || {};
+    allAftercare.unshift({
+      name, phone, carType, doneDate,
+      category: c.category||'', summary: c.summary||'', estPrice: c.estPrice||'',
+      status: '', warranty: '', warrantyPdfId: '', pin: '',
+      addedDate: new Date().toISOString().slice(0,10)
     });
-    const pdfId = (sd && sd.pdfId) ? sd.pdfId : '';
+  }
 
-    showToast('✅ 시공완료 + 보증서 생성 완료!');
-    renderCalendar();
-    showCalendarDay(doneDate);
+  renderCalendar();
+  showCalendarDay(doneDate);
+  showToast('⏳ 백그라운드 처리 중...');
 
-    // 4. 알림톡 발송 여부 확인
-    if (confirm(`${name} / ${carType}\n시공완료 알림톡을 발송할까요?` + (pdfId ? '\n(보증서 PDF 포함)' : ''))) {
-      showToast('⏳ 알림톡 발송 중...');
-      const r = await apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate, pdfId });
-      if (r === 'ok') {
-        showToast('✅ 알림톡 발송 완료!');
-        localStorage.setItem('done_sent_' + name + '_' + carType, doneDate);
-        showCalendarDay(doneDate);
+  // 3. Firebase + GAS + 알림톡 백그라운드 처리
+  (async () => {
+    try {
+      // Firebase 고객목록 doneDate
+      const custSnap = await db.collection('customers')
+        .where('name','==',name).where('carType','==',carType).get();
+      const batch = db.batch();
+      custSnap.forEach(doc => batch.update(doc.ref, { doneDate }));
+
+      // Firebase 사후관리
+      const acSnap = await db.collection('aftercare')
+        .where('name','==',name).where('carType','==',carType).get();
+      if (!acSnap.empty) {
+        acSnap.forEach(doc => batch.update(doc.ref, { doneDate }));
       } else {
-        showToast('❌ ' + (r.error || '발송 실패'));
+        const c = custLocal || {};
+        batch.set(db.collection('aftercare').doc(), {
+          name, phone, carType, doneDate,
+          category: c.category||'', summary: c.summary||'', estPrice: c.estPrice||'',
+          status: '', warranty: '', warrantyPdfId: '', pin: '',
+          addedDate: new Date().toISOString().slice(0,10)
+        });
       }
-    }
-  } catch(e) { showToast('❌ ' + e.message); }
+      await batch.commit();
+
+      // GAS 보증서 생성
+      const sd = await apiPost({
+        action: 'setDoneDate',
+        timestamp: '', name, carType, phone,
+        category: '', summary: '', estPrice: '', doneDate
+      });
+      const pdfId = (sd && sd.pdfId) ? sd.pdfId : '';
+
+      showToast('✅ 시공완료 + 보증서 완료!');
+
+      // 알림톡 발송
+      if (sendAlimtalk) {
+        const r = await apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate, pdfId });
+        if (r === 'ok') {
+          showToast('✅ 알림톡 발송 완료!');
+          localStorage.setItem('done_sent_' + name + '_' + carType, doneDate);
+          showCalendarDay(doneDate);
+        } else {
+          showToast('❌ 알림톡 실패: ' + (r.error || ''));
+        }
+      }
+    } catch(e) { showToast('❌ ' + e.message); }
+  })();
 }
 
 // ─── 유리막 보증서 ──────────────────────────────────────────
