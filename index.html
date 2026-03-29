@@ -495,6 +495,8 @@ function showPage(page, btn) {
   document.getElementById('more-menu').style.display = 'none';
   document.getElementById('page-' + page).classList.add('active');
   if (btn) btn.classList.add('active');
+  // 현재 탭 저장 (새로고침 시 복원용)
+  try { localStorage.setItem('motif_last_page', page); } catch(e) {}
   if (page === 'customers') loadCustomers();
   if (page === 'aftercare') loadAftercare();
   if (page === 'todo') initTodo();
@@ -503,6 +505,17 @@ function showPage(page, btn) {
   if (page === 'invoice') { initInvoice(); }
   if (page === 'tint') { initTint(); }
 }
+
+// 앱 시작 시 마지막 탭 복원
+(function() {
+  try {
+    const last = localStorage.getItem('motif_last_page');
+    if (last && last !== 'consult') {
+      const navBtn = document.getElementById('nav-' + last);
+      showPage(last, navBtn);
+    }
+  } catch(e) {}
+})();
 
 async function submitConsult() {
   const name = document.getElementById('name').value.trim();
