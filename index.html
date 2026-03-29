@@ -517,8 +517,14 @@ function showPage(page, btn) {
   document.getElementById('more-menu').style.display = 'none';
   document.getElementById('page-' + page).classList.add('active');
   if (btn) btn.classList.add('active');
-  if (page === 'customers' && allCustomers.length === 0) loadCustomers();
-  if (page === 'aftercare' && allAftercare.length === 0) loadAftercare();
+  if (page === 'customers') {
+    if (allCustomers.length > 0) { displayCount = displayCount || 30; renderCustomers(allCustomers); }
+    else loadCustomers();
+  }
+  if (page === 'aftercare') {
+    if (allAftercare.length > 0) renderAftercare(allAftercare);
+    else loadAftercare();
+  }
   if (page === 'todo') initTodo();
   if (page === 'calendar') { loadCalendar(); }
   if (page === 'memo') { initMemo(); }
