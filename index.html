@@ -415,57 +415,6 @@ function esc(str) {
 let allCustomers = [];
 let allAftercare = [];
 let allReservations = [];
-let _unsubCustomers = null;
-let _unsubAftercare = null;
-let _unsubReservations = null;
-
-// ─── 실시간 리스너 ──────────────────────────────────────
-function startRealtimeSync() {
-  // 고객 실시간 동기화
-  _unsubCustomers = db.collection('customers').onSnapshot(snap => {
-    allCustomers = [];
-    snap.forEach(doc => allCustomers.push(doc.data()));
-    allCustomers.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
-    // 고객 탭이 활성화 상태면 렌더링
-    if (document.getElementById('page-customers').classList.contains('active')) {
-      renderCustomers(allCustomers);
-    }
-    // 캘린더 탭이 활성화 상태면 렌더링
-    if (document.getElementById('page-calendar').classList.contains('active')) {
-      renderCalendar();
-    }
-  }, err => { console.log('customers listener error:', err); });
-
-  // 사후관리 실시간 동기화
-  _unsubAftercare = db.collection('aftercare').onSnapshot(snap => {
-    let fbData = [];
-    snap.forEach(doc => fbData.push(doc.data()));
-    // GAS 데이터와 합치기는 최초 로드 시만, 이후엔 Firebase 기준
-    const seenA = {};
-    [...fbData, ...allAftercare].forEach(c => {
-      const key = (c.name||'') + '_' + (c.carType||'') + '_' + (c.phone||'');
-      if (!seenA[key] || (c.doneDate||'') > (seenA[key].doneDate||'')) {
-        seenA[key] = c;
-      }
-    });
-    allAftercare = Object.values(seenA);
-    if (document.getElementById('page-aftercare').classList.contains('active')) {
-      renderAftercare(allAftercare);
-    }
-  }, err => { console.log('aftercare listener error:', err); });
-
-  // 예약 실시간 동기화
-  _unsubReservations = db.collection('reservations').onSnapshot(snap => {
-    allReservations = [];
-    snap.forEach(doc => allReservations.push(doc.data()));
-    if (document.getElementById('page-calendar').classList.contains('active')) {
-      renderCalendar();
-    }
-  }, err => { console.log('reservations listener error:', err); });
-}
-
-// 앱 시작 시 실시간 동기화 시작
-startRealtimeSync();
 
 // ─── 캐시 유틸 ───────────────────────────────────────────
 const CACHE_TTL = 10 * 60 * 1000; // 10분
@@ -517,10 +466,7 @@ function showPage(page, btn) {
   document.getElementById('more-menu').style.display = 'none';
   document.getElementById('page-' + page).classList.add('active');
   if (btn) btn.classList.add('active');
-  if (page === 'customers') {
-    if (allCustomers.length > 0) { displayCount = displayCount || 30; renderCustomers(allCustomers); }
-    else loadCustomers();
-  }
+  if (page === 'customers') loadCustomers();
   if (page === 'aftercare') loadAftercare();
   if (page === 'todo') initTodo();
   if (page === 'calendar') { loadCalendar(); }
@@ -588,11 +534,6 @@ function resetForm() {
 }
 
 async function loadCustomers() {
-  if (allCustomers.length > 0) {
-    displayCount = 30;
-    renderCustomers(allCustomers);
-    return;
-  }
   document.getElementById('customer-list').innerHTML = '<div class="loading">⚡ 불러오는 중...</div>';
   try {
     const snapshot = await db.collection('customers').get();
@@ -1553,15 +1494,30 @@ function showCalendarDay(dateStr) {
 let calendarCustomers = []; // 캘린더 전용 데이터
 
 async function loadCalendar() {
-  // 실시간 리스너가 데이터를 관리하므로 즉시 렌더링
-  if (allCustomers.length > 0 || allReservations.length > 0) {
+  if (allCustomers.length > 0) {
     renderCalendar();
   } else {
     document.getElementById('calendar-grid').innerHTML =
       Array(35).fill('<div style="min-height:52px;background:#f5f5f5;border-radius:8px"></div>').join('');
-    // 아직 리스너 데이터가 안 왔으면 잠시 대기 후 렌더링
-    setTimeout(() => renderCalendar(), 1500);
   }
+  const promises = [];
+  if (allCustomers.length === 0) {
+    promises.push(
+      db.collection('customers').get().then(snap => {
+        allCustomers = [];
+        snap.forEach(doc => allCustomers.push(doc.data()));
+        allCustomers.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+      }).catch(() => {})
+    );
+  }
+  promises.push(
+    db.collection('reservations').get().then(snap => {
+      allReservations = [];
+      snap.forEach(doc => allReservations.push(doc.data()));
+    }).catch(() => {})
+  );
+  await Promise.all(promises);
+  renderCalendar();
 }
 
 function renderCalendarSkeleton() {
