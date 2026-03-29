@@ -1374,21 +1374,34 @@ async function openPDF(fileId, event) {
 
 async function deleteCustomer(timestamp) {
   if (!confirm('이 고객을 삭제할까요?')) return;
-  try {
-    // Firebase 삭제
+  const c = allCustomers.find(x => x.timestamp === timestamp);
+
+  // 로컬 즉시 제거
+  allCustomers = allCustomers.filter(x => x.timestamp !== timestamp);
+  renderCustomers(allCustomers);
+  showToast('✅ 삭제 완료!');
+
+  // Firebase + GAS 백그라운드 삭제
+  (async () => {
     try {
-      const refs = await findCustomerDocs(timestamp);
-      for (const ref of refs) await ref.delete();
-    } catch(fe) {}
-    const r = await apiPost({ action: 'deleteCustomer', timestamp });
-    if (r === 'ok') {
-      showToast('✅ 삭제 완료!');
-      cacheClear('customers_all');
-      allCustomers = allCustomers.filter(c => c.timestamp !== timestamp);
-      renderCustomers(allCustomers);
-    } else {
-      showToast('❌ 삭제 실패: ' + (r.error || r));
-    }
+      // 여러 방법으로 Firebase 문서 찾아서 삭제
+      let deleted = false;
+      try {
+        const refs = await findCustomerDocs(timestamp);
+        for (const ref of refs) { await ref.delete(); deleted = true; }
+      } catch(fe) {}
+      // findCustomerDocs로 못 찾으면 name+carType+phone으로 재시도
+      if (!deleted && c) {
+        try {
+          const snap = await db.collection('customers')
+            .where('name','==',c.name).where('carType','==',c.carType).where('phone','==',c.phone).get();
+          snap.forEach(doc => doc.ref.delete());
+        } catch(fe2) {}
+      }
+      await apiPost({ action: 'deleteCustomer', timestamp });
+    } catch(e) { showToast('❌ 서버 삭제 실패: ' + e.message); }
+  })();
+}
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
