@@ -438,19 +438,26 @@ async function findCustomerDocs(timestamp) {
   return refs;
 }
 
-// Firebase 고객 문서 업데이트 (못 찾으면 새로 생성)
+// Firebase 고객 문서 업데이트 (중복 문서 정리 + 1개로 통일)
 async function updateCustomerInFirebase(timestamp, updates) {
+  const c = allCustomers.find(x => x.timestamp === timestamp) || {};
+  const fullData = { ...c, ...updates, timestamp };
+  const docId = timestamp.replace(/[^0-9a-zA-Z]/g, '_');
+
+  // 기존 문서 모두 찾아서 삭제 (중복 제거)
   const refs = await findCustomerDocs(timestamp);
-  if (refs.length > 0) {
-    for (const ref of refs) await ref.update(updates);
-    alert('update 경로: ' + refs.map(r=>r.path).join(', '));
-  } else {
-    const c = allCustomers.find(x => x.timestamp === timestamp) || {};
-    const docId = timestamp.replace(/[^0-9a-zA-Z]/g, '_');
-    const fullData = { ...c, ...updates, timestamp };
-    await db.collection('customers').doc(docId).set(fullData);
-    alert('set 새문서: ' + docId);
+  // name+carType+phone으로도 찾기
+  if (c.name && c.carType) {
+    try {
+      const snap = await db.collection('customers')
+        .where('name','==',c.name).where('carType','==',c.carType).get();
+      snap.forEach(doc => { if (!refs.some(r => r.path === doc.ref.path)) refs.push(doc.ref); });
+    } catch(e) {}
   }
+  for (const ref of refs) { try { await ref.delete(); } catch(e) {} }
+
+  // 새 문서 1개로 저장
+  await db.collection('customers').doc(docId).set(fullData);
 }
 
 let allCustomers = [];
@@ -635,7 +642,6 @@ async function loadCustomers() {
     const snapshot = await db.collection('customers').get();
     allCustomers = [];
     snapshot.forEach(doc => { allCustomers.push(doc.data()); });
-    alert('Firebase에서 로드된 고객 수: ' + allCustomers.length + '\n첫 고객 doc ID: ' + (snapshot.docs[0]?snapshot.docs[0].id:'없음'));
     allCustomers.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
     displayCount = 30;
     renderCustomers(allCustomers);
@@ -1778,7 +1784,6 @@ function openCalendarCustomerEdit(timestamp) {
 }
 
 async function saveCalendarCustomerEdit() {
-  alert('저장 시작: ' + _editingTimestamp);
   const timestamp = _editingTimestamp;
   if (!timestamp) { showToast('❌ 수정 대상 없음'); return; }
   try {
@@ -1828,12 +1833,12 @@ async function saveCalendarCustomerEdit() {
   // Firebase 저장
   try {
     await updateCustomerInFirebase(timestamp, updates);
-    alert('Firebase 저장 성공!');
+    showToast('✅ 저장 완료!');
   } catch(fe) {
-    alert('Firebase 실패: ' + fe.message);
+    showToast('⚠️ 저장 실패: ' + fe.message);
   }
   } catch(e) {
-    alert('전체 오류: ' + e.message);
+    showToast('❌ 오류: ' + e.message);
   }
 }
 
