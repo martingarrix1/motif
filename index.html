@@ -443,13 +443,13 @@ async function updateCustomerInFirebase(timestamp, updates) {
   const refs = await findCustomerDocs(timestamp);
   if (refs.length > 0) {
     for (const ref of refs) await ref.update(updates);
-    console.log('Firebase update OK, refs:', refs.length);
+    alert('update 경로: ' + refs.map(r=>r.path).join(', '));
   } else {
     const c = allCustomers.find(x => x.timestamp === timestamp) || {};
     const docId = timestamp.replace(/[^0-9a-zA-Z]/g, '_');
     const fullData = { ...c, ...updates, timestamp };
     await db.collection('customers').doc(docId).set(fullData);
-    console.log('Firebase set (new doc):', docId);
+    alert('set 새문서: ' + docId);
   }
 }
 
@@ -634,7 +634,8 @@ async function loadCustomers() {
   try {
     const snapshot = await db.collection('customers').get();
     allCustomers = [];
-    snapshot.forEach(doc => allCustomers.push(doc.data()));
+    snapshot.forEach(doc => { allCustomers.push(doc.data()); });
+    alert('Firebase에서 로드된 고객 수: ' + allCustomers.length + '\n첫 고객 doc ID: ' + (snapshot.docs[0]?snapshot.docs[0].id:'없음'));
     allCustomers.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
     displayCount = 30;
     renderCustomers(allCustomers);
