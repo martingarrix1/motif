@@ -415,6 +415,57 @@ function esc(str) {
 let allCustomers = [];
 let allAftercare = [];
 let allReservations = [];
+let _unsubCustomers = null;
+let _unsubAftercare = null;
+let _unsubReservations = null;
+
+// ─── 실시간 리스너 ──────────────────────────────────────
+function startRealtimeSync() {
+  // 고객 실시간 동기화
+  _unsubCustomers = db.collection('customers').onSnapshot(snap => {
+    allCustomers = [];
+    snap.forEach(doc => allCustomers.push(doc.data()));
+    allCustomers.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+    // 고객 탭이 활성화 상태면 렌더링
+    if (document.getElementById('page-customers').classList.contains('active')) {
+      renderCustomers(allCustomers);
+    }
+    // 캘린더 탭이 활성화 상태면 렌더링
+    if (document.getElementById('page-calendar').classList.contains('active')) {
+      renderCalendar();
+    }
+  }, err => { console.log('customers listener error:', err); });
+
+  // 사후관리 실시간 동기화
+  _unsubAftercare = db.collection('aftercare').onSnapshot(snap => {
+    let fbData = [];
+    snap.forEach(doc => fbData.push(doc.data()));
+    // GAS 데이터와 합치기는 최초 로드 시만, 이후엔 Firebase 기준
+    const seenA = {};
+    [...fbData, ...allAftercare].forEach(c => {
+      const key = (c.name||'') + '_' + (c.carType||'') + '_' + (c.phone||'');
+      if (!seenA[key] || (c.doneDate||'') > (seenA[key].doneDate||'')) {
+        seenA[key] = c;
+      }
+    });
+    allAftercare = Object.values(seenA);
+    if (document.getElementById('page-aftercare').classList.contains('active')) {
+      renderAftercare(allAftercare);
+    }
+  }, err => { console.log('aftercare listener error:', err); });
+
+  // 예약 실시간 동기화
+  _unsubReservations = db.collection('reservations').onSnapshot(snap => {
+    allReservations = [];
+    snap.forEach(doc => allReservations.push(doc.data()));
+    if (document.getElementById('page-calendar').classList.contains('active')) {
+      renderCalendar();
+    }
+  }, err => { console.log('reservations listener error:', err); });
+}
+
+// 앱 시작 시 실시간 동기화 시작
+startRealtimeSync();
 
 // ─── 캐시 유틸 ───────────────────────────────────────────
 const CACHE_TTL = 10 * 60 * 1000; // 10분
@@ -534,27 +585,12 @@ function resetForm() {
 }
 
 async function loadCustomers() {
-  // 캐시에 있으면 즉시 표시 후 백그라운드 갱신
-  const cached = cacheGet('customers_all');
-  if (cached && cached.length) {
-    allCustomers = cached;
+  // 실시간 리스너가 이미 데이터를 갖고 있으면 즉시 렌더링
+  if (allCustomers.length > 0) {
     displayCount = 30;
     renderCustomers(allCustomers);
   } else {
     document.getElementById('customer-list').innerHTML = '<div class="loading">⚡ 불러오는 중...</div>';
-  }
-  try {
-    const snapshot = await db.collection('customers').get();
-    allCustomers = [];
-    snapshot.forEach(doc => allCustomers.push(doc.data()));
-    allCustomers.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
-    cacheSet('customers_all', allCustomers);
-    displayCount = 30;
-    renderCustomers(allCustomers);
-  } catch(e) {
-    if (!cached || !cached.length) {
-      document.getElementById('customer-list').innerHTML = `<div class="loading" style="color:red">❌ ${e.message}<br><br>더보기(☰) → 🚀 데이터 이사하기 를 먼저 실행해주세요.</div>`;
-    }
   }
 }
 
@@ -984,24 +1020,18 @@ let aftercareTotal = 0;
 const AFTERCARE_LIMIT = 15;
 
 async function loadAftercare() {
+  // 실시간 리스너가 데이터를 갖고 있으면 즉시 렌더링
+  if (allAftercare.length > 0) {
+    renderAftercare(allAftercare);
+    return;
+  }
   document.getElementById('aftercare-list').innerHTML = '<div class="loading">⚡ 불러오는 중...</div>';
+  // GAS에서도 한 번 로드해서 합치기 (최초 1회)
   try {
-    let raw = [];
-    // Firebase + GAS 양쪽에서 로드 후 합치기
-    try {
-      const snapshot = await db.collection('aftercare').get();
-      snapshot.forEach(doc => raw.push(doc.data()));
-    } catch(e2) {}
-
-    try {
-      const res = await api({ action: 'getAftercare', offset: 0, limit: 300 });
-      const gasData = (res.data || res || []);
-      raw = [...raw, ...gasData];
-    } catch(e3) {}
-
-    // name+carType+phone 기준 중복 제거 (최신 doneDate 우선)
+    const res = await api({ action: 'getAftercare', offset: 0, limit: 300 });
+    const gasData = (res.data || res || []);
     const seenA = {};
-    raw.forEach(c => {
+    [...allAftercare, ...gasData].forEach(c => {
       const key = (c.name||'') + '_' + (c.carType||'') + '_' + (c.phone||'');
       if (!seenA[key] || (c.doneDate||'') > (seenA[key].doneDate||'')) {
         seenA[key] = c;
@@ -1010,7 +1040,8 @@ async function loadAftercare() {
     allAftercare = Object.values(seenA);
     renderAftercare(allAftercare);
   } catch(e) {
-    document.getElementById('aftercare-list').innerHTML = '<div class="loading">❌ ' + e.message + '</div>';
+    if (allAftercare.length > 0) renderAftercare(allAftercare);
+    else document.getElementById('aftercare-list').innerHTML = '<div class="loading">❌ ' + e.message + '</div>';
   }
 }
 
@@ -1503,37 +1534,15 @@ function showCalendarDay(dateStr) {
 let calendarCustomers = []; // 캘린더 전용 데이터
 
 async function loadCalendar() {
-  // 이미 데이터 있으면 즉시 렌더링 후 백그라운드 갱신
-  if (allCustomers.length > 0) {
+  // 실시간 리스너가 데이터를 관리하므로 즉시 렌더링
+  if (allCustomers.length > 0 || allReservations.length > 0) {
     renderCalendar();
   } else {
     document.getElementById('calendar-grid').innerHTML =
       Array(35).fill('<div style="min-height:52px;background:#f5f5f5;border-radius:8px"></div>').join('');
+    // 아직 리스너 데이터가 안 왔으면 잠시 대기 후 렌더링
+    setTimeout(() => renderCalendar(), 1500);
   }
-
-  // 고객 + 예약 동시 로드
-  const promises = [];
-
-  if (allCustomers.length === 0) {
-    promises.push(
-      db.collection('customers').get().then(snap => {
-        allCustomers = [];
-        snap.forEach(doc => allCustomers.push(doc.data()));
-        // 최신순 정렬
-        allCustomers.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
-      }).catch(() => {})
-    );
-  }
-
-  promises.push(
-    db.collection('reservations').get().then(snap => {
-      allReservations = [];
-      snap.forEach(doc => allReservations.push(doc.data()));
-    }).catch(() => {})
-  );
-
-  await Promise.all(promises);
-  renderCalendar();
 }
 
 function renderCalendarSkeleton() {
@@ -1672,24 +1681,43 @@ async function sendDoneWithWarranty(name, carType, phone, doneDate) {
 
   showToast('⏳ 보증서 생성 중...');
   try {
-    // 1. setDoneDate로 보증서 생성 + T열 저장 (timestamp 없어도 name+carType으로 처리)
+    // Firebase 고객목록에 doneDate 반영
+    const custSnap = await db.collection('customers')
+      .where('name','==',name).where('carType','==',carType).get();
+    const batch = db.batch();
+    custSnap.forEach(doc => batch.update(doc.ref, { doneDate }));
+
+    // Firebase 사후관리에 추가/업데이트
+    const acSnap = await db.collection('aftercare')
+      .where('name','==',name).where('carType','==',carType).get();
+    if (!acSnap.empty) {
+      acSnap.forEach(doc => batch.update(doc.ref, { doneDate }));
+    } else {
+      const c = allCustomers.find(x => x.name === name && x.carType === carType) || {};
+      batch.set(db.collection('aftercare').doc(), {
+        name, phone, carType, doneDate,
+        category: c.category||'', summary: c.summary||'', estPrice: c.estPrice||'',
+        status: '', warranty: '', warrantyPdfId: '', pin: '',
+        addedDate: new Date().toISOString().slice(0,10)
+      });
+    }
+    await batch.commit();
+
+    // 1. GAS에 보증서 생성 요청
     const sd = await apiPost({
       action: 'setDoneDate',
       timestamp: '', name, carType, phone,
       category: '', summary: '', estPrice: '', doneDate
     });
     const pdfId = (sd && sd.pdfId) ? sd.pdfId : '';
-    console.log('sendDoneWithWarranty pdfId=' + pdfId);
 
     // 2. 알림톡 발송
     showToast('⏳ 알림톡 발송 중...');
     const r = await apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate, pdfId });
     if (r === 'ok') {
       showToast('✅ 시공완료 알림톡 발송 완료!' + (pdfId ? ' (보증서 포함)' : ''));
-      // 발송 기록 저장
       const key = 'done_sent_' + name + '_' + carType;
       localStorage.setItem(key, doneDate);
-      // 달력 표시 갱신
       showCalendarDay(doneDate);
     } else {
       showToast('❌ ' + (r.error || '발송 실패'));
