@@ -188,7 +188,15 @@ const db = firebase.firestore();
       <div class="form-group"><label>보조배터리</label>
         <select id="battery"><option value="">-</option><option>6A</option><option>12A</option><option>18A</option></select>
       </div>
-      <div class="form-group"><label>기타</label><input type="text" id="etcValue" placeholder="기타 내용"></div>
+      <div class="form-group"><label>기타</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="etcPreset" onchange="if(this.value){document.getElementById('etcValue').value=this.value;this.value='';}" style="flex:1;padding:clamp(10px,2.5vw,13px);border:1.5px solid #e8e8e8;border-radius:10px;font-size:clamp(14px,3.5vw,16px);background:#fafafa;font-family:inherit;-webkit-appearance:none;appearance:none">
+            <option value="">빠른선택 ▾</option>
+            <option value="모티프신차패키지">모티프신차패키지</option>
+          </select>
+          <input type="text" id="etcValue" placeholder="기타 내용" style="flex:2">
+        </div>
+      </div>
     </div>
 
     <div class="card">
