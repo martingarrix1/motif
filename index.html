@@ -1360,19 +1360,27 @@ async function updateAftercareStatus(name, carType, doneDate, value) {
 
 async function updateWarranty(name, carType, doneDate, value) {
   try {
-    const r = await apiPost({ action: 'updateWarranty', name, carType, doneDate, warrantyValue: value });
-    if (r === 'ok') {
-      showToast('✅ 보증서 업데이트!');
-      // 보증서 발행 1차/2차 선택 시 알림톡 발송
-      if (value === '보증서 발행 1차' || value === '보증서 발행 2차') {
-        const customer = allAftercare.find(c => c.name === name && c.carType === carType && c.doneDate === doneDate);
-        const pdfId = customer ? customer.warrantyPdfId : '';
-        const ar = await apiPost({ action: 'sendWarrantyAlimtalk', name, carType, doneDate, warrantyValue: value, pdfId });
-        if (ar === 'ok') showToast('✅ 알림톡 발송 완료!');
-        else showToast('❌ 알림톡 실패: ' + (ar.error || JSON.stringify(ar)));
-      }
-      allAftercare = []; loadAftercare();
-    } else showToast('❌ 행을 찾지 못했어');
+    // Firebase 직접 업데이트
+    const asnap = await db.collection('aftercare').where('name','==',name).where('carType','==',carType).get();
+    if (asnap.empty) { showToast('❌ 사후관리 데이터를 찾지 못했어'); return; }
+    const batch = db.batch();
+    asnap.forEach(doc => batch.update(doc.ref, { warranty: value }));
+    await batch.commit();
+    showToast('✅ 보증서 업데이트!');
+
+    // 보증서 발행 1차/2차 선택 시 알림톡 발송
+    if (value === '보증서 발행 1차' || value === '보증서 발행 2차') {
+      const customer = allAftercare.find(c => c.name === name && c.carType === carType && c.doneDate === doneDate);
+      const pdfId = customer ? customer.warrantyPdfId : '';
+      const phone = customer ? customer.phone : '';
+      const ar = await apiPost({ action: 'sendWarrantyAlimtalk', name, carType, phone, doneDate, warrantyValue: value, pdfId });
+      if (ar === 'ok') showToast('✅ 알림톡 발송 완료!');
+      else showToast('❌ 알림톡 실패: ' + (ar.error || JSON.stringify(ar)));
+    }
+
+    // GAS 시트 동기화 (백그라운드)
+    apiPost({ action: 'updateWarranty', name, carType, doneDate, warrantyValue: value }).catch(() => {});
+    allAftercare = []; loadAftercare();
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
