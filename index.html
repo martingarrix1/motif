@@ -103,12 +103,13 @@ const db = firebase.firestore();
 
 <!-- 더보기 메뉴 -->
 <div id="more-menu" style="display:none;position:fixed;top:84px;right:0;left:0;background:white;z-index:98;border-bottom:2px solid #eee;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
-  <div style="display:grid;grid-template-columns:repeat(5,1fr);padding:8px">
+  <div style="display:grid;grid-template-columns:repeat(6,1fr);padding:8px">
     <button onclick="showPage('aftercare',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📋<span>사후관리</span></button>
     <button onclick="showPage('glass',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🔵<span>유리막</span></button>
     <button onclick="showPage('memo',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📓<span>메모</span></button>
     <button onclick="showPage('invoice',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📑<span>견적서</span></button>
     <button onclick="showPage('tint',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🎫<span>썬팅보증서</span></button>
+    <button onclick="showPage('ppf',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🛡️<span>PPF보증서</span></button>
   </div>
   <div style="padding:8px 12px;border-top:1px solid #eee">
     <button onclick="migrateDataToFirebase()" style="width:100%;padding:10px;background:#fff3e0;color:#e65100;border:1px solid #ffb74d;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit">🚀 기존 시트 데이터 → Firebase 이사 (최초 1회)</button>
@@ -388,6 +389,60 @@ const db = firebase.firestore();
     <div style="height:24px"></div>
   </div>
 
+  <!-- PPF 보증서 페이지 -->
+  <div id="page-ppf" class="page">
+    <div class="card">
+      <div class="card-title">🛡️ PPF 전자보증서 발행</div>
+      <div class="form-group"><label>고객명</label><input type="text" id="ppfw-name" placeholder="홍길동"></div>
+      <div class="form-group"><label>연락처</label><input type="tel" id="ppfw-phone" placeholder="010-0000-0000"></div>
+      <div class="form-group"><label>차종</label><input type="text" id="ppfw-cartype" placeholder="예) 팰리세이드"></div>
+      <div class="form-group"><label>차량번호</label><input type="text" id="ppfw-carnumber" placeholder="예) 123가4567"></div>
+      <div class="form-group"><label>시공일자</label><input type="date" id="ppfw-date"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">시공 정보</div>
+      <div class="form-group"><label>필름</label>
+        <select id="ppfw-film">
+          <option value="">선택</option>
+          <option>XPEL Ultimate Plus</option>
+          <option>XPEL Xtreme</option>
+          <option>XPEL Stealth</option>
+          <option>Ultrafit</option>
+          <option>Ultrafit Matte</option>
+          <option>기타</option>
+        </select>
+      </div>
+      <div class="form-group"><label>시공내용</label>
+        <select id="ppfw-work">
+          <option value="">선택</option>
+          <option>프런트 패키지 A</option>
+          <option>프런트 패키지 F</option>
+          <option>본넷</option>
+          <option>문콕 패키지</option>
+          <option>생활보호 4종</option>
+          <option>생활보호 5종</option>
+          <option>생활보호 7종</option>
+          <option>전체</option>
+          <option>기타</option>
+        </select>
+      </div>
+      <div class="form-group"><label>보증기간</label>
+        <select id="ppfw-warranty">
+          <option value="">선택</option>
+          <option>1년</option>
+          <option>3년</option>
+          <option>5년</option>
+          <option>10년</option>
+          <option>평생보증</option>
+        </select>
+      </div>
+      <div class="form-group"><label>시공가격 (원)</label><input type="number" id="ppfw-price" placeholder="예) 500000" inputmode="numeric"></div>
+    </div>
+    <button class="btn btn-primary" onclick="submitPpfWarranty()" id="ppfw-submit-btn">🛡️ PPF 보증서 생성</button>
+    <div id="ppfw-result" style="margin-top:12px"></div>
+    <div style="height:24px"></div>
+  </div>
+
 </div>
 
 <div id="customer-modal" class="modal">
@@ -542,6 +597,7 @@ function showPage(page, btn) {
   if (page === 'memo') { initMemo(); }
   if (page === 'invoice') { initInvoice(); }
   if (page === 'tint') { initTint(); }
+  if (page === 'ppf') { initPpf(); }
 }
 
 (function() {
@@ -2326,6 +2382,42 @@ async function submitTintWarranty() {
 }
 
 function initMemo() { filterMemo(_memoCurrentFilter); }
+
+// ─── PPF 보증서 ──────────────────────────────────────────
+
+function initPpf() {
+  const d = document.getElementById('ppfw-date');
+  if (!d.value) d.value = new Date().toISOString().slice(0,10);
+}
+
+async function submitPpfWarranty() {
+  const name    = document.getElementById('ppfw-name').value.trim();
+  const phone   = document.getElementById('ppfw-phone').value.trim();
+  const carType = document.getElementById('ppfw-cartype').value.trim();
+  const carNumber = document.getElementById('ppfw-carnumber').value.trim();
+  const date    = document.getElementById('ppfw-date').value;
+  const film    = document.getElementById('ppfw-film').value;
+  const work    = document.getElementById('ppfw-work').value;
+  const warranty= document.getElementById('ppfw-warranty').value;
+  const price   = document.getElementById('ppfw-price').value;
+  if (!name || !phone || !carType || !date || !film || !work || !warranty) {
+    showToast('❌ 모든 항목을 입력해주세요'); return;
+  }
+  const btn = document.getElementById('ppfw-submit-btn');
+  btn.disabled = true; btn.textContent = '⏳ 생성 중...';
+  try {
+    const r = await apiPost({ action: 'createPpfWarranty', name, phone, carType, carNumber, date, film, work, warranty, price });
+    if (r && r.fileId) {
+      document.getElementById('ppfw-result').innerHTML = `
+        <div class="card" style="text-align:center">
+          <div style="font-size:16px;font-weight:700;margin-bottom:12px">✅ PPF 보증서 생성 완료!</div>
+          <button class="btn btn-primary" onclick="window.open('https://drive.google.com/file/d/${r.fileId}/view','_blank')">📄 보증서 열기</button>
+        </div>`;
+      showToast('✅ PPF 보증서 생성 완료!');
+    } else { showToast('❌ 실패: ' + (r.error || JSON.stringify(r))); }
+  } catch(e) { showToast('❌ ' + e.message); }
+  btn.disabled = false; btn.textContent = '🛡️ PPF 보증서 생성';
+}
 
 // ★★★ 핵심 수정: 브랜드명 단독 옵션 완전 제거 ★★★
 (function() {
