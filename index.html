@@ -1508,6 +1508,7 @@ function showCalendarDay(dateStr) {
           <button onclick="sendDoneWithWarranty('${c.name}','${c.carType}','${c.phone}','${c.doneDate||dateStr}')" style="padding:6px 8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:12px;cursor:pointer">📨완료</button>
           <button onclick="deleteCustomerFromCalendar('${c.timestamp}','${dateStr}')" style="padding:6px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px;cursor:pointer">🗑</button>
         </div>
+        <button onclick="openCalendarWarrantyPopup('${c.name}','${c.carType}','${c.phone}','${c.timestamp}','${dateStr}')" style="margin-top:8px;width:100%;padding:8px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📜 보증서 발행</button>
       </div>`).join('') : '<div style="color:#999;font-size:13px;margin-bottom:12px">입고 예정 없음</div>'}
     <div style="border-top:1px solid #eee;padding-top:14px;margin-top:4px">
       <button onclick="openCalendarFullForm('${dateStr}')" style="width:100%;padding:12px;background:#1a73e8;color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">➕ 입고 예약 상담 입력</button>
@@ -2381,6 +2382,64 @@ async function submitTintWarranty() {
     } else { showToast('❌ 실패: ' + (r.error || JSON.stringify(r))); }
   } catch(e) { showToast('❌ ' + e.message); }
   btn.disabled = false; btn.textContent = '🎫 보증서 생성 + 시공완료 알림톡 발송';
+}
+
+// ─── 캘린더 보증서 발행 팝업 ─────────────────────────────
+
+function openCalendarWarrantyPopup(name, carType, phone, timestamp, dateStr) {
+  const popup = document.createElement('div');
+  popup.id = 'cal-warranty-popup';
+  popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  popup.innerHTML = `
+    <div style="background:white;border-radius:18px;padding:22px;width:100%;max-width:360px">
+      <div style="font-size:16px;font-weight:700;margin-bottom:4px">📜 보증서 발행</div>
+      <div style="font-size:13px;color:#888;margin-bottom:18px">${esc(name)} · ${esc(carType)}</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        <button onclick="calWarrantyGo('invoice','${name}','${carType}','${phone}','${timestamp}','${dateStr}',this)" style="padding:14px 8px;background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">📑 견적서</button>
+        <button onclick="calWarrantyGo('tint','${name}','${carType}','${phone}','${timestamp}','${dateStr}',this)" style="padding:14px 8px;background:#fce4ec;color:#c62828;border:1px solid #f48fb1;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">🎫 썬팅보증서</button>
+        <button onclick="calWarrantyGo('glass','${name}','${carType}','${phone}','${timestamp}','${dateStr}',this)" style="padding:14px 8px;background:#e0f7fa;color:#00695c;border:1px solid #80deea;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">🔵 유리막보증서</button>
+        <button onclick="calWarrantyGo('ppf','${name}','${carType}','${phone}','${timestamp}','${dateStr}',this)" style="padding:14px 8px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">🛡️ PPF보증서</button>
+      </div>
+
+      <button onclick="document.getElementById('cal-warranty-popup').remove()" style="width:100%;padding:12px;background:#f5f5f5;color:#555;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">닫기</button>
+    </div>
+  `;
+  document.body.appendChild(popup);
+}
+
+function calWarrantyGo(type, name, carType, phone, timestamp, dateStr, btn) {
+  document.getElementById('cal-warranty-popup').remove();
+  if (type === 'invoice') {
+    showPage('invoice', null);
+    setTimeout(() => {
+      document.getElementById('inv-cartype').value = carType;
+      document.getElementById('inv-date').value = dateStr;
+    }, 100);
+  } else if (type === 'tint') {
+    showPage('tint', null);
+    setTimeout(() => {
+      document.getElementById('tw-name').value = name;
+      document.getElementById('tw-phone').value = phone;
+      document.getElementById('tw-cartype').value = carType;
+      document.getElementById('tw-date').value = dateStr;
+    }, 100);
+  } else if (type === 'glass') {
+    showPage('glass', null);
+    setTimeout(() => {
+      document.getElementById('glass-cartype').value = carType;
+      document.getElementById('glass-phone').value = phone;
+      document.getElementById('glass-date').value = dateStr;
+    }, 100);
+  } else if (type === 'ppf') {
+    showPage('ppf', null);
+    setTimeout(() => {
+      document.getElementById('ppfw-name').value = name;
+      document.getElementById('ppfw-phone').value = phone;
+      document.getElementById('ppfw-cartype').value = carType;
+      document.getElementById('ppfw-date').value = dateStr;
+    }, 100);
+  }
 }
 
 function initMemo() { filterMemo(_memoCurrentFilter); }
