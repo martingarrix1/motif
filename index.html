@@ -197,7 +197,19 @@ const db = firebase.firestore();
 
     <div class="card">
       <div class="card-title">견적정보</div>
-      <div class="form-group"><label>입고예정일</label><input type="date" id="entryDate"></div>
+      <div class="form-group">
+        <label>입고예정일</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="date" id="entryDate" style="flex:2">
+          <select id="entryDateFuzzy" onchange="applyFuzzyDate(this.value)" style="flex:1.2;padding:clamp(10px,2.5vw,13px);border:1.5px solid #e8e8e8;border-radius:10px;font-size:clamp(13px,3.5vw,14px);background:#fafafa;font-family:inherit;-webkit-appearance:none;appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23888' d='M6 8L0 0h12z'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px">
+            <option value="">대략▾</option>
+          </select>
+        </div>
+        <div id="entryDateFuzzyLabel" style="display:none;margin-top:6px;font-size:13px;color:#e65100;font-weight:600;padding:6px 10px;background:#fff3e0;border-radius:8px;display:flex;justify-content:space-between;align-items:center">
+          <span id="entryDateFuzzyText"></span>
+          <button onclick="clearFuzzyDate()" style="background:none;border:none;color:#e65100;font-size:16px;cursor:pointer;padding:0 4px">×</button>
+        </div>
+      </div>
       <div class="form-group"><label>예상견적 (만원)</label>
         <div style="display:flex;gap:8px;align-items:center">
           <input type="number" id="estPrice" inputmode="numeric" placeholder="0" style="flex:2">
@@ -648,8 +660,10 @@ async function submitConsult() {
   const deposit = document.getElementById('deposit').value;
   const status = document.getElementById('status').value;
   const note = document.getElementById('note').value;
+  const { entryDate, fuzzyNote } = getFuzzyDateValue();
+  const finalNote = fuzzyNote ? (note ? note + ' / 입고 ' + fuzzyNote : '입고 ' + fuzzyNote) : note;
   const ts = new Date().toISOString().slice(0, 16).replace('T', ' ');
-  const newCustomer = { timestamp: ts, name, phone, carType, category, summary, estPrice, status, note, deposit, ppf: ppfText, etc: combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, doneDate: '' };
+  const newCustomer = { timestamp: ts, name, phone, carType, category, summary, estPrice, status, note: finalNote, deposit, ppf: ppfText, etc: combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, doneDate: '' };
 
   db.collection('customers').doc(ts).set(newCustomer).catch(e => showToast('❌ Firebase: ' + e.message));
   resetForm();
@@ -661,7 +675,7 @@ async function submitConsult() {
     const timeoutId = setTimeout(() => controller.abort(), 25000);
     const res = await fetch(API_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, sendAlimtalk: true }),
+      body: JSON.stringify({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note: finalNote, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, sendAlimtalk: true }),
       signal: controller.signal
     });
     clearTimeout(timeoutId);
@@ -676,7 +690,9 @@ async function submitConsult() {
 
 function resetForm() {
   ['carType','name','phone','estPrice','deposit','note','etcValue'].forEach(id => document.getElementById(id).value = '');
-  ['tintF','tintS1','tintS2','tintR','tintSun','blackbox','battery','status','entryDate','estPriceTag'].forEach(id => document.getElementById(id).value = '');
+  ['tintF','tintS1','tintS2','tintR','tintSun','blackbox','battery','status','entryDate','estPriceTag','entryDateFuzzy'].forEach(id => document.getElementById(id).value = '');
+  const lbl = document.getElementById('entryDateFuzzyLabel');
+  if (lbl) lbl.style.display = 'none';
   document.querySelectorAll('.check-item').forEach(el => { el.querySelector('input').checked = false; el.classList.remove('checked'); });
 }
 
@@ -2515,6 +2531,59 @@ async function submitPpfWarranty() {
     sel.innerHTML = html;
   });
 })();
+
+// ─── 대략 날짜 (초/중/말) ────────────────────────────────
+
+(function initFuzzyDateSelect() {
+  const sel = document.getElementById('entryDateFuzzy');
+  if (!sel) return;
+  const now = new Date();
+  // 이번달 ~ 3개월 뒤까지
+  for (let i = 0; i <= 3; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const y = d.getFullYear();
+    const m = d.getMonth() + 1;
+    const label = m + '월';
+    ['초', '중', '말'].forEach(part => {
+      const opt = document.createElement('option');
+      opt.value = y + '-' + String(m).padStart(2,'0') + '-' + part;
+      opt.textContent = label + ' ' + part;
+      sel.appendChild(opt);
+    });
+  }
+})();
+
+function applyFuzzyDate(val) {
+  if (!val) return;
+  // val 형식: "2026-04-초"
+  const [y, m, part] = val.split('-');
+  const partMap = { '초': '상순', '중': '중순', '말': '하순' };
+  const label = parseInt(m) + '월 ' + (partMap[part] || part);
+
+  // date input 은 비움 (날짜 미확정)
+  document.getElementById('entryDate').value = '';
+
+  // 라벨 표시
+  document.getElementById('entryDateFuzzyText').textContent = '📅 ' + label + ' 입고 예정';
+  document.getElementById('entryDateFuzzyLabel').style.display = 'flex';
+}
+
+function clearFuzzyDate() {
+  document.getElementById('entryDateFuzzy').value = '';
+  document.getElementById('entryDateFuzzyLabel').style.display = 'none';
+  document.getElementById('entryDateFuzzyText').textContent = '';
+}
+
+function getFuzzyDateValue() {
+  // 정확한 날짜가 있으면 그걸 쓰고, 없으면 대략값을 note에 추가용으로 반환
+  const exact = document.getElementById('entryDate').value;
+  if (exact) return { entryDate: exact, fuzzyNote: '' };
+  const fuzzyVal = document.getElementById('entryDateFuzzy').value;
+  if (!fuzzyVal) return { entryDate: '', fuzzyNote: '' };
+  const [y, m, part] = fuzzyVal.split('-');
+  const partMap = { '초': '상순', '중': '중순', '말': '하순' };
+  return { entryDate: '', fuzzyNote: parseInt(m) + '월 ' + (partMap[part] || part) };
+}
 
 let displayCount = 30;
 </script>
