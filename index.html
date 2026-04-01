@@ -438,7 +438,7 @@ const db = firebase.firestore();
       </div>
       <div class="form-group"><label>시공가격 (원)</label><input type="number" id="ppfw-price" placeholder="예) 500000" inputmode="numeric"></div>
     </div>
-    <button class="btn btn-primary" onclick="submitPpfWarranty()" id="ppfw-submit-btn">🛡️ PPF 보증서 생성</button>
+    <button class="btn btn-primary" onclick="submitPpfWarranty()" id="ppfw-submit-btn">🛡️ PPF 보증서 생성 + 시공완료 알림톡 발송</button>
     <div id="ppfw-result" style="margin-top:12px"></div>
     <div style="height:24px"></div>
   </div>
@@ -2413,10 +2413,10 @@ async function submitPpfWarranty() {
           <div style="font-size:16px;font-weight:700;margin-bottom:12px">✅ PPF 보증서 생성 완료!</div>
           <button class="btn btn-primary" onclick="window.open('https://drive.google.com/file/d/${r.fileId}/view','_blank')">📄 보증서 열기</button>
         </div>`;
-      showToast('✅ PPF 보증서 생성 완료!');
+      showToast('✅ PPF 보증서 생성 + 알림톡 발송 완료!');
     } else { showToast('❌ 실패: ' + (r.error || JSON.stringify(r))); }
   } catch(e) { showToast('❌ ' + e.message); }
-  btn.disabled = false; btn.textContent = '🛡️ PPF 보증서 생성';
+  btn.disabled = false; btn.textContent = '🛡️ PPF 보증서 생성 + 시공완료 알림톡 발송';
 }
 
 // ★★★ 핵심 수정: 브랜드명 단독 옵션 완전 제거 ★★★
