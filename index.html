@@ -1302,11 +1302,16 @@ async function saveAftercareEdit(name, carType, doneDate, popupEl) {
 async function togglePin(name, carType, doneDate, checked) {
   const value = checked ? '1' : '';
   try {
-    const r = await apiPost({ action: 'updatePin', name, carType, doneDate, value });
-    if (r === 'ok' || r.success) {
-      const idx = allAftercare.findIndex(c => c.name === name && c.carType === carType && c.doneDate === doneDate);
-      if (idx !== -1) { allAftercare[idx].pin = value; renderAftercare(allAftercare); }
-    } else showToast('❌ 행을 찾지 못했어');
+    const asnap = await db.collection('aftercare').where('name','==',name).where('carType','==',carType).get();
+    if (!asnap.empty) {
+      const batch = db.batch();
+      asnap.forEach(doc => batch.update(doc.ref, { pin: value }));
+      await batch.commit();
+    }
+    const idx = allAftercare.findIndex(c => c.name === name && c.carType === carType && c.doneDate === doneDate);
+    if (idx !== -1) { allAftercare[idx].pin = value; renderAftercare(allAftercare); }
+    // GAS 시트 동기화 (백그라운드)
+    apiPost({ action: 'updatePin', name, carType, doneDate, value }).catch(() => {});
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
@@ -1336,22 +1341,33 @@ async function updateDoneDate(name, carType, oldDoneDate, newDoneDate, idx) {
   else badge = `<span style="color:#aaa;font-size:clamp(12px,3vw,14px)">📅 2주후 ${followStr}</span>`;
   document.getElementById('followbadge-' + idx).innerHTML = badge;
   try {
-    const r = await apiPost({ action: 'updateDoneDate', name, carType, oldDoneDate, newDoneDate });
-    if (r === 'ok') {
-      showToast('✅ 시공완료일 업데이트! 보증서 생성 중...');
-      const w = await apiPost({ action: 'generateWarranty', name, carType, doneDate: newDoneDate });
-      if (w.success) { showToast('✅ 전자보증서 생성 완료!'); allAftercare = []; loadAftercare(); }
-      else showToast('❌ 보증서 생성 실패: ' + (w.error || ''));
-    } else {
-      showToast('❌ 행을 찾지 못했어');
+    // Firebase 직접 업데이트
+    const asnap = await db.collection('aftercare').where('name','==',name).where('carType','==',carType).get();
+    if (!asnap.empty) {
+      const batch = db.batch();
+      asnap.forEach(doc => batch.update(doc.ref, { doneDate: newDoneDate }));
+      await batch.commit();
     }
+    showToast('✅ 시공완료일 업데이트! 보증서 생성 중...');
+    // GAS 보증서 생성 (백그라운드, 시트 동기화 포함)
+    apiPost({ action: 'updateDoneDate', name, carType, oldDoneDate, newDoneDate }).catch(() => {});
+    const w = await apiPost({ action: 'generateWarranty', name, carType, doneDate: newDoneDate });
+    if (w.success) { showToast('✅ 전자보증서 생성 완료!'); allAftercare = []; loadAftercare(); }
+    else showToast('❌ 보증서 생성 실패: ' + (w.error || ''));
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
 async function updateAftercareStatus(name, carType, doneDate, value) {
   try {
-    const r = await apiPost({ action: 'updateAftercareStatus', name, carType, doneDate, value });
-    showToast(r === 'ok' ? '✅ 상태 업데이트!' : '❌ 행을 찾지 못했어');
+    const asnap = await db.collection('aftercare').where('name','==',name).where('carType','==',carType).get();
+    if (!asnap.empty) {
+      const batch = db.batch();
+      asnap.forEach(doc => batch.update(doc.ref, { status: value }));
+      await batch.commit();
+    }
+    showToast('✅ 상태 업데이트!');
+    // GAS 시트 동기화 (백그라운드)
+    apiPost({ action: 'updateAftercareStatus', name, carType, doneDate, value }).catch(() => {});
     allAftercare = [];
   } catch(e) { showToast('❌ ' + e.message); }
 }
@@ -1406,10 +1422,10 @@ async function generateWarranty(name, carType, doneDate, btn) {
 
 async function updateCustomerField(timestamp, field, value) {
   try {
-    // Firebase 동기화
-    try { await updateCustomerInFirebase(timestamp, { [field]: value }); } catch(fe) {}
-    const r = await apiPost({ action: 'updateCustomerField', timestamp, field, value });
-    showToast(r === 'ok' ? '✅ 업데이트!' : '❌ 행을 찾지 못했어');
+    await updateCustomerInFirebase(timestamp, { [field]: value });
+    showToast('✅ 업데이트!');
+    // GAS 시트 동기화 (백그라운드)
+    apiPost({ action: 'updateCustomerField', timestamp, field, value }).catch(() => {});
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
