@@ -278,26 +278,11 @@ const db = firebase.firestore();
   <div id="page-glass" class="page">
     <div class="card">
       <div class="card-title">유리막 보증서 발급</div>
-      <div class="form-group">
-        <label>차종</label>
-        <input type="text" id="glass-cartype" placeholder="예) 쏘렌토">
-      </div>
-      <div class="form-group">
-        <label>차량번호</label>
-        <input type="text" id="glass-carnumber" placeholder="예) 123가4567">
-      </div>
-      <div class="form-group">
-        <label>전화번호</label>
-        <input type="text" id="glass-phone" placeholder="예) 01012345678" inputmode="numeric">
-      </div>
-      <div class="form-group">
-        <label>시공일자</label>
-        <input type="date" id="glass-date">
-      </div>
-      <div class="form-group">
-        <label>시공금액</label>
-        <input type="text" id="glass-price" placeholder="예) 150,000" inputmode="numeric">
-      </div>
+      <div class="form-group"><label>차종</label><input type="text" id="glass-cartype" placeholder="예) 쏘렌토"></div>
+      <div class="form-group"><label>차량번호</label><input type="text" id="glass-carnumber" placeholder="예) 123가4567"></div>
+      <div class="form-group"><label>전화번호</label><input type="text" id="glass-phone" placeholder="예) 01012345678" inputmode="numeric"></div>
+      <div class="form-group"><label>시공일자</label><input type="date" id="glass-date"></div>
+      <div class="form-group"><label>시공금액</label><input type="text" id="glass-price" placeholder="예) 150,000" inputmode="numeric"></div>
       <button class="btn btn-primary" onclick="submitGlassWarranty()" id="glass-submit-btn">📄 보증서 생성</button>
     </div>
     <div id="glass-result"></div>
@@ -373,6 +358,7 @@ const db = firebase.firestore();
     <div style="height:24px"></div>
   </div>
 
+  <!-- ★ 썬팅 보증서: 브랜드명 단독 옵션 제거 -->
   <div id="page-tint" class="page">
     <div class="card">
       <div class="card-title">🎫 썬팅 전자보증서 발행</div>
@@ -385,11 +371,11 @@ const db = firebase.firestore();
 
     <div class="card">
       <div class="card-title">틴팅 선택</div>
-      <div class="form-group"><label>전면</label><select id="tw-tintF"><option value="">-</option><option>LX70</option><option>LX55</option><option>LX40</option><option>LX25</option><option>LX15</option><option>보그40</option><option>보그30</option><option>보그20</option><option>보그10</option><option>제니스50</option><option>제니스30</option><option>제니스15</option><option>제니스05</option><option>퀀텀37</option><option>퀀텀28</option><option>퀀텀19</option><option>퀀텀14</option><option>퀀텀08</option><option>티타늄26</option><option>티타늄16</option><option>티타늄06</option><option>G라인30</option><option>G라인10</option><option>S라인30</option><option>S라인10</option><option>XRPLUS55</option><option>XRPLUS30</option><option>XRPLUS20</option><option>XRPLUS15</option><option>XRPLUS05</option></select></div>
-      <div class="form-group"><label>측면1열</label><select id="tw-tintS1"><option value="">-</option><option>LX70</option><option>LX55</option><option>LX40</option><option>LX25</option><option>LX15</option><option>보그40</option><option>보그30</option><option>보그20</option><option>보그10</option><option>제니스50</option><option>제니스30</option><option>제니스15</option><option>제니스05</option><option>퀀텀37</option><option>퀀텀28</option><option>퀀텀19</option><option>퀀텀14</option><option>퀀텀08</option><option>티타늄26</option><option>티타늄16</option><option>티타늄06</option><option>G라인30</option><option>G라인10</option><option>S라인30</option><option>S라인10</option><option>XRPLUS55</option><option>XRPLUS30</option><option>XRPLUS20</option><option>XRPLUS15</option><option>XRPLUS05</option></select></div>
-      <div class="form-group"><label>측면2열</label><select id="tw-tintS2"><option value="">-</option><option>LX70</option><option>LX55</option><option>LX40</option><option>LX25</option><option>LX15</option><option>보그40</option><option>보그30</option><option>보그20</option><option>보그10</option><option>제니스50</option><option>제니스30</option><option>제니스15</option><option>제니스05</option><option>퀀텀37</option><option>퀀텀28</option><option>퀀텀19</option><option>퀀텀14</option><option>퀀텀08</option><option>티타늄26</option><option>티타늄16</option><option>티타늄06</option><option>G라인30</option><option>G라인10</option><option>S라인30</option><option>S라인10</option><option>XRPLUS55</option><option>XRPLUS30</option><option>XRPLUS20</option><option>XRPLUS15</option><option>XRPLUS05</option></select></div>
-      <div class="form-group"><label>후면</label><select id="tw-tintR"><option value="">-</option><option>LX70</option><option>LX55</option><option>LX40</option><option>LX25</option><option>LX15</option><option>보그40</option><option>보그30</option><option>보그20</option><option>보그10</option><option>제니스50</option><option>제니스30</option><option>제니스15</option><option>제니스05</option><option>퀀텀37</option><option>퀀텀28</option><option>퀀텀19</option><option>퀀텀14</option><option>퀀텀08</option><option>티타늄26</option><option>티타늄16</option><option>티타늄06</option><option>G라인30</option><option>G라인10</option><option>S라인30</option><option>S라인10</option><option>XRPLUS55</option><option>XRPLUS30</option><option>XRPLUS20</option><option>XRPLUS15</option><option>XRPLUS05</option></select></div>
-      <div class="form-group"><label>썬루프</label><select id="tw-tintSun"><option value="">-</option><option>LX70</option><option>LX55</option><option>LX40</option><option>LX25</option><option>LX15</option><option>보그40</option><option>보그30</option><option>보그20</option><option>보그10</option><option>제니스50</option><option>제니스30</option><option>제니스15</option><option>제니스05</option><option>퀀텀37</option><option>퀀텀28</option><option>퀀텀19</option><option>퀀텀14</option><option>퀀텀08</option><option>티타늄26</option><option>티타늄16</option><option>티타늄06</option><option>G라인30</option><option>G라인10</option><option>S라인30</option><option>S라인10</option><option>XRPLUS55</option><option>XRPLUS30</option><option>XRPLUS20</option><option>XRPLUS15</option><option>XRPLUS05</option></select></div>
+      <div class="form-group"><label>전면</label><select id="tw-tintF" class="tint-select"></select></div>
+      <div class="form-group"><label>측면1열</label><select id="tw-tintS1" class="tint-select"></select></div>
+      <div class="form-group"><label>측면2열</label><select id="tw-tintS2" class="tint-select"></select></div>
+      <div class="form-group"><label>후면</label><select id="tw-tintR" class="tint-select"></select></div>
+      <div class="form-group"><label>썬루프</label><select id="tw-tintSun" class="tint-select"></select></div>
     </div>
 
     <div class="card">
@@ -417,7 +403,6 @@ const db = firebase.firestore();
 <div id="toast" class="toast"></div>
 
 <script>
-// ★ 앱스크립트 웹앱 URL - 배포 후 여기에 붙여넣기
 const API_URL = 'https://script.google.com/macros/s/AKfycbzv3xVInSeTmisnUk7X9u2eRNeRbOgrCs--Wuaqh0BtCx4n4BV00Ik4RsoqoMKi071zDw/exec';
 
 function esc(str) {
@@ -425,7 +410,6 @@ function esc(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-// Firebase 고객 문서 찾기 (doc ID가 timestamp 또는 변환된 형태일 수 있음)
 async function findCustomerDocs(timestamp) {
   const docId = timestamp.replace(/[^0-9a-zA-Z]/g, '_');
   let doc = await db.collection('customers').doc(docId).get();
@@ -438,15 +422,11 @@ async function findCustomerDocs(timestamp) {
   return refs;
 }
 
-// Firebase 고객 문서 업데이트 (중복 문서 정리 + 1개로 통일)
 async function updateCustomerInFirebase(timestamp, updates) {
   const c = allCustomers.find(x => x.timestamp === timestamp) || {};
   const fullData = { ...c, ...updates, timestamp };
   const docId = timestamp.replace(/[^0-9a-zA-Z]/g, '_');
-
-  // 기존 문서 모두 찾아서 삭제 (중복 제거)
   const refs = await findCustomerDocs(timestamp);
-  // name+carType+phone으로도 찾기
   if (c.name && c.carType) {
     try {
       const snap = await db.collection('customers')
@@ -455,8 +435,6 @@ async function updateCustomerInFirebase(timestamp, updates) {
     } catch(e) {}
   }
   for (const ref of refs) { try { await ref.delete(); } catch(e) {} }
-
-  // 새 문서 1개로 저장
   await db.collection('customers').doc(docId).set(fullData);
 }
 
@@ -464,7 +442,6 @@ let allCustomers = [];
 let allAftercare = [];
 let allReservations = [];
 
-// ─── 삭제 추적 (onSnapshot이 삭제된 항목을 되살리지 않도록) ────
 const _deletedKeys = new Set();
 function markDeleted(c) {
   _deletedKeys.add((c.name||'') + '_' + (c.carType||'') + '_' + (c.phone||''));
@@ -473,7 +450,6 @@ function isDeleted(c) {
   return _deletedKeys.has((c.name||'') + '_' + (c.carType||'') + '_' + (c.phone||''));
 }
 
-// ─── 실시간 동기화 (백그라운드) ────────────────────────────
 db.collection('customers').onSnapshot(snap => {
   allCustomers = [];
   snap.forEach(doc => { const d = doc.data(); if (!isDeleted(d)) allCustomers.push(d); });
@@ -503,8 +479,7 @@ db.collection('reservations').onSnapshot(snap => {
   if (document.getElementById('page-calendar').classList.contains('active')) renderCalendar();
 });
 
-// ─── 캐시 유틸 ───────────────────────────────────────────
-const CACHE_TTL = 10 * 60 * 1000; // 10분
+const CACHE_TTL = 10 * 60 * 1000;
 function cacheSet(key, data) {
   try { sessionStorage.setItem(key, JSON.stringify({ t: Date.now(), d: data })); } catch(e) {}
 }
@@ -553,7 +528,6 @@ function showPage(page, btn) {
   document.getElementById('more-menu').style.display = 'none';
   document.getElementById('page-' + page).classList.add('active');
   if (btn) btn.classList.add('active');
-  // 현재 탭 저장 (새로고침 시 복원용)
   try { localStorage.setItem('motif_last_page', page); } catch(e) {}
   if (page === 'customers') {
     if (allCustomers.length > 0) { displayCount = displayCount || 30; renderCustomers(allCustomers); }
@@ -570,7 +544,6 @@ function showPage(page, btn) {
   if (page === 'tint') { initTint(); }
 }
 
-// 앱 시작 시 마지막 탭 복원
 (function() {
   try {
     const last = localStorage.getItem('motif_last_page');
@@ -620,13 +593,11 @@ async function submitConsult() {
   const ts = new Date().toISOString().slice(0, 16).replace('T', ' ');
   const newCustomer = { timestamp: ts, name, phone, carType, category, summary, estPrice, status, note, deposit, ppf: ppfText, etc: combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, doneDate: '' };
 
-  // Firebase 저장 + 폼 초기화
   db.collection('customers').doc(ts).set(newCustomer).catch(e => showToast('❌ Firebase: ' + e.message));
   resetForm();
   allCustomers = [];
   showToast('⏳ 전송 중...');
 
-  // GAS 알림톡 발송
   try {
     const r = await apiPost({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, sendAlimtalk: true });
     if (r === 'ok' || (r && r.success)) showToast('✅ 전송 완료 + 📨 알림톡 발송됨');
@@ -653,7 +624,6 @@ async function loadCustomers() {
     document.getElementById('customer-list').innerHTML = `<div class="loading" style="color:red">❌ ${e.message}<br><br>더보기(☰) → 🚀 데이터 이사하기 를 먼저 실행해주세요.</div>`;
   }
 }
-
 
 async function migrateDataToFirebase() {
   if (!confirm('기존 시트 데이터를 Firebase로 이사할까요?\n(최초 1회만 진행하시면 됩니다!)')) return;
@@ -699,13 +669,11 @@ function renderCustomers(data) {
   const container = document.getElementById('customer-list');
   if (!data.length) { container.innerHTML = '<div class="loading">데이터가 없습니다.</div>'; return; }
 
-  // 정렬: 1.시공완료 → 맨아래  2.노쇼(3일 이상 지난 입고예정일) → 시공완료 바로 위  3.입고예정일 있는것 → 날짜순  4.나머지 → 최신순
   const todayD = new Date(); todayD.setHours(0,0,0,0);
   const sorted = [...data].sort((a, b) => {
     const aDone = !!a.doneDate, bDone = !!b.doneDate;
     if (aDone && !bDone) return 1;
     if (!aDone && bDone) return -1;
-
     const isNoShow = (c) => {
       if (!c.entryDate || c.doneDate) return false;
       const d = new Date(c.entryDate); d.setHours(0,0,0,0);
@@ -714,17 +682,14 @@ function renderCustomers(data) {
     const aNS = isNoShow(a), bNS = isNoShow(b);
     if (aNS && !bNS) return 1;
     if (!aNS && bNS) return -1;
-
     const aEntry = a.entryDate, bEntry = b.entryDate;
     if (aEntry && !bEntry) return -1;
     if (!aEntry && bEntry) return 1;
     if (aEntry && bEntry) return aEntry.localeCompare(bEntry);
-
     return (b.timestamp || '').localeCompare(a.timestamp || '');
   });
 
   const todayStr = new Date().toISOString().slice(0,10);
-  // 오늘 입고는 deduped 이후에 필터 (아직 deduped 선언 전이므로 sorted 기준)
   const todaySeen = new Set();
   const todayCustomers = sorted.filter(c => {
     if (c.entryDate !== todayStr) return false;
@@ -754,7 +719,6 @@ function renderCustomers(data) {
     </div>`;
   }
 
-  // phone+name+carType 기준 중복제거 (최신 타임스탬프 우선)
   const seenMap = {};
   sorted.forEach(c => {
     const key = (c.phone||'') + '_' + (c.name||'') + '_' + (c.carType||'');
@@ -767,10 +731,8 @@ function renderCustomers(data) {
     return seenMap[key] === c;
   });
 
-  // 정렬된 순서로 allCustomers 재정렬 (showCustomerDetail 인덱스 일치)
   allCustomers = deduped;
 
-  // 재방문 판별용 전화번호 카운트 Map (O(n))
   const phoneCount = {};
   deduped.forEach(c => { const p = c.phone||''; phoneCount[p] = (phoneCount[p]||0) + 1; });
 
@@ -827,10 +789,8 @@ function renderCustomers(data) {
           style="flex:1;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:6px 8px">
         ${c.doneDate ? `<span style="font-size:11px;color:#2e7d32;font-weight:600">✅</span>` : ''}
       </div>
-
     </div>
   `).join('');
-  // 더보기 버튼
   if (deduped.length > displayCount) {
     html += `<div style="text-align:center;margin:12px 0">
       <button onclick="loadMoreCustomers()" style="padding:10px 24px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:8px;font-size:14px;cursor:pointer">⬇️ 더보기 (${deduped.length - displayCount}건 남음)</button>
@@ -842,47 +802,31 @@ function renderCustomers(data) {
 async function setDoneDate(timestamp, name, carType, phone, category, summary, estPrice, doneDate) {
   if (!doneDate) return;
   if (!confirm(`${name} / ${carType} 시공완료일을 ${doneDate}로 등록할까요?`)) return;
-
-  // 보증서 생성 후 팝업 (보증서 PDF 링크 포함)
-  // 로컬 즉시 업데이트 → 화면 바로 반영
   const idx = allCustomers.findIndex(c =>
     c.timestamp === timestamp || (c.name === name && c.carType === carType)
   );
   if (idx !== -1) { allCustomers[idx].doneDate = doneDate; }
-
   const aidx = allAftercare.findIndex(c => c.name === name && c.carType === carType);
   if (aidx !== -1) { allAftercare[aidx].doneDate = doneDate; }
   else { allAftercare.unshift({ name, phone, carType, category, doneDate, summary, estPrice, status:'', warranty:'', warrantyPdfId:'', pin:'' }); }
-
   renderCustomers(allCustomers);
   showToast('✅ 시공완료 등록!');
   showDoneAlimtalkPopup(name, carType, phone, doneDate, '');
-
-  // Firebase + GAS 백그라운드 처리
   (async () => {
     try {
-      if (timestamp) {
-        try { await updateCustomerInFirebase(timestamp, { doneDate }); } catch(fe) {}
-      }
+      if (timestamp) { try { await updateCustomerInFirebase(timestamp, { doneDate }); } catch(fe) {} }
       try {
-        const asnap = await db.collection('aftercare')
-          .where('name','==',name).where('carType','==',carType).get();
+        const asnap = await db.collection('aftercare').where('name','==',name).where('carType','==',carType).get();
         if (!asnap.empty) {
           const batch2 = db.batch();
           asnap.forEach(doc => batch2.update(doc.ref, { doneDate }));
           await batch2.commit();
         } else {
-          await db.collection('aftercare').add({
-            name, phone, carType, category, doneDate,
-            summary, estPrice, status: '', warranty: '',
-            warrantyPdfId: '', pin: '',
-            addedDate: new Date().toISOString().slice(0,10)
-          });
+          await db.collection('aftercare').add({ name, phone, carType, category, doneDate, summary, estPrice, status: '', warranty: '', warrantyPdfId: '', pin: '', addedDate: new Date().toISOString().slice(0,10) });
         }
       } catch(fe2) {}
       const r = await apiPost({ action: 'setDoneDate', timestamp, name, carType, phone, category, summary, estPrice, doneDate });
       if (r && r.pdfId) {
-        // 보증서 PDF 생성 완료 시 팝업 내 버튼 업데이트
         const sendBtn = document.querySelector('[data-done-send]');
         if (sendBtn) sendBtn.setAttribute('data-pdf-id', r.pdfId);
         showToast('✅ 보증서 생성 완료!');
@@ -979,18 +923,12 @@ function filterCustomers() {
       (c.carType || '').toLowerCase().includes(qLower) ||
       (c.phone || '').replace(/-/g, '').includes(q.replace(/-/g, ''))
     );
-    window._customerTotal = results.length;
-    window._isSearchMode = true;
     renderCustomers(results);
-    const lb = document.getElementById('load-more-btn');
-    if (lb) lb.remove();
   }, 400);
 }
 
 async function showCustomerDetail(idx) {
   const c = allCustomers[idx];
-
-  // 같은 전화번호 전체 이력 로컬 검색
   let history = allCustomers.filter(x => x.phone === c.phone && x.timestamp !== c.timestamp);
   const historyHtml = history.length ? `
     <div style="margin-top:16px;padding-top:14px;border-top:1px solid #eee">
@@ -1004,7 +942,6 @@ async function showCustomerDetail(idx) {
           ${h.doneDate ? `<span style="color:#2e7d32;font-size:12px;margin-left:8px">✅ 시공완료 ${h.doneDate}</span>` : ''}
         </div>`).join('')}
     </div>` : '';
-
   document.getElementById('modal-title').textContent = c.name + ' · ' + c.carType;
   document.getElementById('modal-body').innerHTML = `
     <div class="detail-row"><span class="detail-label">연락처</span><span class="detail-value" onclick="copyPhone('${c.phone}')" style="cursor:pointer;text-decoration:underline dotted">${esc(c.phone)}</span></div>
@@ -1012,48 +949,35 @@ async function showCustomerDetail(idx) {
     <div class="detail-row"><span class="detail-label">블랙박스</span><span class="detail-value">${esc(c.blackbox||'-')}</span></div>
     <div class="detail-row"><span class="detail-label">보조배터리</span><span class="detail-value">${esc(c.battery||'-')}</span></div>
     <div class="detail-row"><span class="detail-label">상담일시</span><span class="detail-value">${esc(c.timestamp)}</span></div>
-
     <div style="margin-top:14px;border-top:1px solid #eee;padding-top:14px">
       <div style="font-size:12px;color:#999;margin-bottom:8px">✏️ 수정 가능 항목</div>
-
       <div style="margin-bottom:10px">
         <div style="font-size:12px;color:#666;margin-bottom:4px">상담내용</div>
-        <textarea rows="2" onblur="updateCustomerField('${c.timestamp}','summary',this.value)"
-          style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box;resize:none">${c.summary||''}</textarea>
+        <textarea rows="2" onblur="updateCustomerField('${c.timestamp}','summary',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box;resize:none">${c.summary||''}</textarea>
       </div>
-
       <div style="margin-bottom:10px">
         <div style="font-size:12px;color:#666;margin-bottom:4px">PPF</div>
-        <input type="text" value="${c.ppf||''}" onblur="updateCustomerField('${c.timestamp}','ppf',this.value)"
-          style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
+        <input type="text" value="${c.ppf||''}" onblur="updateCustomerField('${c.timestamp}','ppf',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
       </div>
-
       <div style="margin-bottom:10px">
         <div style="font-size:12px;color:#666;margin-bottom:4px">기타</div>
-        <input type="text" value="${c.etc||''}" onblur="updateCustomerField('${c.timestamp}','etc',this.value)"
-          style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
+        <input type="text" value="${c.etc||''}" onblur="updateCustomerField('${c.timestamp}','etc',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
       </div>
-
       <div style="display:flex;gap:8px;margin-bottom:10px">
         <div style="flex:1">
           <div style="font-size:12px;color:#666;margin-bottom:4px">예상금액(만원)</div>
-          <input type="text" inputmode="numeric" value="${c.estPrice||''}" onblur="updateCustomerField('${c.timestamp}','estPrice',this.value)"
-            style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
+          <input type="text" inputmode="numeric" value="${c.estPrice||''}" onblur="updateCustomerField('${c.timestamp}','estPrice',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
         </div>
         <div style="flex:1">
           <div style="font-size:12px;color:#666;margin-bottom:4px">계약금(만원)</div>
-          <input type="text" inputmode="numeric" value="${c.deposit||''}" onblur="updateCustomerField('${c.timestamp}','deposit',this.value)"
-            style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
+          <input type="text" inputmode="numeric" value="${c.deposit||''}" onblur="updateCustomerField('${c.timestamp}','deposit',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
         </div>
       </div>
-
       <div style="margin-bottom:10px">
         <div style="font-size:12px;color:#666;margin-bottom:4px">특이사항/메모</div>
-        <textarea rows="2" onblur="updateCustomerField('${c.timestamp}','note',this.value)"
-          style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box;resize:none">${c.note||''}</textarea>
+        <textarea rows="2" onblur="updateCustomerField('${c.timestamp}','note',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box;resize:none">${c.note||''}</textarea>
       </div>
     </div>
-
     ${c.pdfId?`<div style="margin-top:12px"><button class="btn btn-primary" onclick="openPDF('${c.pdfId}',event)">📄 견적서 PDF 보기</button></div>`:''}
     ${historyHtml}
   `;
@@ -1062,17 +986,10 @@ async function showCustomerDetail(idx) {
 
 function closeModal() { document.getElementById('customer-modal').classList.remove('active'); }
 
-let aftercareOffset = 0;
-let aftercareTotal = 0;
-const AFTERCARE_LIMIT = 15;
-
 let _aftercareGasLoaded = false;
 async function loadAftercare() {
-  // 이미 있으면 먼저 표시
   if (allAftercare.length > 0) renderAftercare(allAftercare);
   else document.getElementById('aftercare-list').innerHTML = '<div class="loading">⚡ 불러오는 중...</div>';
-
-  // Firebase에서 로드
   if (!_aftercareGasLoaded) {
     try {
       let fbData = [];
@@ -1081,9 +998,7 @@ async function loadAftercare() {
       const seenA = {};
       fbData.forEach(c => {
         const key = (c.name||'') + '_' + (c.carType||'') + '_' + (c.phone||'');
-        if (!seenA[key] || (c.doneDate||'') > (seenA[key].doneDate||'')) {
-          seenA[key] = c;
-        }
+        if (!seenA[key] || (c.doneDate||'') > (seenA[key].doneDate||'')) seenA[key] = c;
       });
       allAftercare = Object.values(seenA);
       _aftercareGasLoaded = true;
@@ -1092,26 +1007,6 @@ async function loadAftercare() {
   if (allAftercare.length > 0) renderAftercare(allAftercare);
   else document.getElementById('aftercare-list').innerHTML = '<div class="loading">데이터가 없습니다.</div>';
 }
-
-function loadMoreAftercare() {
-  aftercareOffset += AFTERCARE_LIMIT;
-  renderAftercare(allAftercare);
-  renderAftercarLoadMoreBtn();
-}
-
-function renderAftercarLoadMoreBtn() {
-  const existing = document.getElementById('aftercare-more-btn');
-  if (existing) existing.remove();
-  if (allAftercare.length < aftercareTotal) {
-    const btn = document.createElement('div');
-    btn.id = 'aftercare-more-btn';
-    btn.style.cssText = 'text-align:center;padding:16px';
-    btn.innerHTML = `<button onclick="loadMoreAftercare()" style="padding:10px 24px;background:#f5f5f5;border:1px solid #ddd;border-radius:8px;font-size:14px;color:#555;cursor:pointer">더보기 (${aftercareTotal - allAftercare.length}건 남음)</button>`;
-    document.getElementById('aftercare-list').after(btn);
-  }
-}
-
-
 
 function calcFollowDate(dateStr) {
   if (!dateStr) return '';
@@ -1141,20 +1036,14 @@ function renderAftercare(data) {
       return f;
     };
     const fa = getFollow(a), fb = getFollow(b);
-
-    // 1. 체크된 항목은 맨 아래
     const pinnedA = a.pin === '1', pinnedB = b.pin === '1';
     if (pinnedA && !pinnedB) return 1;
     if (!pinnedA && pinnedB) return -1;
-
-    // 2. 오늘이 2주후 날짜인 고객 맨 위
     const todayStr = today.toISOString().split('T')[0];
     const aToday = fa ? fa.toISOString().split('T')[0] === todayStr : false;
     const bToday = fb ? fb.toISOString().split('T')[0] === todayStr : false;
     if (aToday && !bToday) return -1;
     if (!aToday && bToday) return 1;
-
-    // 3. 시공완료일 기준 오늘과 가까운 순
     const da2 = a.doneDate ? new Date(a.doneDate) : null;
     const db2 = b.doneDate ? new Date(b.doneDate) : null;
     if (da2 && !db2) return -1;
@@ -1164,8 +1053,6 @@ function renderAftercare(data) {
       const diffB = Math.abs(db2 - today);
       if (diffA !== diffB) return diffA - diffB;
     }
-
-    // 4. 상담 날짜 최신순
     const aa = a.addedDate ? new Date(a.addedDate) : new Date(0);
     const ab = b.addedDate ? new Date(b.addedDate) : new Date(0);
     return ab - aa;
@@ -1215,14 +1102,13 @@ function renderAftercare(data) {
             <option value="보증서 발행 2차" ${c.warranty==='보증서 발행 2차'?'selected':''}>보증서 발행 2차</option>
           </select>
         </div>
-          ${c.warrantyPdfId ? `<button onclick="window.open('https://drive.google.com/file/d/${c.warrantyPdfId}/view','_blank')" style="margin-top:8px;width:100%;padding:7px 10px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">📄 전자보증서 보기</button>` : ''}
-          <div style="display:flex;gap:8px;margin-top:8px">
-            <button onclick="window.location.href='tel:${c.phone}'" style="flex:1;padding:8px 10px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">📞 전화</button>
-            <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:8px 10px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">💬 문자</button>
-          </div>
-          <button onclick="sendDoneAlimtalkFromAftercare('${c.name}','${c.carType}','${c.phone}','${c.doneDate}','${c.warrantyPdfId||''}')" style="margin-top:6px;width:100%;padding:8px 10px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">📨 시공완료 알림톡 수동 발송</button>
+        ${c.warrantyPdfId ? `<button onclick="window.open('https://drive.google.com/file/d/${c.warrantyPdfId}/view','_blank')" style="margin-top:8px;width:100%;padding:7px 10px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">📄 전자보증서 보기</button>` : ''}
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button onclick="window.location.href='tel:${c.phone}'" style="flex:1;padding:8px 10px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">📞 전화</button>
+          <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:8px 10px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">💬 문자</button>
+        </div>
+        <button onclick="sendDoneAlimtalkFromAftercare('${c.name}','${c.carType}','${c.phone}','${c.doneDate}','${c.warrantyPdfId||''}')" style="margin-top:6px;width:100%;padding:8px 10px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">📨 시공완료 알림톡 수동 발송</button>
       </div>
-
     `;
   }).join('');
 }
@@ -1244,26 +1130,11 @@ function showAftercareEdit(name, carType, doneDate, phone, category, summary, es
     <div style="background:white;border-radius:16px;padding:24px;max-width:360px;width:100%">
       <div style="font-size:16px;font-weight:700;margin-bottom:16px">✏️ ${name} · ${carType} 수정</div>
       <div style="display:flex;flex-direction:column;gap:10px">
-        <div>
-          <div style="font-size:12px;color:#666;margin-bottom:4px">전화번호</div>
-          <input id="ae-phone" type="text" inputmode="numeric" value="${phone}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
-        </div>
-        <div>
-          <div style="font-size:12px;color:#666;margin-bottom:4px">차종</div>
-          <input id="ae-cartype" type="text" value="${carType}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
-        </div>
-        <div>
-          <div style="font-size:12px;color:#666;margin-bottom:4px">시공항목</div>
-          <input id="ae-category" type="text" value="${category}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
-        </div>
-        <div>
-          <div style="font-size:12px;color:#666;margin-bottom:4px">상담내용</div>
-          <textarea id="ae-summary" rows="2" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box;resize:none">${summary}</textarea>
-        </div>
-        <div>
-          <div style="font-size:12px;color:#666;margin-bottom:4px">금액(만원)</div>
-          <input id="ae-price" type="text" inputmode="numeric" value="${estPrice}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
-        </div>
+        <div><div style="font-size:12px;color:#666;margin-bottom:4px">전화번호</div><input id="ae-phone" type="text" inputmode="numeric" value="${phone}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box"></div>
+        <div><div style="font-size:12px;color:#666;margin-bottom:4px">차종</div><input id="ae-cartype" type="text" value="${carType}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box"></div>
+        <div><div style="font-size:12px;color:#666;margin-bottom:4px">시공항목</div><input id="ae-category" type="text" value="${category}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box"></div>
+        <div><div style="font-size:12px;color:#666;margin-bottom:4px">상담내용</div><textarea id="ae-summary" rows="2" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box;resize:none">${summary}</textarea></div>
+        <div><div style="font-size:12px;color:#666;margin-bottom:4px">금액(만원)</div><input id="ae-price" type="text" inputmode="numeric" value="${estPrice}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box"></div>
       </div>
       <div style="display:flex;gap:10px;margin-top:16px">
         <button onclick="this.closest('div[style*=fixed]').remove()" style="flex:1;padding:12px;background:#f5f5f5;color:#555;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">취소</button>
@@ -1279,7 +1150,6 @@ async function saveAftercareEdit(name, carType, doneDate, popupEl) {
   const category = document.getElementById('ae-category').value.trim();
   const summary  = document.getElementById('ae-summary').value.trim();
   const estPrice = document.getElementById('ae-price').value.trim();
-
   const fields = [
     { field: 'phone', value: phone },
     { field: 'carType', value: newCar },
@@ -1287,7 +1157,6 @@ async function saveAftercareEdit(name, carType, doneDate, popupEl) {
     { field: 'summary', value: summary },
     { field: 'estPrice', value: estPrice }
   ];
-
   try {
     for (const f of fields) {
       await apiPost({ action: 'updateAftercareField', name, carType, doneDate, field: f.field, value: f.value });
@@ -1310,7 +1179,6 @@ async function togglePin(name, carType, doneDate, checked) {
     }
     const idx = allAftercare.findIndex(c => c.name === name && c.carType === carType && c.doneDate === doneDate);
     if (idx !== -1) { allAftercare[idx].pin = value; renderAftercare(allAftercare); }
-    // GAS 시트 동기화 (백그라운드)
     apiPost({ action: 'updatePin', name, carType, doneDate, value }).catch(() => {});
   } catch(e) { showToast('❌ ' + e.message); }
 }
@@ -1341,7 +1209,6 @@ async function updateDoneDate(name, carType, oldDoneDate, newDoneDate, idx) {
   else badge = `<span style="color:#aaa;font-size:clamp(12px,3vw,14px)">📅 2주후 ${followStr}</span>`;
   document.getElementById('followbadge-' + idx).innerHTML = badge;
   try {
-    // Firebase 직접 업데이트
     const asnap = await db.collection('aftercare').where('name','==',name).where('carType','==',carType).get();
     if (!asnap.empty) {
       const batch = db.batch();
@@ -1349,7 +1216,6 @@ async function updateDoneDate(name, carType, oldDoneDate, newDoneDate, idx) {
       await batch.commit();
     }
     showToast('✅ 시공완료일 업데이트! 보증서 생성 중...');
-    // GAS 보증서 생성 (백그라운드, 시트 동기화 포함)
     apiPost({ action: 'updateDoneDate', name, carType, oldDoneDate, newDoneDate }).catch(() => {});
     const w = await apiPost({ action: 'generateWarranty', name, carType, doneDate: newDoneDate });
     if (w.success) { showToast('✅ 전자보증서 생성 완료!'); allAftercare = []; loadAftercare(); }
@@ -1366,7 +1232,6 @@ async function updateAftercareStatus(name, carType, doneDate, value) {
       await batch.commit();
     }
     showToast('✅ 상태 업데이트!');
-    // GAS 시트 동기화 (백그라운드)
     apiPost({ action: 'updateAftercareStatus', name, carType, doneDate, value }).catch(() => {});
     allAftercare = [];
   } catch(e) { showToast('❌ ' + e.message); }
@@ -1374,15 +1239,12 @@ async function updateAftercareStatus(name, carType, doneDate, value) {
 
 async function updateWarranty(name, carType, doneDate, value) {
   try {
-    // Firebase 직접 업데이트
     const asnap = await db.collection('aftercare').where('name','==',name).where('carType','==',carType).get();
     if (asnap.empty) { showToast('❌ 사후관리 데이터를 찾지 못했어'); return; }
     const batch = db.batch();
     asnap.forEach(doc => batch.update(doc.ref, { warranty: value }));
     await batch.commit();
     showToast('✅ 보증서 업데이트!');
-
-    // 보증서 발행 1차/2차 선택 시 알림톡 발송
     if (value === '보증서 발행 1차' || value === '보증서 발행 2차') {
       const customer = allAftercare.find(c => c.name === name && c.carType === carType && c.doneDate === doneDate);
       const pdfId = customer ? customer.warrantyPdfId : '';
@@ -1391,43 +1253,16 @@ async function updateWarranty(name, carType, doneDate, value) {
       if (ar === 'ok') showToast('✅ 알림톡 발송 완료!');
       else showToast('❌ 알림톡 실패: ' + (ar.error || JSON.stringify(ar)));
     }
-
-    // GAS 시트 동기화 (백그라운드)
     apiPost({ action: 'updateWarranty', name, carType, doneDate, warrantyValue: value }).catch(() => {});
     allAftercare = []; loadAftercare();
   } catch(e) { showToast('❌ ' + e.message); }
-}
-
-
-async function generateWarranty(name, carType, doneDate, btn) {
-  btn.disabled = true;
-  btn.textContent = '⏳ 생성 중...';
-  try {
-    const r = await apiPost({ action: 'generateWarranty', name, carType, doneDate });
-    if (r.success) {
-      showToast('✅ 전자보증서 생성 완료!');
-      allAftercare = [];
-      loadAftercare();
-    } else {
-      showToast('❌ ' + (r.error || '생성 실패'));
-      btn.disabled = false;
-      btn.textContent = '📜 전자보증서 생성';
-    }
-  } catch(e) {
-    showToast('❌ ' + e.message);
-    btn.disabled = false;
-    btn.textContent = '📜 전자보증서 생성';
-  }
 }
 
 async function updateCustomerField(timestamp, field, value) {
   try {
     await updateCustomerInFirebase(timestamp, { [field]: value });
     showToast('✅ 업데이트!');
-    // GAS 시트 동기화 (백그라운드)
     apiPost({ action: 'updateCustomerField', timestamp, field, value }).catch(() => {});
-
-    // 재전송 선택 시 알림톡 발송
     if (field === 'resend' && value) {
       const c = allCustomers.find(x => x.timestamp === timestamp);
       if (c && c.phone) {
@@ -1450,26 +1285,19 @@ async function deleteCustomer(timestamp) {
   if (!confirm('이 고객을 삭제할까요?')) return;
   const c = allCustomers.find(x => x.timestamp === timestamp);
   if (c) markDeleted(c);
-
-  // 로컬 즉시 제거
   allCustomers = allCustomers.filter(x => x.timestamp !== timestamp);
   renderCustomers(allCustomers);
   showToast('✅ 삭제 완료!');
-
-  // Firebase + GAS 백그라운드 삭제
   (async () => {
     try {
-      // 여러 방법으로 Firebase 문서 찾아서 삭제
       let deleted = false;
       try {
         const refs = await findCustomerDocs(timestamp);
         for (const ref of refs) { await ref.delete(); deleted = true; }
       } catch(fe) {}
-      // findCustomerDocs로 못 찾으면 name+carType+phone으로 재시도
       if (!deleted && c) {
         try {
-          const snap = await db.collection('customers')
-            .where('name','==',c.name).where('carType','==',c.carType).where('phone','==',c.phone).get();
+          const snap = await db.collection('customers').where('name','==',c.name).where('carType','==',c.carType).where('phone','==',c.phone).get();
           snap.forEach(doc => doc.ref.delete());
         } catch(fe2) {}
       }
@@ -1477,8 +1305,6 @@ async function deleteCustomer(timestamp) {
     } catch(e) { showToast('❌ 서버 삭제 실패: ' + e.message); }
   })();
 }
-
-
 
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -1499,8 +1325,6 @@ function renderCalendar() {
   const today = new Date(); today.setHours(0,0,0,0);
   const y = calendarYear, m = calendarMonth;
   document.getElementById('calendar-title').textContent = y + '년 ' + (m+1) + '월';
-
-  // 입고예정일 맵핑 (캘린더 전용 데이터 + 입고예약)
   const entryMap = {};
   const calSeen = new Set();
   (allCustomers).forEach(c => {
@@ -1515,7 +1339,6 @@ function renderCalendar() {
   allReservations.forEach(r => {
     if (r.date) {
       const existing = entryMap[r.date] || [];
-      // 고객목록에 이미 있는 name+phone이면 달력에 중복 표시 안 함
       const isDup = existing.some(c => c.name === r.name && c.phone === r.phone);
       if (!isDup) {
         if (!entryMap[r.date]) entryMap[r.date] = [];
@@ -1523,48 +1346,39 @@ function renderCalendar() {
       }
     }
   });
-
   const firstDay = new Date(y, m, 1).getDay();
   const lastDate = new Date(y, m+1, 0).getDate();
   let cells = '';
-
   for (let i = 0; i < firstDay; i++) cells += '<div></div>';
-
   for (let d = 1; d <= lastDate; d++) {
     const dateStr = y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
     const isToday = new Date(y,m,d).getTime() === today.getTime();
     const events = entryMap[dateStr] || [];
     const dow = new Date(y,m,d).getDay();
     const color = dow===0?'#e53935':dow===6?'#1a73e8':'#333';
-
     cells += `<div onclick="showCalendarDay('${dateStr}')" style="min-height:52px;border-radius:8px;padding:4px;cursor:pointer;background:${isToday?'#e3f2fd':events.length?'#fff8e1':'transparent'};border:${isToday?'2px solid #1a73e8':'1px solid #eee'};overflow:hidden;min-width:0;box-sizing:border-box">
       <div style="font-size:12px;font-weight:${isToday?'700':'400'};color:${color};text-align:center">${d}</div>
       ${events.slice(0,2).map(e=>`<div style="font-size:10px;background:#ff9800;color:white;border-radius:3px;padding:1px 3px;margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%">${e.carType}</div>`).join('')}
       ${events.length>2?`<div style="font-size:10px;color:#999;text-align:center">+${events.length-2}</div>`:''}
     </div>`;
   }
-
   document.getElementById('calendar-grid').innerHTML = cells;
   document.getElementById('calendar-events').innerHTML = '';
 }
 
 function showCalendarDay(dateStr) {
-  // 기존 선택 초기화 후 선택된 날짜 테두리 빨간색으로
   document.querySelectorAll('#calendar-grid > div').forEach(el => {
     const isToday = el.style.border.includes('2px solid #1a73e8');
     if (!isToday) el.style.border = '1px solid #eee';
     el.style.outline = '';
   });
-  // 클릭한 셀 찾아서 빨간 테두리
   const cells = document.querySelectorAll('#calendar-grid > div');
   cells.forEach(el => {
     if (el.getAttribute('onclick') && el.getAttribute('onclick').includes(dateStr)) {
       el.style.border = '2px solid #e53935';
-      el.style.outline = 'none';
     }
   });
   const src = calendarCustomers.length ? calendarCustomers : allCustomers;
-  // 고객 중복 제거 (name+phone+carType 기준)
   const custSeen = new Set();
   const custEvents = src.filter(c => {
     if (c.entryDate !== dateStr) return false;
@@ -1573,7 +1387,6 @@ function showCalendarDay(dateStr) {
     custSeen.add(key);
     return true;
   }).map(c => ({...c, _type:'customer'}));
-  // 고객목록에 이미 있는 name+phone은 입고예약에서 제외 (중복 방지)
   const resEvents = allReservations.filter(r => {
     if (r.date !== dateStr) return false;
     const key = (r.name||'') + '_' + (r.phone||'') + '_' + (r.carType||'');
@@ -1583,7 +1396,6 @@ function showCalendarDay(dateStr) {
   }).map(r => ({...r, _type:'reservation'}));
   const events = [...custEvents, ...resEvents];
   const el = document.getElementById('calendar-events');
-
   el.innerHTML = `<div class="card">
     <div style="font-size:14px;font-weight:700;margin-bottom:10px">🚗 ${dateStr} 입고 (${events.length}건)</div>
     ${events.length ? events.map(c=> c._type === 'reservation' ? `
@@ -1595,7 +1407,6 @@ function showCalendarDay(dateStr) {
             <span style="color:#666;font-size:13px;margin-left:6px">${esc(c.name)}</span>
           </div>
           ${c.sent === '발송' ? '<span style="font-size:11px;color:#2e7d32">📨발송됨</span>' : ''}
-          ${localStorage.getItem('done_sent_' + c.name + '_' + c.carType) ? '<span style="font-size:11px;background:#e8f5e9;color:#2e7d32;border-radius:4px;padding:2px 6px;font-weight:700">✅ 완료발송</span>' : ''}
         </div>
         ${c.work ? `<div style="font-size:12px;color:#555;margin-top:4px">📋 ${esc(c.work)}</div>` : ''}
         <div style="font-size:12px;color:#999;margin-top:4px">${esc(c.phone)}</div>
@@ -1615,7 +1426,6 @@ function showCalendarDay(dateStr) {
             <span style="color:#666;font-size:13px;margin-left:6px">${esc(c.name)}</span>
           </div>
           ${c.estPrice ? `<span style="color:#1a73e8;font-weight:700">${esc(c.estPrice)}만원</span>` : ''}
-          ${localStorage.getItem('done_sent_' + c.name + '_' + c.carType) ? `<span style="font-size:11px;background:#e8f5e9;color:#2e7d32;border-radius:4px;padding:2px 6px;font-weight:700">✅ 완료발송</span>` : ''}
         </div>
         <div style="font-size:13px;color:#555;margin-top:6px">${esc(c.category||'')}</div>
         ${c.summary ? `<div style="font-size:12px;color:#999;margin-top:4px;line-height:1.5">${esc(c.summary)}</div>` : ''}
@@ -1630,14 +1440,13 @@ function showCalendarDay(dateStr) {
           <button onclick="deleteCustomerFromCalendar('${c.timestamp}','${dateStr}')" style="padding:6px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px;cursor:pointer">🗑</button>
         </div>
       </div>`).join('') : '<div style="color:#999;font-size:13px;margin-bottom:12px">입고 예정 없음</div>'}
-
     <div style="border-top:1px solid #eee;padding-top:14px;margin-top:4px">
       <button onclick="openCalendarFullForm('${dateStr}')" style="width:100%;padding:12px;background:#1a73e8;color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">➕ 입고 예약 상담 입력</button>
     </div>
   </div>`;
 }
 
-let calendarCustomers = []; // 캘린더 전용 데이터
+let calendarCustomers = [];
 
 async function loadCalendar() {
   if (allCustomers.length > 0) {
@@ -1666,29 +1475,18 @@ async function loadCalendar() {
   renderCalendar();
 }
 
-function renderCalendarSkeleton() {
-  document.getElementById('calendar-grid').innerHTML = 
-    Array(35).fill('<div style="min-height:52px;background:#f5f5f5;border-radius:8px;animation:pulse 1s infinite"></div>').join('');
-}
-
 async function deleteReservation(rowIndex, dateStr) {
   if (!confirm('이 예약을 삭제할까요?')) return;
   const res = allReservations.find(r => r.rowIndex === rowIndex);
-
-  // 로컬 즉시 제거
   allReservations = allReservations.filter(r => r.rowIndex !== rowIndex);
   allReservations.forEach((r, i) => { if (r.rowIndex > rowIndex) r.rowIndex--; });
   showCalendarDay(dateStr);
   renderCalendar();
   showToast('✅ 삭제 완료');
-
-  // Firebase + GAS 백그라운드 삭제
   (async () => {
     try {
-      // Firebase reservations에서 삭제
       if (res) {
-        const snap = await db.collection('reservations')
-          .where('name','==',res.name).where('carType','==',res.carType).where('date','==',res.date).get();
+        const snap = await db.collection('reservations').where('name','==',res.name).where('carType','==',res.carType).where('date','==',res.date).get();
         snap.forEach(doc => doc.ref.delete());
       }
       await apiPost({ action: 'deleteReservation', rowIndex });
@@ -1702,17 +1500,17 @@ function openCalendarCustomerEdit(timestamp) {
   if (!c) { showToast('❌ 고객 정보 없음'); return; }
   _editingTimestamp = timestamp;
 
-  // 틴팅 옵션 HTML 생성
+  // ★ 수정: 브랜드명 단독 옵션 제거
   function tintOptHtml(selected) {
     const td = [
-      {b:'LX',o:['LX','LX70','LX55','LX40','LX25','LX15']},
-      {b:'제니스',o:['제니스','제니스50','제니스30','제니스15','제니스05']},
-      {b:'퀀텀',o:['퀀텀','퀀텀37','퀀텀28','퀀텀19','퀀텀14','퀀텀08']},
-      {b:'보그',o:['보그','보그40','보그30','보그20','보그10']},
-      {b:'티타늄',o:['티타늄','티타늄26','티타늄16','티타늄06']},
-      {b:'G라인',o:['G라인','G라인30','G라인10']},
-      {b:'S라인',o:['S라인','S라인30','S라인10']},
-      {b:'XRPLUS',o:['XRPLUS','XRPLUS55','XRPLUS30','XRPLUS20','XRPLUS15','XRPLUS05']},
+      {b:'LX',o:['LX70','LX55','LX40','LX25','LX15']},
+      {b:'제니스',o:['제니스50','제니스30','제니스15','제니스05']},
+      {b:'퀀텀',o:['퀀텀37','퀀텀28','퀀텀19','퀀텀14','퀀텀08']},
+      {b:'보그',o:['보그40','보그30','보그20','보그10']},
+      {b:'티타늄',o:['티타늄26','티타늄16','티타늄06']},
+      {b:'G라인',o:['G라인30','G라인10']},
+      {b:'S라인',o:['S라인30','S라인10']},
+      {b:'XRPLUS',o:['XRPLUS55','XRPLUS30','XRPLUS20','XRPLUS15','XRPLUS05']},
     ];
     let h = '<option value="">-</option>';
     td.forEach(g => { h += `<optgroup label="${g.b}">`; g.o.forEach(o => { h += `<option ${o===selected?'selected':''}>${o}</option>`; }); h += '</optgroup>'; });
@@ -1721,8 +1519,6 @@ function openCalendarCustomerEdit(timestamp) {
 
   const cats = (c.category||'').split(' / ').filter(Boolean);
   const ppfs = (c.ppf||c.ppfText||'').split(', ').filter(Boolean);
-  const coatings = (c.etc||c.combinedM||'').split(' / ').filter(Boolean);
-
   function chk(arr, val) { return arr.includes(val) ? 'checked' : ''; }
   function chkCls(arr, val) { return arr.includes(val) ? 'checked' : ''; }
 
@@ -1735,14 +1531,12 @@ function openCalendarCustomerEdit(timestamp) {
       <button onclick="document.getElementById('cal-edit-popup').remove()" style="background:none;border:none;color:white;font-size:26px;cursor:pointer;line-height:1;padding:0 4px">×</button>
     </div>
     <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px">
-
       <div class="card">
         <div class="card-title">기본정보</div>
         <div class="form-group"><label>차종</label><input type="text" id="ce-carType" value="${esc(c.carType||'')}"></div>
         <div class="form-group"><label>고객명</label><input type="text" id="ce-name" value="${esc(c.name||'')}"></div>
         <div class="form-group"><label>연락처</label><input type="tel" id="ce-phone" value="${esc(c.phone||'')}"></div>
       </div>
-
       <div class="card">
         <div class="card-title">시공분류</div>
         <div class="check-group" id="ce-category-group">
@@ -1754,7 +1548,6 @@ function openCalendarCustomerEdit(timestamp) {
           <label class="check-item ${chkCls(cats,'복합')}"><input type="checkbox" value="복합" ${chk(cats,'복합')}> 신차패키지</label>
         </div>
       </div>
-
       <div class="card">
         <div class="card-title">틴팅</div>
         <div class="form-group"><label>전면</label><select id="ce-tintF">${tintOptHtml(c.tintF||'')}</select></div>
@@ -1763,7 +1556,6 @@ function openCalendarCustomerEdit(timestamp) {
         <div class="form-group"><label>후면</label><select id="ce-tintR">${tintOptHtml(c.tintR||'')}</select></div>
         <div class="form-group"><label>썬루프</label><select id="ce-tintSun">${tintOptHtml(c.tintSun||'')}</select></div>
       </div>
-
       <div class="card">
         <div class="card-title">PPF</div>
         <div class="check-group" id="ce-ppf-group">
@@ -1777,7 +1569,6 @@ function openCalendarCustomerEdit(timestamp) {
           <label class="check-item ${chkCls(ppfs,'전체')}"><input type="checkbox" value="전체" ${chk(ppfs,'전체')}> 전체PPF</label>
         </div>
       </div>
-
       <div class="card">
         <div class="card-title">전장작업</div>
         <div class="form-group"><label>블랙박스</label>
@@ -1788,7 +1579,6 @@ function openCalendarCustomerEdit(timestamp) {
         </div>
         <div class="form-group"><label>기타</label><input type="text" id="ce-etc" value="${esc(c.etc||'')}"></div>
       </div>
-
       <div class="card">
         <div class="card-title">견적정보</div>
         <div class="form-group"><label>예상견적 (만원)</label><input type="text" id="ce-estPrice" value="${esc(c.estPrice||'')}"></div>
@@ -1807,14 +1597,12 @@ function openCalendarCustomerEdit(timestamp) {
       </div>
       <div style="height:16px"></div>
     </div>
-
     <div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:10px;flex-shrink:0;background:white">
       <button onclick="document.getElementById('cal-edit-popup').remove()" style="flex:1;padding:14px;background:#f5f5f5;color:#555;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">취소</button>
       <button onclick="saveCalendarCustomerEdit()" style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">💾 저장</button>
     </div>
   `;
   document.body.appendChild(popup);
-
   popup.querySelectorAll('.check-item').forEach(label => {
     label.addEventListener('click', function() {
       const cb = this.querySelector('input[type="checkbox"]');
@@ -1827,73 +1615,59 @@ async function saveCalendarCustomerEdit() {
   const timestamp = _editingTimestamp;
   if (!timestamp) { showToast('❌ 수정 대상 없음'); return; }
   try {
-  const category = [...document.querySelectorAll('#ce-category-group input:checked')].map(c => c.value).join(' / ');
-  const ppfText = [...document.querySelectorAll('#ce-ppf-group input:checked')].map(c => c.value).join(', ');
-  const tintF = document.getElementById('ce-tintF').value;
-  const tintS1 = document.getElementById('ce-tintS1').value;
-  const tintS2 = document.getElementById('ce-tintS2').value;
-  const tintR = document.getElementById('ce-tintR').value;
-  const tintSun = document.getElementById('ce-tintSun').value;
-
-  let summaryParts = [];
-  if (category) summaryParts.push('시공: ' + category);
-  let tintParts = [];
-  if (tintF) tintParts.push('전면: ' + tintF);
-  if (tintS1) tintParts.push('측면1열: ' + tintS1);
-  if (tintS2) tintParts.push('측면2열: ' + tintS2);
-  if (tintR) tintParts.push('후면: ' + tintR);
-  if (tintSun) tintParts.push('썬루프: ' + tintSun);
-  if (tintParts.length) summaryParts.push('틴팅: ' + tintParts.join(', '));
-  if (ppfText) summaryParts.push('PPF: ' + ppfText);
-  const etc = document.getElementById('ce-etc').value.trim();
-  if (etc) summaryParts.push(etc);
-  const summary = summaryParts.join(' / ');
-
-  const updates = {
-    name: document.getElementById('ce-name').value.trim(),
-    carType: document.getElementById('ce-carType').value.trim(),
-    phone: document.getElementById('ce-phone').value.trim(),
-    category, summary, ppf: ppfText, etc,
-    tintF, tintS1, tintS2, tintR, tintSun,
-    blackbox: document.getElementById('ce-blackbox').value,
-    battery: document.getElementById('ce-battery').value,
-    estPrice: document.getElementById('ce-estPrice').value.trim(),
-    deposit: document.getElementById('ce-deposit').value.trim(),
-    status: document.getElementById('ce-status').value,
-    note: document.getElementById('ce-note').value.trim(),
-  };
-
-  // 로컬 즉시 반영
-  const c = allCustomers.find(x => x.timestamp === timestamp);
-  if (c) Object.assign(c, updates);
-  const popup = document.getElementById('cal-edit-popup');
-  if (popup) popup.remove();
-  renderCalendar();
-
-  // Firebase 저장
-  try {
-    await updateCustomerInFirebase(timestamp, updates);
-    showToast('✅ 저장 완료!');
-  } catch(fe) {
-    showToast('⚠️ 저장 실패: ' + fe.message);
-  }
-  } catch(e) {
-    showToast('❌ 오류: ' + e.message);
-  }
+    const category = [...document.querySelectorAll('#ce-category-group input:checked')].map(c => c.value).join(' / ');
+    const ppfText = [...document.querySelectorAll('#ce-ppf-group input:checked')].map(c => c.value).join(', ');
+    const tintF = document.getElementById('ce-tintF').value;
+    const tintS1 = document.getElementById('ce-tintS1').value;
+    const tintS2 = document.getElementById('ce-tintS2').value;
+    const tintR = document.getElementById('ce-tintR').value;
+    const tintSun = document.getElementById('ce-tintSun').value;
+    let summaryParts = [];
+    if (category) summaryParts.push('시공: ' + category);
+    let tintParts = [];
+    if (tintF) tintParts.push('전면: ' + tintF);
+    if (tintS1) tintParts.push('측면1열: ' + tintS1);
+    if (tintS2) tintParts.push('측면2열: ' + tintS2);
+    if (tintR) tintParts.push('후면: ' + tintR);
+    if (tintSun) tintParts.push('썬루프: ' + tintSun);
+    if (tintParts.length) summaryParts.push('틴팅: ' + tintParts.join(', '));
+    if (ppfText) summaryParts.push('PPF: ' + ppfText);
+    const etc = document.getElementById('ce-etc').value.trim();
+    if (etc) summaryParts.push(etc);
+    const summary = summaryParts.join(' / ');
+    const updates = {
+      name: document.getElementById('ce-name').value.trim(),
+      carType: document.getElementById('ce-carType').value.trim(),
+      phone: document.getElementById('ce-phone').value.trim(),
+      category, summary, ppf: ppfText, etc,
+      tintF, tintS1, tintS2, tintR, tintSun,
+      blackbox: document.getElementById('ce-blackbox').value,
+      battery: document.getElementById('ce-battery').value,
+      estPrice: document.getElementById('ce-estPrice').value.trim(),
+      deposit: document.getElementById('ce-deposit').value.trim(),
+      status: document.getElementById('ce-status').value,
+      note: document.getElementById('ce-note').value.trim(),
+    };
+    const c = allCustomers.find(x => x.timestamp === timestamp);
+    if (c) Object.assign(c, updates);
+    const popup = document.getElementById('cal-edit-popup');
+    if (popup) popup.remove();
+    renderCalendar();
+    try {
+      await updateCustomerInFirebase(timestamp, updates);
+      showToast('✅ 저장 완료!');
+    } catch(fe) { showToast('⚠️ 저장 실패: ' + fe.message); }
+  } catch(e) { showToast('❌ 오류: ' + e.message); }
 }
 
 async function deleteCustomerFromCalendar(timestamp, dateStr) {
-  if (!confirm('이 고객을 삭제할까요? 고객목록과 사후관리에서 모두 삭제됩니다.')) return;
+  if (!confirm('이 고객을 삭제할까요?')) return;
   const c = allCustomers.find(x => x.timestamp === timestamp);
   if (c) markDeleted(c);
-
-  // 로컬 즉시 제거
   allCustomers = allCustomers.filter(x => x.timestamp !== timestamp);
   renderCalendar();
   showCalendarDay(dateStr);
   showToast('✅ 삭제 완료');
-
-  // Firebase + GAS 백그라운드 삭제
   (async () => {
     try {
       let deleted = false;
@@ -1903,8 +1677,7 @@ async function deleteCustomerFromCalendar(timestamp, dateStr) {
       } catch(fe) {}
       if (!deleted && c) {
         try {
-          const snap = await db.collection('customers')
-            .where('name','==',c.name).where('carType','==',c.carType).where('phone','==',c.phone).get();
+          const snap = await db.collection('customers').where('name','==',c.name).where('carType','==',c.carType).where('phone','==',c.phone).get();
           snap.forEach(doc => doc.ref.delete());
         } catch(fe2) {}
       }
@@ -1957,19 +1730,14 @@ async function addCalendarReservation(dateStr) {
   const carType = document.getElementById('cal-cartype').value.trim();
   const work    = document.getElementById('cal-work').value.trim();
   if (!name || !phone || !carType) { showToast('❌ 이름, 전화번호, 차종을 입력해주세요'); return; }
-
   const todayStr = new Date().toISOString().slice(0, 10);
   const tomorrowStr = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
   const isToday    = dateStr === todayStr;
   const isTomorrow = dateStr === tomorrowStr;
   const hour = new Date().getHours();
-
-  // 오늘 or 내일(10시 이후) → 즉시 발송 여부 확인
   if (isToday || (isTomorrow && hour >= 10)) {
-    const send = confirm(`${name} / ${carType}
-📨 알림톡을 지금 바로 발송할까요?`);
+    const send = confirm(`${name} / ${carType}\n📨 알림톡을 지금 바로 발송할까요?`);
     if (!send) {
-      // 발송 안 하고 등록만
       showToast('⏳ 등록 중...');
       try {
         const r = await apiPost({ action: 'addCalendarReservation', name, phone, carType, work, date: dateStr, skipAlimtalk: true });
@@ -1983,10 +1751,7 @@ async function addCalendarReservation(dateStr) {
       return;
     }
   }
-
-  // 예약안내 알림톡 발송 여부
   const sendReservation = confirm(`${name} / ${carType}\n📨 예약안내 알림톡을 발송할까요?`);
-
   showToast('⏳ 등록 중...');
   try {
     const r = await apiPost({ action: 'addCalendarReservation', name, phone, carType, work, date: dateStr, sendReservationAlimtalk: sendReservation });
@@ -1996,91 +1761,54 @@ async function addCalendarReservation(dateStr) {
       allReservations = await api({ action: 'getReservations' });
       allCustomers = []; await loadCustomers();
       renderCalendar(); showCalendarDay(dateStr);
-    } else {
-      showToast('❌ 실패: ' + (r.error || ''));
-    }
+    } else { showToast('❌ 실패: ' + (r.error || '')); }
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
-
-// 시공완료 처리 (보증서 생성 + 고객목록/사후관리 반영) → 알림톡은 선택
 async function sendDoneWithWarranty(name, carType, phone, doneDate) {
-  // 1. 확인 대화상자 먼저 다 띄우기
   if (!confirm(`${name} / ${carType}\n시공완료 처리를 진행할까요?`)) return;
   const sendAlimtalk = confirm(`${name} / ${carType}\n시공완료 알림톡도 발송할까요?`);
-
-  // 2. 로컬 배열 즉시 업데이트 → 화면 즉시 반영
   const custLocal = allCustomers.find(x => x.name === name && x.carType === carType);
   if (custLocal) custLocal.doneDate = doneDate;
-
   const acIdx = allAftercare.findIndex(x => x.name === name && x.carType === carType);
   if (acIdx !== -1) {
     allAftercare[acIdx].doneDate = doneDate;
   } else {
     const c = custLocal || {};
-    allAftercare.unshift({
-      name, phone, carType, doneDate,
-      category: c.category||'', summary: c.summary||'', estPrice: c.estPrice||'',
-      status: '', warranty: '', warrantyPdfId: '', pin: '',
-      addedDate: new Date().toISOString().slice(0,10)
-    });
+    allAftercare.unshift({ name, phone, carType, doneDate, category: c.category||'', summary: c.summary||'', estPrice: c.estPrice||'', status: '', warranty: '', warrantyPdfId: '', pin: '', addedDate: new Date().toISOString().slice(0,10) });
   }
-
   renderCalendar();
   showCalendarDay(doneDate);
   showToast('⏳ 백그라운드 처리 중...');
-
-  // 3. Firebase + GAS + 알림톡 백그라운드 처리
   (async () => {
     try {
-      // Firebase 고객목록 doneDate
-      const custSnap = await db.collection('customers')
-        .where('name','==',name).where('carType','==',carType).get();
+      const custSnap = await db.collection('customers').where('name','==',name).where('carType','==',carType).get();
       const batch = db.batch();
       custSnap.forEach(doc => batch.update(doc.ref, { doneDate }));
-
-      // Firebase 사후관리
-      const acSnap = await db.collection('aftercare')
-        .where('name','==',name).where('carType','==',carType).get();
+      const acSnap = await db.collection('aftercare').where('name','==',name).where('carType','==',carType).get();
       if (!acSnap.empty) {
         acSnap.forEach(doc => batch.update(doc.ref, { doneDate }));
       } else {
         const c = custLocal || {};
-        batch.set(db.collection('aftercare').doc(), {
-          name, phone, carType, doneDate,
-          category: c.category||'', summary: c.summary||'', estPrice: c.estPrice||'',
-          status: '', warranty: '', warrantyPdfId: '', pin: '',
-          addedDate: new Date().toISOString().slice(0,10)
-        });
+        batch.set(db.collection('aftercare').doc(), { name, phone, carType, doneDate, category: c.category||'', summary: c.summary||'', estPrice: c.estPrice||'', status: '', warranty: '', warrantyPdfId: '', pin: '', addedDate: new Date().toISOString().slice(0,10) });
       }
       await batch.commit();
-
-      // GAS 보증서 생성
-      const sd = await apiPost({
-        action: 'setDoneDate',
-        timestamp: '', name, carType, phone,
-        category: '', summary: '', estPrice: '', doneDate
-      });
+      const sd = await apiPost({ action: 'setDoneDate', timestamp: '', name, carType, phone, category: '', summary: '', estPrice: '', doneDate });
       const pdfId = (sd && sd.pdfId) ? sd.pdfId : '';
-
       showToast('✅ 시공완료 + 보증서 완료!');
-
-      // 알림톡 발송
       if (sendAlimtalk) {
         const r = await apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate, pdfId });
         if (r === 'ok') {
           showToast('✅ 알림톡 발송 완료!');
           localStorage.setItem('done_sent_' + name + '_' + carType, doneDate);
           showCalendarDay(doneDate);
-        } else {
-          showToast('❌ 알림톡 실패: ' + (r.error || ''));
-        }
+        } else { showToast('❌ 알림톡 실패: ' + (r.error || '')); }
       }
     } catch(e) { showToast('❌ ' + e.message); }
   })();
 }
 
-// ─── 유리막 보증서 ──────────────────────────────────────────
+// ─── 유리막 보증서 ──────────────────────────────────────
 
 async function submitGlassWarranty() {
   const carType   = document.getElementById('glass-cartype').value.trim();
@@ -2088,16 +1816,9 @@ async function submitGlassWarranty() {
   const phone     = document.getElementById('glass-phone').value.trim();
   const date      = document.getElementById('glass-date').value;
   const price     = document.getElementById('glass-price').value.trim();
-
-  if (!carType || !carNumber || !phone || !date || !price) {
-    showToast('❌ 모든 항목을 입력해주세요');
-    return;
-  }
-
+  if (!carType || !carNumber || !phone || !date || !price) { showToast('❌ 모든 항목을 입력해주세요'); return; }
   const btn = document.getElementById('glass-submit-btn');
-  btn.disabled = true;
-  btn.textContent = '⏳ 생성 중...';
-
+  btn.disabled = true; btn.textContent = '⏳ 생성 중...';
   try {
     const r = await apiPost({ action: 'createGlassWarranty', carType, carNumber, phone, date, price });
     if (r && r.fileId) {
@@ -2107,13 +1828,9 @@ async function submitGlassWarranty() {
           <button class="btn btn-primary" onclick="window.open('https://drive.google.com/file/d/${r.fileId}/view','_blank')">📄 보증서 열기</button>
         </div>`;
       showToast('✅ 유리막 보증서 생성 완료!');
-    } else {
-      showToast('❌ 생성 실패: ' + (r.error || JSON.stringify(r)));
-    }
+    } else { showToast('❌ 생성 실패: ' + (r.error || JSON.stringify(r))); }
   } catch(e) { showToast('❌ ' + e.message); }
-
-  btn.disabled = false;
-  btn.textContent = '📄 보증서 생성';
+  btn.disabled = false; btn.textContent = '📄 보증서 생성';
 }
 
 // ─── 할일 ───────────────────────────────────────────────
@@ -2121,9 +1838,7 @@ async function submitGlassWarranty() {
 function getTodos() {
   try { return JSON.parse(localStorage.getItem('motif_todos') || '[]'); } catch(e) { return []; }
 }
-function saveTodos(todos) {
-  localStorage.setItem('motif_todos', JSON.stringify(todos));
-}
+function saveTodos(todos) { localStorage.setItem('motif_todos', JSON.stringify(todos)); }
 
 function addTodo() {
   const date = document.getElementById('todo-date').value;
@@ -2165,8 +1880,7 @@ function renderTodos() {
     const isToday = date === today;
     const isPast = date < today;
     const dateLabel = date.replace(/-/g, '.') + (isToday ? ' 📌 오늘' : '');
-    html += `<div class="card" style="margin-bottom:12px">
-      <div class="card-title" style="color:${isPast && !isToday ? '#e53935' : '#1a1a2e'}">${dateLabel}</div>`;
+    html += `<div class="card" style="margin-bottom:12px"><div class="card-title" style="color:${isPast && !isToday ? '#e53935' : '#1a1a2e'}">${dateLabel}</div>`;
     groups[date].forEach(t => {
       html += `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f5f5">
         <div onclick="toggleTodo(${t.id})" style="width:24px;height:24px;border-radius:50%;border:2px solid ${t.done?'#1a1a2e':'#ddd'};background:${t.done?'#1a1a2e':'white'};cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
@@ -2186,44 +1900,29 @@ function initTodo() {
   if (!dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
   renderTodos();
 }
+
 // ─── 메모 ────────────────────────────────────────────────
 
 let _memoCurrentFilter = '전체';
 
-function getMemos() {
-  try { return JSON.parse(localStorage.getItem('motif_memos') || '[]'); } catch(e) { return []; }
-}
-function saveMemos(memos) {
-  try { localStorage.setItem('motif_memos', JSON.stringify(memos)); } catch(e) {}
-}
+function getMemos() { try { return JSON.parse(localStorage.getItem('motif_memos') || '[]'); } catch(e) { return []; } }
+function saveMemos(memos) { try { localStorage.setItem('motif_memos', JSON.stringify(memos)); } catch(e) {} }
 
 function addMemo() {
   const title   = document.getElementById('memo-title').value.trim();
   const content = document.getElementById('memo-content').value.trim();
   const tag     = document.getElementById('memo-tag').value;
   if (!content) { showToast('내용을 입력해주세요!'); return; }
-
   const memos = getMemos();
-  memos.unshift({
-    id: Date.now(),
-    title,
-    content,
-    tag,
-    date: new Date().toLocaleDateString('ko-KR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }),
-    pinned: false
-  });
+  memos.unshift({ id: Date.now(), title, content, tag, date: new Date().toLocaleDateString('ko-KR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }), pinned: false });
   saveMemos(memos);
-
   document.getElementById('memo-title').value = '';
   document.getElementById('memo-content').value = '';
   renderMemos();
   showToast('✅ 메모 저장됐어요!');
 }
 
-function deleteMemo(id) {
-  saveMemos(getMemos().filter(m => m.id !== id));
-  renderMemos();
-}
+function deleteMemo(id) { saveMemos(getMemos().filter(m => m.id !== id)); renderMemos(); }
 
 function toggleMemoPin(id) {
   const memos = getMemos();
@@ -2235,12 +1934,7 @@ function toggleMemoPin(id) {
 
 function filterMemo(tag) {
   _memoCurrentFilter = tag;
-  // 필터 버튼 스타일 업데이트
-  document.querySelectorAll('[id^="memo-filter-"]').forEach(btn => {
-    btn.style.background = '#f5f5f5';
-    btn.style.color = '#555';
-    btn.style.border = '1px solid #ddd';
-  });
+  document.querySelectorAll('[id^="memo-filter-"]').forEach(btn => { btn.style.background = '#f5f5f5'; btn.style.color = '#555'; btn.style.border = '1px solid #ddd'; });
   const keyMap = { '전체':'전체', '💡 아이디어':'아이디어', '🔧 개선':'개선', '📋 할일':'할일', '⭐ 중요':'중요', '📞 고객':'고객', '🛒 구매':'구매' };
   const activeBtn = document.getElementById('memo-filter-' + (keyMap[tag] || tag));
   if (activeBtn) { activeBtn.style.background = '#1a1a2e'; activeBtn.style.color = 'white'; activeBtn.style.border = 'none'; }
@@ -2251,9 +1945,7 @@ function editMemo(id) {
   const memos = getMemos();
   const m = memos.find(m => m.id === id);
   if (!m) return;
-
   const popup = document.createElement('div');
-  // 창 전체를 덮는 풀스크린 편집 화면
   popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:white;z-index:9999;display:flex;flex-direction:column;';
   popup.innerHTML = `
     <div style="background:#1a1a2e;color:white;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
@@ -2277,7 +1969,6 @@ function editMemo(id) {
       <button onclick="saveEditMemo(${id},this.closest('div[style*=fixed]'))" style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">저장</button>
     </div>`;
   document.body.appendChild(popup);
-  // 텍스트 영역에 포커스
   setTimeout(() => { const ta = document.getElementById('edit-memo-content'); if(ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } }, 100);
 }
 
@@ -2286,7 +1977,6 @@ function saveEditMemo(id, popupEl) {
   const content = document.getElementById('edit-memo-content').value.trim();
   const tag     = document.getElementById('edit-memo-tag').value;
   if (!content) { showToast('내용을 입력해주세요!'); return; }
-
   const memos = getMemos();
   const m = memos.find(m => m.id === id);
   if (m) { m.title = title; m.content = content; m.tag = tag; }
@@ -2301,15 +1991,8 @@ function renderMemos() {
   if (!container) return;
   const all = getMemos();
   const filtered = _memoCurrentFilter === '전체' ? all : all.filter(m => m.tag === _memoCurrentFilter);
-
-  if (!filtered.length) {
-    container.innerHTML = '<div class="loading">' + (_memoCurrentFilter === '전체' ? '메모가 없어요 📓' : _memoCurrentFilter + ' 메모가 없어요') + '</div>';
-    return;
-  }
-
-  // 핀 고정 → 나머지 순서
+  if (!filtered.length) { container.innerHTML = '<div class="loading">' + (_memoCurrentFilter === '전체' ? '메모가 없어요 📓' : _memoCurrentFilter + ' 메모가 없어요') + '</div>'; return; }
   const sorted = [...filtered.filter(m => m.pinned), ...filtered.filter(m => !m.pinned)];
-
   const tagColors = {
     '💡 아이디어': { bg: '#fff8e1', border: '#ffe082', text: '#f57f17' },
     '🔧 개선':     { bg: '#e8f5e9', border: '#a5d6a7', text: '#2e7d32' },
@@ -2318,7 +2001,6 @@ function renderMemos() {
     '📞 고객':     { bg: '#f3e5f5', border: '#ce93d8', text: '#6a1b9a' },
     '🛒 구매':     { bg: '#e0f7fa', border: '#80deea', text: '#00695c' },
   };
-
   container.innerHTML = sorted.map(m => {
     const c = tagColors[m.tag] || { bg: '#f5f5f5', border: '#ddd', text: '#555' };
     return `
@@ -2341,10 +2023,10 @@ function renderMemos() {
   }).join('');
 }
 
-
 // ─── 캘린더 상담 풀폼 ────────────────────────────────────
 
 function openCalendarFullForm(dateStr) {
+  // ★ 수정: 브랜드명 단독 옵션 제거
   const tintOptions = ['LX70','LX55','LX40','LX25','LX15','보그40','보그30','보그20','보그10','제니스50','제니스30','제니스15','제니스05','퀀텀37','퀀텀28','퀀텀19','퀀텀14','퀀텀08','티타늄26','티타늄16','티타늄06','G라인30','G라인10','S라인30','S라인10','XRPLUS55','XRPLUS30','XRPLUS20','XRPLUS15','XRPLUS05'];
   const tintOpts = tintOptions.map(o => `<option>${o}</option>`).join('');
 
@@ -2357,14 +2039,12 @@ function openCalendarFullForm(dateStr) {
       <button onclick="document.getElementById('cal-full-form-popup').remove()" style="background:none;border:none;color:white;font-size:26px;cursor:pointer;line-height:1;padding:0 4px">×</button>
     </div>
     <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px">
-
       <div class="card">
         <div class="card-title">기본정보</div>
         <div class="form-group"><label>차종</label><input type="text" id="cf-carType" placeholder="예) 카니발"></div>
         <div class="form-group"><label>고객명</label><input type="text" id="cf-name" placeholder="이름"></div>
         <div class="form-group"><label>연락처</label><input type="tel" id="cf-phone" placeholder="010-0000-0000"></div>
       </div>
-
       <div class="card">
         <div class="card-title">시공분류</div>
         <div class="check-group" id="cf-category-group">
@@ -2376,7 +2056,6 @@ function openCalendarFullForm(dateStr) {
           <label class="check-item"><input type="checkbox" value="복합"> 신차패키지</label>
         </div>
       </div>
-
       <div class="card">
         <div class="card-title">틴팅</div>
         <div class="form-group"><label>전면</label><select id="cf-tintF"><option value="">-</option>${tintOpts}</select></div>
@@ -2385,7 +2064,6 @@ function openCalendarFullForm(dateStr) {
         <div class="form-group"><label>후면</label><select id="cf-tintR"><option value="">-</option>${tintOpts}</select></div>
         <div class="form-group"><label>썬루프</label><select id="cf-tintSun"><option value="">-</option>${tintOpts}</select></div>
       </div>
-
       <div class="card">
         <div class="card-title">PPF</div>
         <div class="check-group" id="cf-ppf-group">
@@ -2399,7 +2077,6 @@ function openCalendarFullForm(dateStr) {
           <label class="check-item"><input type="checkbox" value="전체"> 전체PPF</label>
         </div>
       </div>
-
       <div class="card">
         <div class="card-title">코팅작업</div>
         <div class="check-group" id="cf-coating-group">
@@ -2411,18 +2088,12 @@ function openCalendarFullForm(dateStr) {
           <label class="check-item"><input type="checkbox" value="야와라B"> 야와라B</label>
         </div>
       </div>
-
       <div class="card">
         <div class="card-title">전장작업</div>
-        <div class="form-group"><label>블랙박스</label>
-          <select id="cf-blackbox"><option value="">-</option><option>파인뷰</option><option>아이나비z</option><option>아이나비q</option></select>
-        </div>
-        <div class="form-group"><label>보조배터리</label>
-          <select id="cf-battery"><option value="">-</option><option>6A</option><option>12A</option><option>18A</option></select>
-        </div>
+        <div class="form-group"><label>블랙박스</label><select id="cf-blackbox"><option value="">-</option><option>파인뷰</option><option>아이나비z</option><option>아이나비q</option></select></div>
+        <div class="form-group"><label>보조배터리</label><select id="cf-battery"><option value="">-</option><option>6A</option><option>12A</option><option>18A</option></select></div>
         <div class="form-group"><label>기타</label><input type="text" id="cf-etcValue" placeholder="기타 내용"></div>
       </div>
-
       <div class="card">
         <div class="card-title">견적정보</div>
         <div class="form-group"><label>입고예정일</label><input type="date" id="cf-entryDate" value="${dateStr}"></div>
@@ -2430,10 +2101,7 @@ function openCalendarFullForm(dateStr) {
           <div style="display:flex;gap:8px;align-items:center">
             <input type="number" id="cf-estPrice" inputmode="numeric" placeholder="0" style="flex:2">
             <select id="cf-estPriceTag" style="flex:1;padding:clamp(10px,2.5vw,13px);border:1.5px solid #e8e8e8;border-radius:10px;font-size:clamp(13px,3.5vw,15px);background:#fafafa;font-family:inherit;-webkit-appearance:none;appearance:none">
-              <option value="">-</option>
-              <option value="현금가">현금가</option>
-              <option value="카드가">카드가</option>
-              <option value="부가세별도">부가세별도</option>
+              <option value="">-</option><option value="현금가">현금가</option><option value="카드가">카드가</option><option value="부가세별도">부가세별도</option>
             </select>
           </div>
         </div>
@@ -2448,18 +2116,14 @@ function openCalendarFullForm(dateStr) {
         </div>
         <div class="form-group"><label>특이사항</label><textarea id="cf-note" placeholder="특이사항 입력" style="height:80px;resize:none"></textarea></div>
       </div>
-
       <div style="height:16px"></div>
     </div>
-
     <div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:10px;flex-shrink:0;background:white">
       <button onclick="document.getElementById('cal-full-form-popup').remove()" style="flex:1;padding:14px;background:#f5f5f5;color:#555;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">취소</button>
       <button onclick="submitCalendarForm('${dateStr}')" style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">📤 예약 등록</button>
     </div>
   `;
   document.body.appendChild(popup);
-
-  // 팝업 내 체크박스 이벤트 등록
   popup.querySelectorAll('.check-item').forEach(label => {
     label.addEventListener('click', function() {
       const cb = this.querySelector('input[type="checkbox"]');
@@ -2473,7 +2137,6 @@ async function submitCalendarForm(dateStr) {
   const carType = document.getElementById('cf-carType').value.trim();
   const phone   = document.getElementById('cf-phone').value.trim();
   if (!name || !carType || !phone) { showToast('차종, 고객명, 연락처를 입력해주세요!'); return; }
-
   const category  = [...document.querySelectorAll('#cf-category-group input:checked')].map(c => c.value).join(' / ');
   const ppfText   = [...document.querySelectorAll('#cf-ppf-group input:checked')].map(c => c.value).join(', ');
   const coatingText = [...document.querySelectorAll('#cf-coating-group input:checked')].map(c => c.value).join(', ');
@@ -2493,7 +2156,6 @@ async function submitCalendarForm(dateStr) {
   const deposit   = document.getElementById('cf-deposit').value;
   const status    = document.getElementById('cf-status').value;
   const note      = document.getElementById('cf-note').value;
-
   let summaryParts = [];
   if (category) summaryParts.push('시공: ' + category);
   let tintParts = [];
@@ -2506,18 +2168,12 @@ async function submitCalendarForm(dateStr) {
   if (ppfText) summaryParts.push('PPF: ' + ppfText);
   if (combinedM) summaryParts.push(combinedM);
   const summary = summaryParts.join(' / ');
-
   if (!confirm(`${name} / ${carType}\n${entryDate} 입고 예약을 등록할까요?`)) return;
-
   showToast('⏳ 등록 중...');
   try {
     const ts = new Date().toISOString().slice(0, 16).replace('T', ' ');
     const newCustomer = { timestamp: ts, name, phone, carType, category, summary, estPrice, status, note, deposit, ppf: ppfText, etc: combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, doneDate: '' };
-
-    // Firebase 즉시 저장
     await db.collection('customers').doc(ts).set(newCustomer);
-
-    // GAS 알림톡 발송
     const r = await apiPost({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, sendAlimtalk: true });
     if (r === 'ok' || (r && r.success)) showToast('✅ 예약 등록 + 알림톡 발송 완료!');
     else showToast('✅ 예약 등록 완료 (⚠️ 알림톡: ' + JSON.stringify(r) + ')');
@@ -2528,7 +2184,6 @@ async function submitCalendarForm(dateStr) {
     showCalendarDay(entryDate);
   } catch(e) { showToast('❌ ' + e.message); }
 }
-
 
 // ─── 견적서 ──────────────────────────────────────────────
 
@@ -2553,8 +2208,7 @@ function removeInvoiceItem(btn) {
 }
 
 function updateInvoiceTotal() {
-  const prices = [...document.querySelectorAll('.inv-item input[type="number"]')]
-    .map(el => parseInt(el.value) || 0);
+  const prices = [...document.querySelectorAll('.inv-item input[type="number"]')].map(el => parseInt(el.value) || 0);
   const sub = prices.reduce((a, b) => a + b, 0);
   const tax = prices.reduce((a, b) => a + Math.round(b * 0.1), 0);
   const total = sub + tax;
@@ -2572,8 +2226,7 @@ function numberToKoreanJS(num) {
     const chunk = n % 10000;
     if (chunk > 0) {
       let s = '';
-      const t = Math.floor(chunk/1000), h = Math.floor((chunk%1000)/100),
-            ten = Math.floor((chunk%100)/10), one = chunk%10;
+      const t = Math.floor(chunk/1000), h = Math.floor((chunk%1000)/100), ten = Math.floor((chunk%100)/10), one = chunk%10;
       if (t) s += (t===1?'':digits[t]) + '천';
       if (h) s += (h===1?'':digits[h]) + '백';
       if (ten) s += (ten===1?'':digits[ten]) + '십';
@@ -2590,19 +2243,11 @@ async function submitInvoice() {
   const carType   = document.getElementById('inv-cartype').value.trim();
   const date      = document.getElementById('inv-date').value;
   const note      = document.getElementById('inv-note').value.trim();
-
   if (!carType || !date) { showToast('차종과 날짜를 입력해주세요'); return; }
-
-  const items = [...document.querySelectorAll('.inv-item')].map(el => ({
-    name:  el.querySelectorAll('input')[0].value.trim(),
-    price: el.querySelectorAll('input')[1].value || '0'
-  })).filter(it => it.name);
-
+  const items = [...document.querySelectorAll('.inv-item')].map(el => ({ name: el.querySelectorAll('input')[0].value.trim(), price: el.querySelectorAll('input')[1].value || '0' })).filter(it => it.name);
   if (!items.length) { showToast('품목을 최소 1개 입력해주세요'); return; }
-
   const btn = document.getElementById('inv-submit-btn');
   btn.disabled = true; btn.textContent = '⏳ 생성 중...';
-
   try {
     const r = await apiPost({ action: 'createInvoice', carNumber, carType, date, items, note });
     if (r && r.fileId) {
@@ -2612,11 +2257,8 @@ async function submitInvoice() {
           <button class="btn btn-primary" onclick="window.open('https://drive.google.com/file/d/${r.fileId}/view','_blank')">📄 견적서 열기</button>
         </div>`;
       showToast('✅ 견적서 생성 완료!');
-    } else {
-      showToast('❌ 실패: ' + (r.error || JSON.stringify(r)));
-    }
+    } else { showToast('❌ 실패: ' + (r.error || JSON.stringify(r))); }
   } catch(e) { showToast('❌ ' + e.message); }
-
   btn.disabled = false; btn.textContent = '📑 견적서 생성';
 }
 
@@ -2624,7 +2266,6 @@ function initInvoice() {
   const d = document.getElementById('inv-date');
   if (!d.value) d.value = new Date().toISOString().slice(0,10);
 }
-
 
 // ─── 썬팅 보증서 ─────────────────────────────────────────
 
@@ -2637,7 +2278,6 @@ async function sendTintDoneAlimtalk(name, carType, phone, date, pdfId) {
     else showToast('❌ ' + (r.error || '발송 실패'));
   } catch(e) { showToast('❌ ' + e.message); }
 }
-
 
 function initTint() {
   const d = document.getElementById('tw-date');
@@ -2656,23 +2296,11 @@ async function submitTintWarranty() {
   const tintR     = document.getElementById('tw-tintR').value;
   const tintSun   = document.getElementById('tw-tintSun').value;
   const totalPrice= document.getElementById('tw-price').value;
-
-  if (!name || !phone || !carType || !date) {
-    showToast('고객명, 연락처, 차종, 시공날짜를 입력해주세요');
-    return;
-  }
-
+  if (!name || !phone || !carType || !date) { showToast('고객명, 연락처, 차종, 시공날짜를 입력해주세요'); return; }
   const btn = document.getElementById('tw-submit-btn');
-  btn.disabled = true;
-  btn.textContent = '⏳ 생성 중...';
-
+  btn.disabled = true; btn.textContent = '⏳ 생성 중...';
   try {
-    const r = await apiPost({
-      action: 'createTintWarranty',
-      name, phone, carNumber, carType, date,
-      tintF, tintS1, tintS2, tintR, tintSun, totalPrice
-    });
-
+    const r = await apiPost({ action: 'createTintWarranty', name, phone, carNumber, carType, date, tintF, tintS1, tintS2, tintR, tintSun, totalPrice });
     if (r && r.fileId) {
       document.getElementById('tw-result').innerHTML = `
         <div class="card" style="text-align:center">
@@ -2681,32 +2309,24 @@ async function submitTintWarranty() {
           <button class="btn" style="background:#ff6b35;color:white" onclick="sendTintDoneAlimtalk('${name}','${carType}','${phone}','${date}','${r.fileId}')">📨 시공완료 알림톡 발송</button>
         </div>`;
       showToast('✅ 썬팅 보증서 생성 완료!');
-    } else {
-      showToast('❌ 실패: ' + (r.error || JSON.stringify(r)));
-    }
-  } catch(e) {
-    showToast('❌ ' + e.message);
-  }
-
-  btn.disabled = false;
-  btn.textContent = '🎫 보증서 생성 + 시공완료 알림톡 발송';
+    } else { showToast('❌ 실패: ' + (r.error || JSON.stringify(r))); }
+  } catch(e) { showToast('❌ ' + e.message); }
+  btn.disabled = false; btn.textContent = '🎫 보증서 생성 + 시공완료 알림톡 발송';
 }
 
-function initMemo() {
-  filterMemo(_memoCurrentFilter);
-}
+function initMemo() { filterMemo(_memoCurrentFilter); }
 
-// ─── 틴팅 select 초기화 ─────────────────────────────────
+// ★★★ 핵심 수정: 브랜드명 단독 옵션 완전 제거 ★★★
 (function() {
   const tintData = [
-    { brand: 'LX', options: ['LX', 'LX70', 'LX55', 'LX40', 'LX25', 'LX15'] },
-    { brand: '제니스', options: ['제니스', '제니스50', '제니스30', '제니스15', '제니스05'] },
-    { brand: '퀀텀', options: ['퀀텀', '퀀텀37', '퀀텀28', '퀀텀19', '퀀텀14', '퀀텀08'] },
-    { brand: '보그', options: ['보그', '보그40', '보그30', '보그20', '보그10'] },
-    { brand: '티타늄', options: ['티타늄', '티타늄26', '티타늄16', '티타늄06'] },
-    { brand: 'G라인', options: ['G라인', 'G라인30', 'G라인10'] },
-    { brand: 'S라인', options: ['S라인', 'S라인30', 'S라인10'] },
-    { brand: 'XRPLUS', options: ['XRPLUS', 'XRPLUS55', 'XRPLUS30', 'XRPLUS20', 'XRPLUS15', 'XRPLUS05'] },
+    { brand: 'LX',      options: ['LX70','LX55','LX40','LX25','LX15'] },
+    { brand: '제니스',  options: ['제니스50','제니스30','제니스15','제니스05'] },
+    { brand: '퀀텀',    options: ['퀀텀37','퀀텀28','퀀텀19','퀀텀14','퀀텀08'] },
+    { brand: '보그',    options: ['보그40','보그30','보그20','보그10'] },
+    { brand: '티타늄',  options: ['티타늄26','티타늄16','티타늄06'] },
+    { brand: 'G라인',   options: ['G라인30','G라인10'] },
+    { brand: 'S라인',   options: ['S라인30','S라인10'] },
+    { brand: 'XRPLUS',  options: ['XRPLUS55','XRPLUS30','XRPLUS20','XRPLUS15','XRPLUS05'] },
   ];
   document.querySelectorAll('.tint-select').forEach(sel => {
     let html = '<option value="">-</option>';
@@ -2719,6 +2339,7 @@ function initMemo() {
   });
 })();
 
+let displayCount = 30;
 </script>
 </body>
 </html>
