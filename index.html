@@ -599,10 +599,21 @@ async function submitConsult() {
   showToast('⏳ 전송 중...');
 
   try {
-    const r = await apiPost({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, sendAlimtalk: true });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, sendAlimtalk: true }),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    const r = await res.json();
     if (r === 'ok' || (r && r.success)) showToast('✅ 전송 완료 + 📨 알림톡 발송됨');
     else showToast('✅ 전송 완료 (⚠️ 알림톡: ' + JSON.stringify(r) + ')');
-  } catch(e) { showToast('✅ 전송 완료 (❌ 알림톡 오류: ' + e.message + ')'); }
+  } catch(e) {
+    if (e.name === 'AbortError') showToast('✅ 전송 완료 (⏱️ 알림톡 처리 중...)');
+    else showToast('✅ 전송 완료 (❌ 알림톡 오류: ' + e.message + ')');
+  }
 }
 
 function resetForm() {
