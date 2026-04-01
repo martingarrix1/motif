@@ -584,7 +584,7 @@ function showPage(page, btn) {
 async function submitConsult() {
   const name = document.getElementById('name').value.trim();
   const carType = document.getElementById('carType').value.trim();
-  const phone = document.getElementById('phone').value.trim();
+  const phone = document.getElementById('phone').value.trim().replace(/[^0-9]/g, '');
   if (!name || !carType || !phone) { showToast('차종, 고객명, 연락처를 입력해주세요!'); return; }
   const category = [...document.querySelectorAll('#category-group input:checked')].map(c => c.value).join(' / ');
   const ppfText = [...document.querySelectorAll('#ppf-group input:checked')].map(c => c.value).join(', ');
