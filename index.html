@@ -935,7 +935,7 @@ function showDoneAlimtalkPopup(name, carType, phone, doneDate, pdfId) {
       <div style="font-size:12px;color:#1a73e8;margin-bottom:20px">${pdfId ? '📄 보증서 PDF 포함' : '⚠️ 보증서 생성 중 또는 미생성'}</div>
       <div style="display:flex;gap:10px">
         <button onclick="this.closest('div[style*=fixed]').remove()" style="flex:1;padding:12px;background:#f5f5f5;color:#555;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">나중에</button>
-        <button data-done-send data-pdf-id="${pdfId}" onclick="sendDoneAlimtalk('${name}','${carType}','${phone}','${doneDate}',this.getAttribute('data-pdf-id'),this.closest('div[style*=fixed]'))" style="flex:1;padding:12px;background:#1a73e8;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">발송</button>
+        <button data-done-send data-pdf-id="${pdfId}" onclick="sendDoneAlimtalk('${escAttr(name)}','${escAttr(carType)}','${escAttr(phone)}','${escAttr(doneDate)}',this.getAttribute('data-pdf-id'),this.closest('div[style*=fixed]'))" style="flex:1;padding:12px;background:#1a73e8;color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">발송</button>
       </div>
     </div>`;
   document.body.appendChild(popup);
@@ -1217,17 +1217,17 @@ function showAftercareEdit(name, carType, doneDate, phone, category, summary, es
   popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
   popup.innerHTML = `
     <div style="background:white;border-radius:16px;padding:24px;max-width:360px;width:100%">
-      <div style="font-size:16px;font-weight:700;margin-bottom:16px">✏️ ${name} · ${carType} 수정</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:16px">✏️ ${esc(name)} · ${esc(carType)} 수정</div>
       <div style="display:flex;flex-direction:column;gap:10px">
-        <div><div style="font-size:12px;color:#666;margin-bottom:4px">전화번호</div><input id="ae-phone" type="text" inputmode="numeric" value="${phone}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box"></div>
-        <div><div style="font-size:12px;color:#666;margin-bottom:4px">차종</div><input id="ae-cartype" type="text" value="${carType}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box"></div>
-        <div><div style="font-size:12px;color:#666;margin-bottom:4px">시공항목</div><input id="ae-category" type="text" value="${category}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box"></div>
-        <div><div style="font-size:12px;color:#666;margin-bottom:4px">상담내용</div><textarea id="ae-summary" rows="2" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box;resize:none">${summary}</textarea></div>
-        <div><div style="font-size:12px;color:#666;margin-bottom:4px">금액(만원)</div><input id="ae-price" type="text" inputmode="numeric" value="${estPrice}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box"></div>
+        <div><div style="font-size:12px;color:#666;margin-bottom:4px">전화번호</div><input id="ae-phone" type="text" inputmode="numeric" value="${esc(phone)}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box"></div>
+        <div><div style="font-size:12px;color:#666;margin-bottom:4px">차종</div><input id="ae-cartype" type="text" value="${esc(carType)}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box"></div>
+        <div><div style="font-size:12px;color:#666;margin-bottom:4px">시공항목</div><input id="ae-category" type="text" value="${esc(category)}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box"></div>
+        <div><div style="font-size:12px;color:#666;margin-bottom:4px">상담내용</div><textarea id="ae-summary" rows="2" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box;resize:none">${esc(summary)}</textarea></div>
+        <div><div style="font-size:12px;color:#666;margin-bottom:4px">금액(만원)</div><input id="ae-price" type="text" inputmode="numeric" value="${esc(estPrice)}" style="width:100%;font-size:14px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box"></div>
       </div>
       <div style="display:flex;gap:10px;margin-top:16px">
         <button onclick="this.closest('div[style*=fixed]').remove()" style="flex:1;padding:12px;background:#f5f5f5;color:#555;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">취소</button>
-        <button onclick="saveAftercareEdit('${name}','${carType}','${doneDate}',this.closest('div[style*=fixed]'))" style="flex:1;padding:12px;background:#1a73e8;color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">저장</button>
+        <button onclick="saveAftercareEdit('${escAttr(name)}','${escAttr(carType)}','${escAttr(doneDate)}',this.closest('div[style*=fixed]'))" style="flex:1;padding:12px;background:#1a73e8;color:white;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">저장</button>
       </div>
     </div>`;
   document.body.appendChild(popup);
@@ -1274,7 +1274,7 @@ async function togglePin(name, carType, doneDate, checked) {
 
 function filterAftercare() {
   const q = document.getElementById('aftercare-search').value.toLowerCase();
-  renderAftercare(allAftercare.filter(c => c.name.toLowerCase().includes(q) || c.carType.toLowerCase().includes(q) || c.phone.includes(q)));
+  renderAftercare(allAftercare.filter(c => (c.name||'').toLowerCase().includes(q) || (c.carType||'').toLowerCase().includes(q) || (c.phone||'').includes(q)));
 }
 
 function updateDoneDateSafe(el) {
@@ -1445,7 +1445,7 @@ function renderCalendar() {
     const events = entryMap[dateStr] || [];
     const dow = new Date(y,m,d).getDay();
     const color = dow===0?'#e53935':dow===6?'#1a73e8':'#333';
-    cells += `<div onclick="showCalendarDay('${dateStr}')" style="min-height:52px;border-radius:8px;padding:4px;cursor:pointer;background:${isToday?'#e3f2fd':events.length?'#fff8e1':'transparent'};border:${isToday?'2px solid #1a73e8':'1px solid #eee'};overflow:hidden;min-width:0;box-sizing:border-box">
+    cells += `<div onclick="showCalendarDay('${escAttr(dateStr)}')" style="min-height:52px;border-radius:8px;padding:4px;cursor:pointer;background:${isToday?'#e3f2fd':events.length?'#fff8e1':'transparent'};border:${isToday?'2px solid #1a73e8':'1px solid #eee'};overflow:hidden;min-width:0;box-sizing:border-box">
       <div style="font-size:12px;font-weight:${isToday?'700':'400'};color:${color};text-align:center">${d}</div>
       ${events.slice(0,2).map(e=>`<div style="font-size:10px;background:#ff9800;color:white;border-radius:3px;padding:1px 3px;margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:100%">${e.carType}</div>`).join('')}
       ${events.length>2?`<div style="font-size:10px;color:#999;text-align:center">+${events.length-2}</div>`:''}
@@ -2245,7 +2245,7 @@ function openCalendarFullForm(dateStr) {
     </div>
     <div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:10px;flex-shrink:0;background:white">
       <button onclick="document.getElementById('cal-full-form-popup').remove()" style="flex:1;padding:14px;background:#f5f5f5;color:#555;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">취소</button>
-      <button onclick="submitCalendarForm('${dateStr}')" style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">📤 예약 등록</button>
+      <button onclick="submitCalendarForm('${escAttr(dateStr)}')" style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">📤 예약 등록</button>
     </div>
   `;
   document.body.appendChild(popup);
@@ -2431,7 +2431,7 @@ async function submitTintWarranty() {
         <div class="card" style="text-align:center">
           <div style="font-size:16px;font-weight:700;margin-bottom:12px">✅ 보증서 생성 완료!</div>
           <button class="btn btn-primary" style="margin-bottom:10px" onclick="window.open('https://drive.google.com/file/d/${r.fileId}/view','_blank')">📄 보증서 열기</button>
-          <button class="btn" style="background:#ff6b35;color:white" onclick="sendTintDoneAlimtalk('${name}','${carType}','${phone}','${date}','${r.fileId}')">📨 시공완료 알림톡 발송</button>
+          <button class="btn" style="background:#ff6b35;color:white" onclick="sendTintDoneAlimtalk('${escAttr(name)}','${escAttr(carType)}','${escAttr(phone)}','${escAttr(date)}','${escAttr(r.fileId)}')">📨 시공완료 알림톡 발송</button>
         </div>`;
       showToast('✅ 썬팅 보증서 생성 완료!');
     } else { showToast('❌ 실패: ' + (r.error || JSON.stringify(r))); }
@@ -2451,10 +2451,10 @@ function openCalendarWarrantyPopup(name, carType, phone, timestamp, dateStr) {
       <div style="font-size:13px;color:#888;margin-bottom:18px">${esc(name)} · ${esc(carType)}</div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
-        <button onclick="calWarrantyGo('invoice','${name}','${carType}','${phone}','${timestamp}','${dateStr}',this)" style="padding:14px 8px;background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">📑 견적서</button>
-        <button onclick="calWarrantyGo('tint','${name}','${carType}','${phone}','${timestamp}','${dateStr}',this)" style="padding:14px 8px;background:#fce4ec;color:#c62828;border:1px solid #f48fb1;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">🎫 썬팅보증서</button>
-        <button onclick="calWarrantyGo('glass','${name}','${carType}','${phone}','${timestamp}','${dateStr}',this)" style="padding:14px 8px;background:#e0f7fa;color:#00695c;border:1px solid #80deea;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">🔵 유리막보증서</button>
-        <button onclick="calWarrantyGo('ppf','${name}','${carType}','${phone}','${timestamp}','${dateStr}',this)" style="padding:14px 8px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">🛡️ PPF보증서</button>
+        <button onclick="calWarrantyGo('invoice','${escAttr(name)}','${escAttr(carType)}','${escAttr(phone)}','${escAttr(timestamp)}','${escAttr(dateStr)}',this)" style="padding:14px 8px;background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">📑 견적서</button>
+        <button onclick="calWarrantyGo('tint','${escAttr(name)}','${escAttr(carType)}','${escAttr(phone)}','${escAttr(timestamp)}','${escAttr(dateStr)}',this)" style="padding:14px 8px;background:#fce4ec;color:#c62828;border:1px solid #f48fb1;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">🎫 썬팅보증서</button>
+        <button onclick="calWarrantyGo('glass','${escAttr(name)}','${escAttr(carType)}','${escAttr(phone)}','${escAttr(timestamp)}','${escAttr(dateStr)}',this)" style="padding:14px 8px;background:#e0f7fa;color:#00695c;border:1px solid #80deea;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">🔵 유리막보증서</button>
+        <button onclick="calWarrantyGo('ppf','${escAttr(name)}','${escAttr(carType)}','${escAttr(phone)}','${escAttr(timestamp)}','${escAttr(dateStr)}',this)" style="padding:14px 8px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">🛡️ PPF보증서</button>
       </div>
 
       <button onclick="document.getElementById('cal-warranty-popup').remove()" style="width:100%;padding:12px;background:#f5f5f5;color:#555;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">닫기</button>
