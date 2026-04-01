@@ -620,20 +620,18 @@ async function submitConsult() {
   const ts = new Date().toISOString().slice(0, 16).replace('T', ' ');
   const newCustomer = { timestamp: ts, name, phone, carType, category, summary, estPrice, status, note, deposit, ppf: ppfText, etc: combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, doneDate: '' };
 
-  // 즉시 완료 표시 + 폼 초기화
-  showToast('✅ 전송 완료!');
+  // Firebase 저장 + 폼 초기화
+  db.collection('customers').doc(ts).set(newCustomer).catch(e => showToast('❌ Firebase: ' + e.message));
   resetForm();
   allCustomers = [];
-
-  // Firebase 저장
-  db.collection('customers').doc(ts).set(newCustomer).catch(e => showToast('❌ Firebase: ' + e.message));
+  showToast('⏳ 전송 중...');
 
   // GAS 알림톡 발송
   try {
     const r = await apiPost({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, sendAlimtalk: true });
-    if (r === 'ok' || (r && r.success)) showToast('📨 알림톡 발송됨');
-    else showToast('⚠️ GAS 응답: ' + JSON.stringify(r));
-  } catch(e) { showToast('❌ GAS 오류: ' + e.message); }
+    if (r === 'ok' || (r && r.success)) showToast('✅ 전송 완료 + 📨 알림톡 발송됨');
+    else showToast('✅ 전송 완료 (⚠️ 알림톡: ' + JSON.stringify(r) + ')');
+  } catch(e) { showToast('✅ 전송 완료 (❌ 알림톡 오류: ' + e.message + ')'); }
 }
 
 function resetForm() {
