@@ -478,6 +478,10 @@ function esc(str) {
   if (!str) return '';
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
+function escAttr(str) {
+  if (!str) return '';
+  return String(str).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"').replace(/\n/g,'\\n');
+}
 
 async function findCustomerDocs(timestamp) {
   const docId = timestamp.replace(/[^0-9a-zA-Z]/g, '_');
@@ -797,8 +801,8 @@ function renderCustomers(data) {
             <span style="color:#999;font-size:12px;margin-left:8px">${esc(c.phone)}</span>
             ${c.estPrice ? `<span style="color:#1a73e8;font-weight:600;font-size:13px;margin-left:8px">${esc(c.estPrice)}만원</span>` : ''}
             <div style="margin-top:6px;display:flex;gap:6px;align-items:center">
-              <input type="date" value="${c.entryDate}" onchange="changeEntryDate('${c.timestamp}',this.value)" style="font-size:12px;border:1px solid #ddd;border-radius:6px;padding:4px 6px">
-              <button onclick="clearEntryDate('${c.timestamp}')" style="padding:4px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">취소</button>
+              <input type="date" value="${c.entryDate}" onchange="changeEntryDate('${escAttr(c.timestamp)}',this.value)" style="font-size:12px;border:1px solid #ddd;border-radius:6px;padding:4px 6px">
+              <button onclick="clearEntryDate('${escAttr(c.timestamp)}')" style="padding:4px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">취소</button>
             </div>
           </div>
         </div>`).join('')}
@@ -817,14 +821,12 @@ function renderCustomers(data) {
     return seenMap[key] === c;
   });
 
-  allCustomers = deduped;
-
   const phoneCount = {};
   deduped.forEach(c => { const p = c.phone||''; phoneCount[p] = (phoneCount[p]||0) + 1; });
 
   html += deduped.slice(0, displayCount).map((c, i) => `
     <div class="customer-card">
-      <div onclick="openCalendarCustomerEdit('${c.timestamp}')" style="cursor:pointer">
+      <div onclick="openCalendarCustomerEdit('${escAttr(c.timestamp)}')" style="cursor:pointer">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="display:flex;align-items:center;gap:6px">
             <div class="customer-name">${esc(c.name)}</div>
@@ -832,7 +834,7 @@ function renderCustomers(data) {
           </div>
           <span class="badge ${(c.category||'').includes('PPF')?'badge-ppf':(c.category||'').includes('썬팅')?'badge-tinting':'badge-coating'}">${esc(c.category||'-')}</span>
         </div>
-        <div class="customer-car">${esc(c.carType)} · <span onclick="copyPhone('${c.phone}')" style="cursor:pointer;text-decoration:underline dotted">${esc(c.phone)}</span></div>
+        <div class="customer-car">${esc(c.carType)} · <span onclick="copyPhone('${escAttr(c.phone)}')" style="cursor:pointer;text-decoration:underline dotted">${esc(c.phone)}</span></div>
         ${c.summary ? `<div style="font-size:clamp(12px,3vw,14px);color:#999;margin-top:4px;line-height:1.5">${esc(c.summary)}</div>` : ''}
         <div class="customer-meta">
           ${c.entryDate ? `<span style="font-size:12px;color:#e65100;font-weight:600">🚗 ${(d=>d.getMonth()+1+'.'+(d.getDate()))(new Date(c.entryDate))}</span>` : ''}
@@ -841,7 +843,7 @@ function renderCustomers(data) {
         </div>
       </div>
       <div style="display:flex;gap:8px;margin-top:12px">
-        <select onchange="updateCustomerField('${c.timestamp}','status',this.value)"
+        <select onchange="updateCustomerField('${escAttr(c.timestamp)}','status',this.value)"
           style="flex:1;font-size:clamp(13px,3.5vw,15px);border:1px solid #ddd;border-radius:8px;padding:8px;font-weight:600;background:${c.status==='예약'?'#ffebee':c.status==='예약안내'||c.status==='상담진행'?'#fff3e0':'#f5f5f5'};color:${c.status==='예약'?'#c62828':c.status==='예약안내'||c.status==='상담진행'?'#e65100':'#555'}">
           <option value="">-</option>
           <option value="상담" ${c.status==='상담'?'selected':''}>상담</option>
@@ -849,7 +851,7 @@ function renderCustomers(data) {
           <option value="예약안내" ${c.status==='예약안내'?'selected':''}>예약확정</option>
           <option value="상담진행" ${c.status==='상담진행'?'selected':''}>상담진행</option>
         </select>
-        <select onchange="updateCustomerField('${c.timestamp}','resend',this.value)"
+        <select onchange="updateCustomerField('${escAttr(c.timestamp)}','resend',this.value)"
           style="flex:1;font-size:clamp(13px,3.5vw,15px);border:1px solid #ddd;border-radius:8px;padding:8px;font-weight:600;background:${c.resend?'#e8f5e9':'#f5f5f5'};color:${c.resend?'#2e7d32':'#999'}">
           <option value="">재전송-</option>
           <option value="재전송 1차" ${c.resend==='재전송 1차'?'selected':''}>재전송 1차</option>
@@ -859,20 +861,20 @@ function renderCustomers(data) {
         </select>
       </div>
       <div style="display:flex;gap:6px;margin-top:10px">
-        <button class="btn btn-small btn-pdf" style="flex:1" onclick="window.location.href='tel:${c.phone}'">📞 전화</button>
-        <button class="btn btn-small" style="flex:1;background:#fff8e1;color:#f57f17;border:1px solid #ffe082" onclick="window.location.href='sms:${c.phone}'">💬 문자</button>
-        <button onclick="completeCustomer('${c.timestamp}')" style="padding:8px 12px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">✅</button>
-        <button onclick="deleteCustomer('${c.timestamp}')" style="padding:8px 12px;background:#fff0f0;color:#d32f2f;border:1px solid #ffcdd2;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">🗑</button>
+        <button class="btn btn-small btn-pdf" style="flex:1" onclick="window.location.href='tel:${escAttr(c.phone)}'">📞 전화</button>
+        <button class="btn btn-small" style="flex:1;background:#fff8e1;color:#f57f17;border:1px solid #ffe082" onclick="window.location.href='sms:${escAttr(c.phone)}'">💬 문자</button>
+        <button onclick="completeCustomer('${escAttr(c.timestamp)}')" style="padding:8px 12px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">✅</button>
+        <button onclick="deleteCustomer('${escAttr(c.timestamp)}')" style="padding:8px 12px;background:#fff0f0;color:#d32f2f;border:1px solid #ffcdd2;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">🗑</button>
       </div>
-      <button onclick="openCalendarWarrantyPopup('${c.name}','${c.carType}','${c.phone}','${c.timestamp}','${c.entryDate||new Date().toISOString().slice(0,10)}')" style="margin-top:8px;width:100%;padding:8px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📜 보증서 발행</button>
+      <button onclick="openCalendarWarrantyPopup('${escAttr(c.name)}','${escAttr(c.carType)}','${escAttr(c.phone)}','${escAttr(c.timestamp)}','${escAttr(c.entryDate||new Date().toISOString().slice(0,10))}')" style="margin-top:8px;width:100%;padding:8px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📜 보증서 발행</button>
       <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
         <span style="font-size:12px;color:#e65100;white-space:nowrap">입고예정일</span>
-        <input type="date" value="${c.entryDate||''}" onchange="changeEntryDate('${c.timestamp}',this.value)"
+        <input type="date" value="${c.entryDate||''}" onchange="changeEntryDate('${escAttr(c.timestamp)}',this.value)"
           style="flex:1;font-size:13px;border:1px solid #ffcc80;border-radius:8px;padding:6px 8px">
       </div>
       <div style="margin-top:6px;display:flex;align-items:center;gap:8px">
         <span style="font-size:12px;color:#666;white-space:nowrap">시공완료일</span>
-        <input type="date" value="${c.doneDate||''}" onchange="setDoneDate('${c.timestamp}','${c.name}','${c.carType}','${c.phone}','${c.category}','${c.summary}','${c.estPrice}',this.value)"
+        <input type="date" value="${c.doneDate||''}" onchange="setDoneDate('${escAttr(c.timestamp)}','${escAttr(c.name)}','${escAttr(c.carType)}','${escAttr(c.phone)}','${escAttr(c.category)}','${escAttr(c.summary)}','${escAttr(c.estPrice)}',this.value)"
           style="flex:1;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:6px 8px">
         ${c.doneDate ? `<span style="font-size:11px;color:#2e7d32;font-weight:600">✅</span>` : ''}
       </div>
