@@ -653,14 +653,15 @@ async function submitConsult() {
   if (ppfText) summaryParts.push('PPF: ' + ppfText);
   if (combinedM) summaryParts.push(combinedM);
   const summary = summaryParts.join(' / ');
-  const entryDate = document.getElementById('entryDate').value;
   const _estVal = document.getElementById('estPrice').value;
   const _estTag = document.getElementById('estPriceTag').value;
   const estPrice = _estTag ? _estVal + '(' + _estTag + ')' : _estVal;
   const deposit = document.getElementById('deposit').value;
   const status = document.getElementById('status').value;
   const note = document.getElementById('note').value;
-  const { entryDate, fuzzyNote } = getFuzzyDateValue();
+  const fuzzyResult = getFuzzyDateValue();
+  const entryDate = fuzzyResult.entryDate;
+  const fuzzyNote = fuzzyResult.fuzzyNote;
   const finalNote = fuzzyNote ? (note ? note + ' / 입고 ' + fuzzyNote : '입고 ' + fuzzyNote) : note;
   const ts = new Date().toISOString().slice(0, 16).replace('T', ' ');
   const newCustomer = { timestamp: ts, name, phone, carType, category, summary, estPrice, status, note: finalNote, deposit, ppf: ppfText, etc: combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, doneDate: '' };
