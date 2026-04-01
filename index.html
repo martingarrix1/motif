@@ -1426,6 +1426,18 @@ async function updateCustomerField(timestamp, field, value) {
     showToast('✅ 업데이트!');
     // GAS 시트 동기화 (백그라운드)
     apiPost({ action: 'updateCustomerField', timestamp, field, value }).catch(() => {});
+
+    // 재전송 선택 시 알림톡 발송
+    if (field === 'resend' && value) {
+      const c = allCustomers.find(x => x.timestamp === timestamp);
+      if (c && c.phone) {
+        showToast('⏳ 알림톡 재전송 중...');
+        const status = c.status || '상담';
+        const r = await apiPost({ action: 'sendConsultAlimtalk', name: c.name, phone: c.phone, carType: c.carType, summary: c.summary || '', estPrice: c.estPrice || '', deposit: c.deposit || '', entryDate: c.entryDate || '', status, pdfId: '' });
+        if (r === 'ok') showToast('📨 알림톡 재전송 완료!');
+        else showToast('❌ 알림톡 실패: ' + (r.error || JSON.stringify(r)));
+      }
+    }
   } catch(e) { showToast('❌ ' + e.message); }
 }
 

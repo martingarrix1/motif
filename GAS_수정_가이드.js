@@ -210,7 +210,31 @@ function sendWarrantyAlimtalk(name, carType, doneDate, warrantyValue, pdfId, pho
 
 
 // ============================================================
-// [수정 3] doPost 함수에서 sendWarrantyAlimtalk 호출 부분
-// 기존:  result = sendWarrantyAlimtalk(d.name, d.carType, d.doneDate, d.warrantyValue, d.pdfId);
-// 변경:  result = sendWarrantyAlimtalk(d.name, d.carType, d.doneDate, d.warrantyValue, d.pdfId, d.phone);
+// [수정 3] doPost 함수 안에서 2가지 수정
+//
+// (A) sendWarrantyAlimtalk 호출 부분 찾아서 d.phone 추가:
+//   기존:  result = sendWarrantyAlimtalk(d.name, d.carType, d.doneDate, d.warrantyValue, d.pdfId);
+//   변경:  result = sendWarrantyAlimtalk(d.name, d.carType, d.doneDate, d.warrantyValue, d.pdfId, d.phone);
+//
+// (B) doPost 함수 안에서 아래 줄을 찾으세요:
+//     } else if (action === 'sendWarrantyAlimtalk') {
+//   그 바로 위에 아래 코드를 추가하세요:
+// ============================================================
+
+    } else if (action === 'sendConsultAlimtalk') {
+      try {
+        sendAlimTalkByStatus(d.phone, d.name, d.carType, d.summary || '', d.estPrice || '', d.deposit || '', d.entryDate || '', d.status || '상담', d.pdfId || '');
+        result = 'ok';
+      } catch(e) { result = { error: e.message }; }
+
+// ============================================================
+// 최종 doPost 해당 부분이 이렇게 되면 됩니다:
+//
+//     } else if (action === 'sendConsultAlimtalk') {     ← 새로 추가
+//       try {
+//         sendAlimTalkByStatus(d.phone, d.name, d.carType, d.summary || '', d.estPrice || '', d.deposit || '', d.entryDate || '', d.status || '상담', d.pdfId || '');
+//         result = 'ok';
+//       } catch(e) { result = { error: e.message }; }
+//     } else if (action === 'sendWarrantyAlimtalk') {    ← 기존
+//       result = sendWarrantyAlimtalk(d.name, d.carType, d.doneDate, d.warrantyValue, d.pdfId, d.phone);
 // ============================================================
