@@ -201,11 +201,11 @@ const db = firebase.firestore();
         <label>입고예정일</label>
         <div style="display:flex;gap:8px;align-items:center">
           <input type="date" id="entryDate" style="flex:2">
-          <select id="entryDateFuzzy" onchange="applyFuzzyDate(this.value)" style="flex:1.2;padding:clamp(10px,2.5vw,13px);border:1.5px solid #e8e8e8;border-radius:10px;font-size:clamp(13px,3.5vw,14px);background:#fafafa;font-family:inherit;-webkit-appearance:none;appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23888' d='M6 8L0 0h12z'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px">
+          <select id="entryDateFuzzy" onchange="applyFuzzyDate(this.value)" style="flex:1.2;padding:clamp(10px,2.5vw,13px);border:1.5px solid #e8e8e8;border-radius:10px;font-size:clamp(13px,3.5vw,14px);background:#fafafa;font-family:inherit;-webkit-appearance:none;appearance:none">
             <option value="">대략▾</option>
           </select>
         </div>
-        <div id="entryDateFuzzyLabel" style="display:none;margin-top:6px;font-size:13px;color:#e65100;font-weight:600;padding:6px 10px;background:#fff3e0;border-radius:8px;display:flex;justify-content:space-between;align-items:center">
+        <div id="entryDateFuzzyLabel" style="display:none;margin-top:6px;font-size:13px;color:#e65100;font-weight:600;padding:6px 10px;background:#fff3e0;border-radius:8px;justify-content:space-between;align-items:center">
           <span id="entryDateFuzzyText"></span>
           <button onclick="clearFuzzyDate()" style="background:none;border:none;color:#e65100;font-size:16px;cursor:pointer;padding:0 4px">×</button>
         </div>
@@ -2565,7 +2565,7 @@ function applyFuzzyDate(val) {
 
   // 라벨 표시
   document.getElementById('entryDateFuzzyText').textContent = '📅 ' + label + ' 입고 예정';
-  document.getElementById('entryDateFuzzyLabel').style.display = 'flex';
+  document.getElementById('entryDateFuzzyLabel').style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:13px;color:#e65100;font-weight:600;padding:6px 10px;background:#fff3e0;border-radius:8px';
 }
 
 function clearFuzzyDate() {
