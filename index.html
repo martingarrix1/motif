@@ -1922,42 +1922,58 @@ async function submitGlassWarranty() {
 
 // ─── 할일 ───────────────────────────────────────────────
 
-function getTodos() {
-  try { return JSON.parse(localStorage.getItem('motif_todos') || '[]'); } catch(e) { return []; }
+// ─── 할일 (Firebase) ─────────────────────────────────────
+
+let _todos = [];
+let _todoLoaded = false;
+
+async function loadTodosFromFirebase() {
+  try {
+    const snap = await db.collection('todos').orderBy('date').get();
+    _todos = [];
+    snap.forEach(doc => _todos.push({ fbId: doc.id, ...doc.data() }));
+    _todoLoaded = true;
+  } catch(e) {
+    // Firebase 실패 시 localStorage 폴백
+    try { _todos = JSON.parse(localStorage.getItem('motif_todos') || '[]'); } catch(e2) {}
+    _todoLoaded = true;
+  }
 }
-function saveTodos(todos) { localStorage.setItem('motif_todos', JSON.stringify(todos)); }
 
 function addTodo() {
   const date = document.getElementById('todo-date').value;
   const text = document.getElementById('todo-text').value.trim();
   if (!date || !text) { showToast('날짜와 내용을 입력해주세요!'); return; }
-  const todos = getTodos();
-  todos.push({ id: Date.now(), date, text, done: false });
-  saveTodos(todos);
+  const id = Date.now();
+  const newTodo = { id, date, text, done: false, createdAt: new Date().toISOString() };
+  _todos.push(newTodo);
   document.getElementById('todo-text').value = '';
   renderTodos();
   showToast('✅ 추가됐어요!');
+  // Firebase 저장 (백그라운드)
+  db.collection('todos').doc(String(id)).set(newTodo).catch(e => console.error('todo save:', e));
 }
 
 function toggleTodo(id) {
-  const todos = getTodos();
-  const t = todos.find(t => t.id === id);
-  if (t) t.done = !t.done;
-  saveTodos(todos);
+  const t = _todos.find(t => t.id === id);
+  if (!t) return;
+  t.done = !t.done;
   renderTodos();
+  db.collection('todos').doc(String(id)).update({ done: t.done }).catch(e => console.error('todo toggle:', e));
 }
 
 function deleteTodo(id) {
-  saveTodos(getTodos().filter(t => t.id !== id));
+  if (!confirm('삭제할까요?')) return;
+  _todos = _todos.filter(t => t.id !== id);
   renderTodos();
+  db.collection('todos').doc(String(id)).delete().catch(e => console.error('todo delete:', e));
 }
 
 function renderTodos() {
-  const todos = getTodos();
   const container = document.getElementById('todo-list');
-  if (!todos.length) { container.innerHTML = '<div class="loading">할일이 없어요 😊</div>'; return; }
+  if (!_todos.length) { container.innerHTML = '<div class="loading">할일이 없어요 😊</div>'; return; }
   const groups = {};
-  todos.sort((a,b) => a.date.localeCompare(b.date)).forEach(t => {
+  [..._todos].sort((a,b) => a.date.localeCompare(b.date)).forEach(t => {
     if (!groups[t.date]) groups[t.date] = [];
     groups[t.date].push(t);
   });
@@ -1973,7 +1989,7 @@ function renderTodos() {
         <div onclick="toggleTodo(${t.id})" style="width:24px;height:24px;border-radius:50%;border:2px solid ${t.done?'#1a1a2e':'#ddd'};background:${t.done?'#1a1a2e':'white'};cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
           ${t.done ? '<span style="color:white;font-size:13px">✓</span>' : ''}
         </div>
-        <span style="flex:1;font-size:clamp(14px,3.5vw,16px);text-decoration:${t.done?'line-through':'none'};color:${t.done?'#bbb':'#222'}">${t.text}</span>
+        <span style="flex:1;font-size:clamp(14px,3.5vw,16px);text-decoration:${t.done?'line-through':'none'};color:${t.done?'#bbb':'#222'}">${esc(t.text)}</span>
         <button onclick="deleteTodo(${t.id})" style="background:none;border:none;color:#ddd;font-size:20px;cursor:pointer;padding:4px">×</button>
       </div>`;
     });
@@ -1982,41 +1998,62 @@ function renderTodos() {
   container.innerHTML = html;
 }
 
-function initTodo() {
+async function initTodo() {
   const dateInput = document.getElementById('todo-date');
   if (!dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
+  if (!_todoLoaded) {
+    document.getElementById('todo-list').innerHTML = '<div class="loading">⚡ 불러오는 중...</div>';
+    await loadTodosFromFirebase();
+  }
   renderTodos();
 }
 
 // ─── 메모 ────────────────────────────────────────────────
 
 let _memoCurrentFilter = '전체';
+let _memos = [];
+let _memoLoaded = false;
 
-function getMemos() { try { return JSON.parse(localStorage.getItem('motif_memos') || '[]'); } catch(e) { return []; } }
-function saveMemos(memos) { try { localStorage.setItem('motif_memos', JSON.stringify(memos)); } catch(e) {} }
+async function loadMemosFromFirebase() {
+  try {
+    const snap = await db.collection('memos').orderBy('id', 'desc').get();
+    _memos = [];
+    snap.forEach(doc => _memos.push({ fbId: doc.id, ...doc.data() }));
+    _memoLoaded = true;
+  } catch(e) {
+    try { _memos = JSON.parse(localStorage.getItem('motif_memos') || '[]'); } catch(e2) {}
+    _memoLoaded = true;
+  }
+}
 
 function addMemo() {
   const title   = document.getElementById('memo-title').value.trim();
   const content = document.getElementById('memo-content').value.trim();
   const tag     = document.getElementById('memo-tag').value;
   if (!content) { showToast('내용을 입력해주세요!'); return; }
-  const memos = getMemos();
-  memos.unshift({ id: Date.now(), title, content, tag, date: new Date().toLocaleDateString('ko-KR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }), pinned: false });
-  saveMemos(memos);
+  const id = Date.now();
+  const newMemo = { id, title, content, tag, date: new Date().toLocaleDateString('ko-KR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }), pinned: false };
+  _memos.unshift(newMemo);
   document.getElementById('memo-title').value = '';
   document.getElementById('memo-content').value = '';
   renderMemos();
   showToast('✅ 메모 저장됐어요!');
+  db.collection('memos').doc(String(id)).set(newMemo).catch(e => console.error('memo save:', e));
 }
 
-function deleteMemo(id) { saveMemos(getMemos().filter(m => m.id !== id)); renderMemos(); }
+function deleteMemo(id) {
+  if (!confirm('삭제할까요?')) return;
+  _memos = _memos.filter(m => m.id !== id);
+  renderMemos();
+  db.collection('memos').doc(String(id)).delete().catch(e => console.error('memo delete:', e));
+}
 
 function toggleMemoPin(id) {
-  const memos = getMemos();
-  const m = memos.find(m => m.id === id);
-  if (m) m.pinned = !m.pinned;
-  saveMemos(memos);
+  const m = _memos.find(m => m.id === id);
+  if (!m) return;
+  m.pinned = !m.pinned;
   renderMemos();
+  db.collection('memos').doc(String(id)).update({ pinned: m.pinned }).catch(e => console.error('memo pin:', e));
 }
 
 function filterMemo(tag) {
@@ -2029,8 +2066,7 @@ function filterMemo(tag) {
 }
 
 function editMemo(id) {
-  const memos = getMemos();
-  const m = memos.find(m => m.id === id);
+  const m = _memos.find(m => m.id === id);
   if (!m) return;
   const popup = document.createElement('div');
   popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:white;z-index:9999;display:flex;flex-direction:column;';
@@ -2040,7 +2076,7 @@ function editMemo(id) {
       <button onclick="this.closest('div[style*=fixed]').remove()" style="background:none;border:none;color:white;font-size:24px;cursor:pointer;line-height:1;padding:0 4px">×</button>
     </div>
     <div style="flex:1;display:flex;flex-direction:column;padding:16px;gap:10px;overflow-y:auto;-webkit-overflow-scrolling:touch">
-      <input id="edit-memo-title" type="text" value="${m.title||''}" placeholder="제목 (선택)" style="width:100%;font-size:15px;border:1.5px solid #e8e8e8;border-radius:10px;padding:12px;font-family:inherit;outline:none;box-sizing:border-box">
+      <input id="edit-memo-title" type="text" value="${esc(m.title||'')}" placeholder="제목 (선택)" style="width:100%;font-size:15px;border:1.5px solid #e8e8e8;border-radius:10px;padding:12px;font-family:inherit;outline:none;box-sizing:border-box">
       <select id="edit-memo-tag" style="width:100%;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:12px;font-family:inherit;outline:none;-webkit-appearance:none;background:#fafafa">
         <option ${m.tag==='💡 아이디어'?'selected':''}>💡 아이디어</option>
         <option ${m.tag==='🔧 개선'?'selected':''}>🔧 개선</option>
@@ -2049,7 +2085,7 @@ function editMemo(id) {
         <option ${m.tag==='📞 고객'?'selected':''}>📞 고객</option>
         <option ${m.tag==='🛒 구매'?'selected':''}>🛒 구매</option>
       </select>
-      <textarea id="edit-memo-content" style="flex:1;width:100%;min-height:300px;font-size:15px;border:1.5px solid #e8e8e8;border-radius:10px;padding:14px;font-family:inherit;outline:none;resize:none;box-sizing:border-box;line-height:1.8">${m.content}</textarea>
+      <textarea id="edit-memo-content" style="flex:1;width:100%;min-height:300px;font-size:15px;border:1.5px solid #e8e8e8;border-radius:10px;padding:14px;font-family:inherit;outline:none;resize:none;box-sizing:border-box;line-height:1.8">${esc(m.content)}</textarea>
     </div>
     <div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:10px;flex-shrink:0;background:white">
       <button onclick="this.closest('div[style*=fixed]').remove()" style="flex:1;padding:14px;background:#f5f5f5;color:#555;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">취소</button>
@@ -2064,19 +2100,18 @@ function saveEditMemo(id, popupEl) {
   const content = document.getElementById('edit-memo-content').value.trim();
   const tag     = document.getElementById('edit-memo-tag').value;
   if (!content) { showToast('내용을 입력해주세요!'); return; }
-  const memos = getMemos();
-  const m = memos.find(m => m.id === id);
+  const m = _memos.find(m => m.id === id);
   if (m) { m.title = title; m.content = content; m.tag = tag; }
-  saveMemos(memos);
   popupEl.remove();
   renderMemos();
   showToast('✅ 수정됐어요!');
+  db.collection('memos').doc(String(id)).update({ title, content, tag }).catch(e => console.error('memo edit:', e));
 }
 
 function renderMemos() {
   const container = document.getElementById('memo-list');
   if (!container) return;
-  const all = getMemos();
+  const all = _memos;
   const filtered = _memoCurrentFilter === '전체' ? all : all.filter(m => m.tag === _memoCurrentFilter);
   if (!filtered.length) { container.innerHTML = '<div class="loading">' + (_memoCurrentFilter === '전체' ? '메모가 없어요 📓' : _memoCurrentFilter + ' 메모가 없어요') + '</div>'; return; }
   const sorted = [...filtered.filter(m => m.pinned), ...filtered.filter(m => !m.pinned)];
@@ -2096,15 +2131,15 @@ function renderMemos() {
         <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
           <span style="font-size:11px;background:${c.bg};color:${c.text};border:1px solid ${c.border};border-radius:6px;padding:2px 7px;white-space:nowrap;font-weight:600">${m.tag}</span>
           ${m.pinned ? '<span style="font-size:11px;color:#e65100;font-weight:700">📌 고정</span>' : ''}
-          ${m.title ? `<span style="font-size:14px;font-weight:700;color:#1a1a2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.title}</span>` : ''}
+          ${m.title ? `<span style="font-size:14px;font-weight:700;color:#1a1a2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.title)}</span>` : ''}
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0;margin-left:8px">
           <button onclick="toggleMemoPin(${m.id})" style="padding:4px 8px;background:${m.pinned ? '#fff3e0' : '#f5f5f5'};color:${m.pinned ? '#e65100' : '#999'};border:1px solid ${m.pinned ? '#ffcc80' : '#ddd'};border-radius:6px;font-size:11px;cursor:pointer">📌</button>
           <button onclick="editMemo(${m.id})" style="padding:4px 8px;background:#e3f2fd;color:#1565c0;border:1px solid #90caf9;border-radius:6px;font-size:11px;cursor:pointer">✏️</button>
-          <button onclick="if(confirm('삭제할까요?'))deleteMemo(${m.id})" style="padding:4px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:11px;cursor:pointer">🗑</button>
+          <button onclick="deleteMemo(${m.id})" style="padding:4px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:11px;cursor:pointer">🗑</button>
         </div>
       </div>
-      <div style="font-size:14px;color:#333;line-height:1.7;white-space:pre-wrap;word-break:break-all;margin-top:${m.title ? '6px' : '0'}">${m.content}</div>
+      <div style="font-size:14px;color:#333;line-height:1.7;white-space:pre-wrap;word-break:break-all;margin-top:${m.title ? '6px' : '0'}">${esc(m.content)}</div>
       <div style="font-size:11px;color:#bbb;margin-top:8px;text-align:right">${m.date}</div>
     </div>`;
   }).join('');
@@ -2459,7 +2494,13 @@ function calWarrantyGo(type, name, carType, phone, timestamp, dateStr, btn) {
   }
 }
 
-function initMemo() { filterMemo(_memoCurrentFilter); }
+async function initMemo() {
+  if (!_memoLoaded) {
+    document.getElementById('memo-list').innerHTML = '<div class="loading">⚡ 불러오는 중...</div>';
+    await loadMemosFromFirebase();
+  }
+  filterMemo(_memoCurrentFilter);
+}
 
 // ─── PPF 보증서 ──────────────────────────────────────────
 
