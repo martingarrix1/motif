@@ -625,11 +625,15 @@ async function submitConsult() {
   resetForm();
   allCustomers = [];
 
-  // Firebase + GAS 백그라운드 저장
+  // Firebase 저장
   db.collection('customers').doc(ts).set(newCustomer).catch(e => showToast('❌ Firebase: ' + e.message));
-  apiPost({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery })
-    .then(r => { if (r && r.success) showToast('📨 알림톡 발송됨'); else showToast('⚠️ GAS 응답: ' + JSON.stringify(r)); })
-    .catch(e => showToast('❌ GAS 오류: ' + e.message));
+
+  // GAS 알림톡 발송
+  try {
+    const r = await apiPost({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, sendAlimtalk: true });
+    if (r === 'ok' || (r && r.success)) showToast('📨 알림톡 발송됨');
+    else showToast('⚠️ GAS 응답: ' + JSON.stringify(r));
+  } catch(e) { showToast('❌ GAS 오류: ' + e.message); }
 }
 
 function resetForm() {
@@ -2479,10 +2483,10 @@ async function submitCalendarForm(dateStr) {
     // Firebase 즉시 저장
     await db.collection('customers').doc(ts).set(newCustomer);
 
-    // GAS 백그라운드 (알림톡 + 시트)
-    apiPost({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery });
-
-    showToast('✅ 예약 등록 완료!');
+    // GAS 알림톡 발송
+    const r = await apiPost({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, sendAlimtalk: true });
+    if (r === 'ok' || (r && r.success)) showToast('✅ 예약 등록 + 알림톡 발송 완료!');
+    else showToast('✅ 예약 등록 완료 (⚠️ 알림톡: ' + JSON.stringify(r) + ')');
     document.getElementById('cal-full-form-popup').remove();
     allCustomers = [];
     await loadCustomers();
