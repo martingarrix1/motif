@@ -1503,14 +1503,14 @@ function openCalendarCustomerEdit(timestamp) {
   // ★ 수정: 브랜드명 단독 옵션 제거
   function tintOptHtml(selected) {
     const td = [
-      {b:'LX',o:['LX70','LX55','LX40','LX25','LX15']},
-      {b:'제니스',o:['제니스50','제니스30','제니스15','제니스05']},
-      {b:'퀀텀',o:['퀀텀37','퀀텀28','퀀텀19','퀀텀14','퀀텀08']},
-      {b:'보그',o:['보그40','보그30','보그20','보그10']},
-      {b:'티타늄',o:['티타늄26','티타늄16','티타늄06']},
-      {b:'G라인',o:['G라인30','G라인10']},
-      {b:'S라인',o:['S라인30','S라인10']},
-      {b:'XRPLUS',o:['XRPLUS55','XRPLUS30','XRPLUS20','XRPLUS15','XRPLUS05']},
+      {b:'LX',o:['LX','LX70','LX55','LX40','LX25','LX15']},
+      {b:'제니스',o:['제니스','제니스50','제니스30','제니스15','제니스05']},
+      {b:'퀀텀',o:['퀀텀','퀀텀37','퀀텀28','퀀텀19','퀀텀14','퀀텀08']},
+      {b:'보그',o:['보그','보그40','보그30','보그20','보그10']},
+      {b:'티타늄',o:['티타늄','티타늄26','티타늄16','티타늄06']},
+      {b:'G라인',o:['G라인','G라인30','G라인10']},
+      {b:'S라인',o:['S라인','S라인30','S라인10']},
+      {b:'XRPLUS',o:['XRPLUS','XRPLUS55','XRPLUS30','XRPLUS20','XRPLUS15','XRPLUS05']},
     ];
     let h = '<option value="">-</option>';
     td.forEach(g => { h += `<optgroup label="${g.b}">`; g.o.forEach(o => { h += `<option ${o===selected?'selected':''}>${o}</option>`; }); h += '</optgroup>'; });
@@ -2027,7 +2027,7 @@ function renderMemos() {
 
 function openCalendarFullForm(dateStr) {
   // ★ 수정: 브랜드명 단독 옵션 제거
-  const tintOptions = ['LX70','LX55','LX40','LX25','LX15','보그40','보그30','보그20','보그10','제니스50','제니스30','제니스15','제니스05','퀀텀37','퀀텀28','퀀텀19','퀀텀14','퀀텀08','티타늄26','티타늄16','티타늄06','G라인30','G라인10','S라인30','S라인10','XRPLUS55','XRPLUS30','XRPLUS20','XRPLUS15','XRPLUS05'];
+  const tintOptions = ['LX','LX70','LX55','LX40','LX25','LX15','보그','보그40','보그30','보그20','보그10','제니스','제니스50','제니스30','제니스15','제니스05','퀀텀','퀀텀37','퀀텀28','퀀텀19','퀀텀14','퀀텀08','티타늄','티타늄26','티타늄16','티타늄06','G라인','G라인30','G라인10','S라인','S라인30','S라인10','XRPLUS','XRPLUS55','XRPLUS30','XRPLUS20','XRPLUS15','XRPLUS05'];
   const tintOpts = tintOptions.map(o => `<option>${o}</option>`).join('');
 
   const popup = document.createElement('div');
@@ -2319,14 +2319,14 @@ function initMemo() { filterMemo(_memoCurrentFilter); }
 // ★★★ 핵심 수정: 브랜드명 단독 옵션 완전 제거 ★★★
 (function() {
   const tintData = [
-    { brand: 'LX',      options: ['LX70','LX55','LX40','LX25','LX15'] },
-    { brand: '제니스',  options: ['제니스50','제니스30','제니스15','제니스05'] },
-    { brand: '퀀텀',    options: ['퀀텀37','퀀텀28','퀀텀19','퀀텀14','퀀텀08'] },
-    { brand: '보그',    options: ['보그40','보그30','보그20','보그10'] },
-    { brand: '티타늄',  options: ['티타늄26','티타늄16','티타늄06'] },
-    { brand: 'G라인',   options: ['G라인30','G라인10'] },
-    { brand: 'S라인',   options: ['S라인30','S라인10'] },
-    { brand: 'XRPLUS',  options: ['XRPLUS55','XRPLUS30','XRPLUS20','XRPLUS15','XRPLUS05'] },
+    { brand: 'LX',      options: ['LX','LX70','LX55','LX40','LX25','LX15'] },
+    { brand: '제니스',  options: ['제니스','제니스50','제니스30','제니스15','제니스05'] },
+    { brand: '퀀텀',    options: ['퀀텀','퀀텀37','퀀텀28','퀀텀19','퀀텀14','퀀텀08'] },
+    { brand: '보그',    options: ['보그','보그40','보그30','보그20','보그10'] },
+    { brand: '티타늄',  options: ['티타늄','티타늄26','티타늄16','티타늄06'] },
+    { brand: 'G라인',   options: ['G라인','G라인30','G라인10'] },
+    { brand: 'S라인',   options: ['S라인','S라인30','S라인10'] },
+    { brand: 'XRPLUS',  options: ['XRPLUS','XRPLUS55','XRPLUS30','XRPLUS20','XRPLUS15','XRPLUS05'] },
   ];
   document.querySelectorAll('.tint-select').forEach(sel => {
     let html = '<option value="">-</option>';
