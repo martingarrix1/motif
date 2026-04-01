@@ -402,18 +402,20 @@ const db = firebase.firestore();
     <div class="card">
       <div class="card-title">시공 정보</div>
       <div class="form-group"><label>필름</label>
-        <select id="ppfw-film">
+        <select id="ppfw-film" onchange="togglePpfEtc('film',this.value)">
           <option value="">선택</option>
+          <option>울트라핏 XP크리스탈</option>
+          <option>울트라핏 슈프림탑</option>
+          <option>울트라핏 클라루스C</option>
           <option>XPEL Ultimate Plus</option>
           <option>XPEL Xtreme</option>
           <option>XPEL Stealth</option>
-          <option>Ultrafit</option>
-          <option>Ultrafit Matte</option>
-          <option>기타</option>
+          <option value="기타">기타 (직접입력)</option>
         </select>
+        <input type="text" id="ppfw-film-etc" placeholder="필름명 직접 입력" style="display:none;margin-top:8px">
       </div>
       <div class="form-group"><label>시공내용</label>
-        <select id="ppfw-work">
+        <select id="ppfw-work" onchange="togglePpfEtc('work',this.value)">
           <option value="">선택</option>
           <option>프런트 패키지 A</option>
           <option>프런트 패키지 F</option>
@@ -423,15 +425,15 @@ const db = firebase.firestore();
           <option>생활보호 5종</option>
           <option>생활보호 7종</option>
           <option>전체</option>
-          <option>기타</option>
+          <option value="기타">기타 (직접입력)</option>
         </select>
+        <input type="text" id="ppfw-work-etc" placeholder="시공내용 직접 입력" style="display:none;margin-top:8px">
       </div>
       <div class="form-group"><label>보증기간</label>
         <select id="ppfw-warranty">
           <option value="">선택</option>
-          <option>1년</option>
-          <option>3년</option>
           <option>5년</option>
+          <option>7년</option>
           <option>10년</option>
           <option>평생보증</option>
         </select>
@@ -2390,16 +2392,29 @@ function initPpf() {
   if (!d.value) d.value = new Date().toISOString().slice(0,10);
 }
 
+function togglePpfEtc(type, val) {
+  const etcEl = document.getElementById('ppfw-' + type + '-etc');
+  if (val === '기타') {
+    etcEl.style.display = 'block';
+    etcEl.focus();
+  } else {
+    etcEl.style.display = 'none';
+    etcEl.value = '';
+  }
+}
+
 async function submitPpfWarranty() {
-  const name    = document.getElementById('ppfw-name').value.trim();
-  const phone   = document.getElementById('ppfw-phone').value.trim();
-  const carType = document.getElementById('ppfw-cartype').value.trim();
+  const name      = document.getElementById('ppfw-name').value.trim();
+  const phone     = document.getElementById('ppfw-phone').value.trim();
+  const carType   = document.getElementById('ppfw-cartype').value.trim();
   const carNumber = document.getElementById('ppfw-carnumber').value.trim();
-  const date    = document.getElementById('ppfw-date').value;
-  const film    = document.getElementById('ppfw-film').value;
-  const work    = document.getElementById('ppfw-work').value;
-  const warranty= document.getElementById('ppfw-warranty').value;
-  const price   = document.getElementById('ppfw-price').value;
+  const date      = document.getElementById('ppfw-date').value;
+  const filmSel   = document.getElementById('ppfw-film').value;
+  const film      = filmSel === '기타' ? document.getElementById('ppfw-film-etc').value.trim() : filmSel;
+  const workSel   = document.getElementById('ppfw-work').value;
+  const work      = workSel === '기타' ? document.getElementById('ppfw-work-etc').value.trim() : workSel;
+  const warranty  = document.getElementById('ppfw-warranty').value;
+  const price     = document.getElementById('ppfw-price').value;
   if (!name || !phone || !carType || !date || !film || !work || !warranty) {
     showToast('❌ 모든 항목을 입력해주세요'); return;
   }
