@@ -1033,7 +1033,7 @@ async function showCustomerDetail(idx) {
     </div>` : '';
   document.getElementById('modal-title').textContent = c.name + ' · ' + c.carType;
   document.getElementById('modal-body').innerHTML = `
-    <div class="detail-row"><span class="detail-label">연락처</span><span class="detail-value" onclick="copyPhone('${c.phone}')" style="cursor:pointer;text-decoration:underline dotted">${esc(c.phone)}</span></div>
+    <div class="detail-row"><span class="detail-label">연락처</span><span class="detail-value" onclick="copyPhone('${escAttr(c.phone)}')" style="cursor:pointer;text-decoration:underline dotted">${esc(c.phone)}</span></div>
     <div class="detail-row"><span class="detail-label">시공분류</span><span class="detail-value">${esc(c.category||'-')}</span></div>
     <div class="detail-row"><span class="detail-label">블랙박스</span><span class="detail-value">${esc(c.blackbox||'-')}</span></div>
     <div class="detail-row"><span class="detail-label">보조배터리</span><span class="detail-value">${esc(c.battery||'-')}</span></div>
@@ -1042,32 +1042,32 @@ async function showCustomerDetail(idx) {
       <div style="font-size:12px;color:#999;margin-bottom:8px">✏️ 수정 가능 항목</div>
       <div style="margin-bottom:10px">
         <div style="font-size:12px;color:#666;margin-bottom:4px">상담내용</div>
-        <textarea rows="2" onblur="updateCustomerField('${c.timestamp}','summary',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box;resize:none">${c.summary||''}</textarea>
+        <textarea rows="2" onblur="updateCustomerField('${escAttr(c.timestamp)}','summary',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box;resize:none">${esc(c.summary||'')}</textarea>
       </div>
       <div style="margin-bottom:10px">
         <div style="font-size:12px;color:#666;margin-bottom:4px">PPF</div>
-        <input type="text" value="${c.ppf||''}" onblur="updateCustomerField('${c.timestamp}','ppf',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
+        <input type="text" value="${esc(c.ppf||'')}" onblur="updateCustomerField('${escAttr(c.timestamp)}','ppf',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
       </div>
       <div style="margin-bottom:10px">
         <div style="font-size:12px;color:#666;margin-bottom:4px">기타</div>
-        <input type="text" value="${c.etc||''}" onblur="updateCustomerField('${c.timestamp}','etc',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
+        <input type="text" value="${esc(c.etc||'')}" onblur="updateCustomerField('${escAttr(c.timestamp)}','etc',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
       </div>
       <div style="display:flex;gap:8px;margin-bottom:10px">
         <div style="flex:1">
           <div style="font-size:12px;color:#666;margin-bottom:4px">예상금액(만원)</div>
-          <input type="text" inputmode="numeric" value="${c.estPrice||''}" onblur="updateCustomerField('${c.timestamp}','estPrice',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
+          <input type="text" inputmode="numeric" value="${esc(c.estPrice||'')}" onblur="updateCustomerField('${escAttr(c.timestamp)}','estPrice',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
         </div>
         <div style="flex:1">
           <div style="font-size:12px;color:#666;margin-bottom:4px">계약금(만원)</div>
-          <input type="text" inputmode="numeric" value="${c.deposit||''}" onblur="updateCustomerField('${c.timestamp}','deposit',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
+          <input type="text" inputmode="numeric" value="${esc(c.deposit||'')}" onblur="updateCustomerField('${escAttr(c.timestamp)}','deposit',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box">
         </div>
       </div>
       <div style="margin-bottom:10px">
         <div style="font-size:12px;color:#666;margin-bottom:4px">특이사항/메모</div>
-        <textarea rows="2" onblur="updateCustomerField('${c.timestamp}','note',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box;resize:none">${c.note||''}</textarea>
+        <textarea rows="2" onblur="updateCustomerField('${escAttr(c.timestamp)}','note',this.value)" style="width:100%;font-size:13px;border:1px solid #ddd;border-radius:8px;padding:8px;box-sizing:border-box;resize:none">${esc(c.note||'')}</textarea>
       </div>
     </div>
-    ${c.pdfId?`<div style="margin-top:12px"><button class="btn btn-primary" onclick="openPDF('${c.pdfId}',event)">📄 견적서 PDF 보기</button></div>`:''}
+    ${c.pdfId?`<div style="margin-top:12px"><button class="btn btn-primary" onclick="openPDF('${escAttr(c.pdfId)}',event)">📄 견적서 PDF 보기</button></div>`:''}
     ${historyHtml}
   `;
   document.getElementById('customer-modal').classList.add('active');
@@ -1156,20 +1156,20 @@ function renderAftercare(data) {
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="display:flex;align-items:center;gap:10px">
             <input type="checkbox" ${isPinned ? 'checked' : ''}
-              onchange="togglePin('${c.name}','${c.carType}','${c.doneDate}',this.checked)"
+              onchange="togglePin('${escAttr(c.name)}','${escAttr(c.carType)}','${escAttr(c.doneDate)}',this.checked)"
               onclick="event.stopPropagation()"
               style="width:20px;height:20px;cursor:pointer;accent-color:#999">
             <div class="customer-name">${esc(c.name)}</div>
           </div>
-          <select onchange="updateAftercareStatus('${c.name}','${c.carType}','${c.doneDate}',this.value)"
+          <select onchange="updateAftercareStatus('${escAttr(c.name)}','${escAttr(c.carType)}','${escAttr(c.doneDate)}',this.value)"
             style="font-size:clamp(12px,3vw,14px);border:1px solid #ddd;border-radius:10px;padding:6px 12px;font-weight:600;cursor:pointer;background:${c.status==='완료'?'#ffebee':'#e3f2fd'};color:${c.status==='완료'?'#c62828':'#1565c0'}">
             <option value="대기" ${(c.status||'대기')==='대기'?'selected':''}>대기</option>
             <option value="완료" ${c.status==='완료'?'selected':''}>완료</option>
           </select>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
-          <div class="customer-car" onclick="copyPhone('${c.phone}')" style="cursor:pointer;text-decoration:underline dotted">${esc(c.carType)} · ${esc(c.phone)}</div>
-          <button onclick="showAftercareEdit('${c.name}','${c.carType}','${c.doneDate}','${c.phone}','${c.category}','${c.summary}','${c.estPrice}')" style="padding:4px 8px;background:#f5f5f5;border:1px solid #ddd;border-radius:6px;font-size:11px;color:#555;cursor:pointer">✏️ 수정</button>
+          <div class="customer-car" onclick="copyPhone('${escAttr(c.phone)}')" style="cursor:pointer;text-decoration:underline dotted">${esc(c.carType)} · ${esc(c.phone)}</div>
+          <button onclick="showAftercareEdit('${escAttr(c.name)}','${escAttr(c.carType)}','${escAttr(c.doneDate)}','${escAttr(c.phone)}','${escAttr(c.category)}','${escAttr(c.summary)}','${escAttr(c.estPrice)}')" style="padding:4px 8px;background:#f5f5f5;border:1px solid #ddd;border-radius:6px;font-size:11px;color:#555;cursor:pointer">✏️ 수정</button>
         </div>
         <div style="font-size:clamp(12px,3vw,14px);color:#999;margin-top:3px">${esc(c.category||'')}</div>
         ${c.summary ? `<div style="font-size:clamp(12px,3vw,14px);color:#777;margin-top:4px;line-height:1.5">${esc(c.summary)}</div>` : ''}
@@ -1184,19 +1184,19 @@ function renderAftercare(data) {
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
           ${c.estPrice ? `<span style="font-size:clamp(13px,3.5vw,16px);color:#1a73e8;font-weight:700">${esc(c.estPrice)}만원</span>` : '<span></span>'}
-          <select onchange="updateWarranty('${c.name}','${c.carType}','${c.doneDate}',this.value)"
+          <select onchange="updateWarranty('${escAttr(c.name)}','${escAttr(c.carType)}','${escAttr(c.doneDate)}',this.value)"
             style="font-size:clamp(12px,3vw,14px);border:1px solid #ddd;border-radius:8px;padding:6px 10px;font-weight:600;cursor:pointer;background:${c.warranty?'#f3e5f5':'#f5f5f5'};color:${c.warranty?'#6a1b9a':'#999'}">
             <option value="">미발행</option>
             <option value="보증서 발행 1차" ${c.warranty==='보증서 발행 1차'?'selected':''}>보증서 발행 1차</option>
             <option value="보증서 발행 2차" ${c.warranty==='보증서 발행 2차'?'selected':''}>보증서 발행 2차</option>
           </select>
         </div>
-        ${c.warrantyPdfId ? `<button onclick="window.open('https://drive.google.com/file/d/${c.warrantyPdfId}/view','_blank')" style="margin-top:8px;width:100%;padding:7px 10px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">📄 전자보증서 보기</button>` : ''}
+        ${c.warrantyPdfId ? `<button onclick="window.open('https://drive.google.com/file/d/${escAttr(c.warrantyPdfId)}/view','_blank')" style="margin-top:8px;width:100%;padding:7px 10px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">📄 전자보증서 보기</button>` : ''}
         <div style="display:flex;gap:8px;margin-top:8px">
-          <button onclick="window.location.href='tel:${c.phone}'" style="flex:1;padding:8px 10px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">📞 전화</button>
-          <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:8px 10px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">💬 문자</button>
+          <button onclick="window.location.href='tel:${escAttr(c.phone)}'" style="flex:1;padding:8px 10px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">📞 전화</button>
+          <button onclick="window.location.href='sms:${escAttr(c.phone)}'" style="flex:1;padding:8px 10px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">💬 문자</button>
         </div>
-        <button onclick="sendDoneAlimtalkFromAftercare('${c.name}','${c.carType}','${c.phone}','${c.doneDate}','${c.warrantyPdfId||''}')" style="margin-top:6px;width:100%;padding:8px 10px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">📨 시공완료 알림톡 수동 발송</button>
+        <button onclick="sendDoneAlimtalkFromAftercare('${escAttr(c.name)}','${escAttr(c.carType)}','${escAttr(c.phone)}','${escAttr(c.doneDate)}','${escAttr(c.warrantyPdfId||'')}')" style="margin-top:6px;width:100%;padding:8px 10px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">📨 시공완료 알림톡 수동 발송</button>
       </div>
     `;
   }).join('');
@@ -1500,12 +1500,12 @@ function showCalendarDay(dateStr) {
         ${c.work ? `<div style="font-size:12px;color:#555;margin-top:4px">📋 ${esc(c.work)}</div>` : ''}
         <div style="font-size:12px;color:#999;margin-top:4px">${esc(c.phone)}</div>
         <div style="display:flex;gap:6px;margin-top:8px">
-          <button onclick="window.location.href='tel:${c.phone}'" style="flex:1;padding:6px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">📞 전화</button>
-          <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:6px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">💬 문자</button>
-          <button onclick="editReservation(${c.rowIndex},'${c.work||''}')" style="padding:6px 8px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;cursor:pointer">✏️</button>
-          <button onclick="editReservationDate(${c.rowIndex},'${c.date}','${dateStr}')" style="padding:6px 8px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:6px;font-size:12px;cursor:pointer">📅</button>
-          <button onclick="sendDoneWithWarranty('${c.name}','${c.carType}','${c.phone}','${c.date}')" style="padding:6px 8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:12px;cursor:pointer">📨완료</button>
-          <button onclick="deleteReservation(${c.rowIndex},'${dateStr}')" style="padding:6px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px;cursor:pointer">🗑</button>
+          <button onclick="window.location.href='tel:${escAttr(c.phone)}'" style="flex:1;padding:6px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">📞 전화</button>
+          <button onclick="window.location.href='sms:${escAttr(c.phone)}'" style="flex:1;padding:6px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">💬 문자</button>
+          <button onclick="editReservation(${c.rowIndex},'${escAttr(c.work||'')}')" style="padding:6px 8px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;cursor:pointer">✏️</button>
+          <button onclick="editReservationDate(${c.rowIndex},'${escAttr(c.date)}','${escAttr(dateStr)}')" style="padding:6px 8px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:6px;font-size:12px;cursor:pointer">📅</button>
+          <button onclick="sendDoneWithWarranty('${escAttr(c.name)}','${escAttr(c.carType)}','${escAttr(c.phone)}','${escAttr(c.date)}')" style="padding:6px 8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:12px;cursor:pointer">📨완료</button>
+          <button onclick="deleteReservation(${c.rowIndex},'${escAttr(dateStr)}')" style="padding:6px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px;cursor:pointer">🗑</button>
         </div>
       </div>` : `
       <div style="background:#f5f5f5;border-radius:8px;padding:12px;margin-bottom:8px">
@@ -1521,17 +1521,17 @@ function showCalendarDay(dateStr) {
         ${c.deposit ? `<div style="font-size:12px;color:#e65100;margin-top:4px;font-weight:600">계약금 ${esc(c.deposit)}만원</div>` : ''}
         <div style="font-size:12px;color:#999;margin-top:4px">${esc(c.phone)}</div>
         <div style="display:flex;gap:6px;margin-top:8px">
-          <button onclick="window.location.href='tel:${c.phone}'" style="flex:1;padding:6px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">📞 전화</button>
-          <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:6px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">💬 문자</button>
-          <button onclick="openCalendarCustomerEdit('${c.timestamp}')" style="padding:6px 8px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:6px;font-size:12px;cursor:pointer">✏️수정</button>
-          <button onclick="editCustomerEntryDate('${c.timestamp}','${dateStr}')" style="padding:6px 8px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:6px;font-size:12px;cursor:pointer">📅날짜</button>
-          <button onclick="sendDoneWithWarranty('${c.name}','${c.carType}','${c.phone}','${c.doneDate||dateStr}')" style="padding:6px 8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:12px;cursor:pointer">📨완료</button>
-          <button onclick="deleteCustomerFromCalendar('${c.timestamp}','${dateStr}')" style="padding:6px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px;cursor:pointer">🗑</button>
+          <button onclick="window.location.href='tel:${escAttr(c.phone)}'" style="flex:1;padding:6px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">📞 전화</button>
+          <button onclick="window.location.href='sms:${escAttr(c.phone)}'" style="flex:1;padding:6px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">💬 문자</button>
+          <button onclick="openCalendarCustomerEdit('${escAttr(c.timestamp)}')" style="padding:6px 8px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:6px;font-size:12px;cursor:pointer">✏️수정</button>
+          <button onclick="editCustomerEntryDate('${escAttr(c.timestamp)}','${escAttr(dateStr)}')" style="padding:6px 8px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:6px;font-size:12px;cursor:pointer">📅날짜</button>
+          <button onclick="sendDoneWithWarranty('${escAttr(c.name)}','${escAttr(c.carType)}','${escAttr(c.phone)}','${escAttr(c.doneDate||dateStr)}')" style="padding:6px 8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:12px;cursor:pointer">📨완료</button>
+          <button onclick="deleteCustomerFromCalendar('${escAttr(c.timestamp)}','${escAttr(dateStr)}')" style="padding:6px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px;cursor:pointer">🗑</button>
         </div>
-        <button onclick="openCalendarWarrantyPopup('${c.name}','${c.carType}','${c.phone}','${c.timestamp}','${dateStr}')" style="margin-top:8px;width:100%;padding:8px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📜 보증서 발행</button>
+        <button onclick="openCalendarWarrantyPopup('${escAttr(c.name)}','${escAttr(c.carType)}','${escAttr(c.phone)}','${escAttr(c.timestamp)}','${escAttr(dateStr)}')" style="margin-top:8px;width:100%;padding:8px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📜 보증서 발행</button>
       </div>`).join('') : '<div style="color:#999;font-size:13px;margin-bottom:12px">입고 예정 없음</div>'}
     <div style="border-top:1px solid #eee;padding-top:14px;margin-top:4px">
-      <button onclick="openCalendarFullForm('${dateStr}')" style="width:100%;padding:12px;background:#1a73e8;color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">➕ 입고 예약 상담 입력</button>
+      <button onclick="openCalendarFullForm('${escAttr(dateStr)}')" style="width:100%;padding:12px;background:#1a73e8;color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">➕ 입고 예약 상담 입력</button>
     </div>
   </div>`;
 }
@@ -1683,7 +1683,7 @@ function openCalendarCustomerEdit(timestamp) {
             <option value="상담진행" ${c.status==='상담진행'?'selected':''}>상담진행</option>
           </select>
         </div>
-        <div class="form-group"><label>특이사항</label><textarea id="ce-note" style="height:80px;resize:none">${c.note||''}</textarea></div>
+        <div class="form-group"><label>특이사항</label><textarea id="ce-note" style="height:80px;resize:none">${esc(c.note||'')}</textarea></div>
       </div>
       <div style="height:16px"></div>
     </div>
