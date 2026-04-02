@@ -1791,14 +1791,15 @@ async function editReservationDate(rowIndex, currentDate, oldDateStr) {
 async function editCustomerEntryDate(timestamp, dateStr) {
   const newDate = prompt('입고예정일 변경 (yyyy-mm-dd):', dateStr);
   if (!newDate) return;
-  const r = await apiPost({ action: 'updateCustomerField', timestamp, field: 'entryDate', value: newDate });
-  if (r === 'ok') {
+  try {
+    await updateCustomerInFirebase(timestamp, { entryDate: newDate });
     showToast('✅ 날짜 변경됨');
     allCustomers = [];
     await loadCustomers();
     renderCalendar();
     showCalendarDay(newDate);
-  } else showToast('❌ 실패');
+    apiPost({ action: 'updateCustomerField', timestamp, field: 'entryDate', value: newDate }).catch(() => {});
+  } catch(e) { showToast('❌ ' + e.message); }
 }
 
 async function editReservation(rowIndex, currentWork) {
