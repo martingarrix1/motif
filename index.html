@@ -1735,6 +1735,9 @@ async function saveCalendarCustomerEdit() {
       deposit: document.getElementById('ce-deposit').value.trim(),
       status: document.getElementById('ce-status').value,
       note: document.getElementById('ce-note').value.trim(),
+      entryDate: c.entryDate || '',
+      doneDate: c.doneDate || '',
+      resend: c.resend || '',
     };
     const c = allCustomers.find(x => x.timestamp === timestamp);
     if (c) Object.assign(c, updates);
