@@ -1784,6 +1784,17 @@ async function editReservationDate(rowIndex, currentDate, oldDateStr) {
       allReservations = await api({ action: 'getReservations' });
       renderCalendar();
       showCalendarDay(newDate);
+      // 예약확정 알림톡 발송
+      const res = allReservations.find(x => x.rowIndex === rowIndex);
+      if (res && res.phone) {
+        const send = confirm(res.name + ' / ' + res.carType + '\n📨 예약확정 알림톡을 발송할까요?');
+        if (send) {
+          showToast('⏳ 알림톡 발송 중...');
+          const ar = await apiPost({ action: 'sendConsultAlimtalk', name: res.name, phone: res.phone, carType: res.carType, summary: res.work || '', estPrice: '', deposit: '', entryDate: newDate, status: '예약안내', pdfId: '' });
+          if (ar === 'ok') showToast('📨 예약확정 알림톡 발송됨');
+          else showToast('❌ 알림톡 실패: ' + (ar.error || JSON.stringify(ar)));
+        }
+      }
     } else showToast('❌ 실패');
   } catch(e) { showToast('❌ ' + e.message); }
 }
@@ -1794,11 +1805,22 @@ async function editCustomerEntryDate(timestamp, dateStr) {
   try {
     await updateCustomerInFirebase(timestamp, { entryDate: newDate });
     showToast('✅ 날짜 변경됨');
+    const c = allCustomers.find(x => x.timestamp === timestamp);
     allCustomers = [];
     await loadCustomers();
     renderCalendar();
     showCalendarDay(newDate);
     apiPost({ action: 'updateCustomerField', timestamp, field: 'entryDate', value: newDate }).catch(() => {});
+    // 예약확정 알림톡 발송
+    if (c && c.phone) {
+      const send = confirm(c.name + ' / ' + c.carType + '\n📨 예약확정 알림톡을 발송할까요?');
+      if (send) {
+        showToast('⏳ 알림톡 발송 중...');
+        const ar = await apiPost({ action: 'sendConsultAlimtalk', name: c.name, phone: c.phone, carType: c.carType, summary: c.summary || '', estPrice: c.estPrice || '', deposit: c.deposit || '', entryDate: newDate, status: '예약안내', pdfId: '' });
+        if (ar === 'ok') showToast('📨 예약확정 알림톡 발송됨');
+        else showToast('❌ 알림톡 실패: ' + (ar.error || JSON.stringify(ar)));
+      }
+    }
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
