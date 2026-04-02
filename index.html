@@ -1607,6 +1607,13 @@ function openCalendarCustomerEdit(timestamp) {
 
   const cats = (c.category||'').split(' / ').filter(Boolean);
   const ppfs = (c.ppf||c.ppfText||'').split(', ').filter(Boolean);
+  const etcRaw = c.etc || '';
+  const coatingItems = ['유리막','그래핀','가죽기본','UG가죽','야와라A','야와라B'];
+  const coatings = coatingItems.filter(v => etcRaw.includes(v));
+  const etcText = etcRaw.split(' / ').filter(p => !coatingItems.some(ci => p.includes(ci))).join(' / ');
+  const epRaw = c.estPrice || '';
+  const epTag = ['현금가','카드가','부가세별도'].find(t => epRaw.includes(t)) || '';
+  const epVal = epRaw.replace(/\(.*\)/, '').trim();
   function chk(arr, val) { return arr.includes(val) ? 'checked' : ''; }
   function chkCls(arr, val) { return arr.includes(val) ? 'checked' : ''; }
 
@@ -1658,6 +1665,17 @@ function openCalendarCustomerEdit(timestamp) {
         </div>
       </div>
       <div class="card">
+        <div class="card-title">코팅작업</div>
+        <div class="check-group" id="ce-coating-group">
+          <label class="check-item ${chkCls(coatings,'유리막')}"><input type="checkbox" value="유리막" ${chk(coatings,'유리막')}> 유리막코팅</label>
+          <label class="check-item ${chkCls(coatings,'그래핀')}"><input type="checkbox" value="그래핀" ${chk(coatings,'그래핀')}> 그래핀코팅</label>
+          <label class="check-item ${chkCls(coatings,'가죽기본')}"><input type="checkbox" value="가죽기본" ${chk(coatings,'가죽기본')}> 가죽기본</label>
+          <label class="check-item ${chkCls(coatings,'UG가죽')}"><input type="checkbox" value="UG가죽" ${chk(coatings,'UG가죽')}> UG가죽</label>
+          <label class="check-item ${chkCls(coatings,'야와라A')}"><input type="checkbox" value="야와라A" ${chk(coatings,'야와라A')}> 야와라A</label>
+          <label class="check-item ${chkCls(coatings,'야와라B')}"><input type="checkbox" value="야와라B" ${chk(coatings,'야와라B')}> 야와라B</label>
+        </div>
+      </div>
+      <div class="card">
         <div class="card-title">전장작업</div>
         <div class="form-group"><label>블랙박스</label>
           <select id="ce-blackbox"><option value="">-</option><option ${c.blackbox==='파인뷰'?'selected':''}>파인뷰</option><option ${c.blackbox==='아이나비z'?'selected':''}>아이나비z</option><option ${c.blackbox==='아이나비q'?'selected':''}>아이나비q</option></select>
@@ -1665,12 +1683,34 @@ function openCalendarCustomerEdit(timestamp) {
         <div class="form-group"><label>보조배터리</label>
           <select id="ce-battery"><option value="">-</option><option ${c.battery==='6A'?'selected':''}>6A</option><option ${c.battery==='12A'?'selected':''}>12A</option><option ${c.battery==='18A'?'selected':''}>18A</option></select>
         </div>
-        <div class="form-group"><label>기타</label><input type="text" id="ce-etc" value="${esc(c.etc||'')}"></div>
+        <div class="form-group"><label>기타</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <select id="ce-etcPreset" onchange="if(this.value){document.getElementById('ce-etc').value=this.value;this.value='';}" style="flex:1;padding:clamp(10px,2.5vw,13px);border:1.5px solid #e8e8e8;border-radius:10px;font-size:clamp(14px,3.5vw,16px);background:#fafafa;font-family:inherit;-webkit-appearance:none;appearance:none">
+              <option value="">빠른선택 ▾</option>
+              <option value="모티프신차패키지">모티프신차패키지</option>
+              <option value="신차검수+틴팅+생보4종">신차검수+틴팅+생보4종</option>
+              <option value="신차검수+틴팅+생보5종">신차검수+틴팅+생보5종</option>
+              <option value="신차검수+틴팅+생보7종">신차검수+틴팅+생보7종</option>
+            </select>
+            <input type="text" id="ce-etc" value="${esc(etcText)}" placeholder="기타 내용" style="flex:2">
+          </div>
+        </div>
       </div>
       <div class="card">
         <div class="card-title">견적정보</div>
-        <div class="form-group"><label>예상견적 (만원)</label><input type="text" id="ce-estPrice" value="${esc(c.estPrice||'')}"></div>
-        <div class="form-group"><label>계약금 (만원)</label><input type="text" id="ce-deposit" value="${esc(c.deposit||'')}"></div>
+        <div class="form-group"><label>입고예정일</label><input type="date" id="ce-entryDate" value="${c.entryDate||''}"></div>
+        <div class="form-group"><label>예상견적 (만원)</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="number" id="ce-estPrice" inputmode="numeric" placeholder="0" value="${esc(epVal)}" style="flex:2">
+            <select id="ce-estPriceTag" style="flex:1;padding:clamp(10px,2.5vw,13px);border:1.5px solid #e8e8e8;border-radius:10px;font-size:clamp(13px,3.5vw,15px);background:#fafafa;font-family:inherit;-webkit-appearance:none;appearance:none">
+              <option value="">-</option>
+              <option value="현금가" ${epTag==='현금가'?'selected':''}>현금가</option>
+              <option value="카드가" ${epTag==='카드가'?'selected':''}>카드가</option>
+              <option value="부가세별도" ${epTag==='부가세별도'?'selected':''}>부가세별도</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label>계약금 (만원)</label><input type="number" id="ce-deposit" inputmode="numeric" placeholder="0" value="${esc(c.deposit||'')}"></div>
         <div class="form-group"><label>구분</label>
           <select id="ce-status" style="color:#c62828;font-weight:700">
             <option value="">-</option>
@@ -1705,11 +1745,18 @@ async function saveCalendarCustomerEdit() {
   try {
     const category = [...document.querySelectorAll('#ce-category-group input:checked')].map(c => c.value).join(' / ');
     const ppfText = [...document.querySelectorAll('#ce-ppf-group input:checked')].map(c => c.value).join(', ');
+    const coatingText = [...document.querySelectorAll('#ce-coating-group input:checked')].map(c => c.value).join(', ');
     const tintF = document.getElementById('ce-tintF').value;
     const tintS1 = document.getElementById('ce-tintS1').value;
     const tintS2 = document.getElementById('ce-tintS2').value;
     const tintR = document.getElementById('ce-tintR').value;
     const tintSun = document.getElementById('ce-tintSun').value;
+    const etcValue = document.getElementById('ce-etc').value.trim();
+    const combinedM = [coatingText, etcValue].filter(Boolean).join(' / ');
+    const _epVal = document.getElementById('ce-estPrice').value;
+    const _epTag = document.getElementById('ce-estPriceTag').value;
+    const estPrice = _epTag ? _epVal + '(' + _epTag + ')' : _epVal;
+    const entryDate = document.getElementById('ce-entryDate').value;
     let summaryParts = [];
     if (category) summaryParts.push('시공: ' + category);
     let tintParts = [];
@@ -1720,22 +1767,21 @@ async function saveCalendarCustomerEdit() {
     if (tintSun) tintParts.push('썬루프: ' + tintSun);
     if (tintParts.length) summaryParts.push('틴팅: ' + tintParts.join(', '));
     if (ppfText) summaryParts.push('PPF: ' + ppfText);
-    const etc = document.getElementById('ce-etc').value.trim();
-    if (etc) summaryParts.push(etc);
+    if (combinedM) summaryParts.push(combinedM);
     const summary = summaryParts.join(' / ');
     const updates = {
       name: document.getElementById('ce-name').value.trim(),
       carType: document.getElementById('ce-carType').value.trim(),
       phone: document.getElementById('ce-phone').value.trim(),
-      category, summary, ppf: ppfText, etc,
+      category, summary, ppf: ppfText, etc: combinedM,
       tintF, tintS1, tintS2, tintR, tintSun,
       blackbox: document.getElementById('ce-blackbox').value,
       battery: document.getElementById('ce-battery').value,
-      estPrice: document.getElementById('ce-estPrice').value.trim(),
+      estPrice,
       deposit: document.getElementById('ce-deposit').value.trim(),
       status: document.getElementById('ce-status').value,
       note: document.getElementById('ce-note').value.trim(),
-      entryDate: c.entryDate || '',
+      entryDate,
       doneDate: c.doneDate || '',
       resend: c.resend || '',
     };
