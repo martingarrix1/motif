@@ -176,7 +176,7 @@ const db = firebase.firestore();
     <div class="card">
       <div class="card-title">전장작업</div>
       <div class="form-group"><label>블랙박스</label>
-        <select id="blackbox"><option value="">-</option><option>파인뷰</option><option>아이나비z</option><option>아이나비q</option></select>
+        <select id="blackbox"><option value="">-</option><option>파인뷰</option><option>아이나비z</option><option>아이나비q</option><option>하이패스</option></select>
       </div>
       <div class="form-group"><label>보조배터리</label>
         <select id="battery"><option value="">-</option><option>6A</option><option>12A</option><option>18A</option></select>
@@ -1678,7 +1678,7 @@ function openCalendarCustomerEdit(timestamp) {
       <div class="card">
         <div class="card-title">전장작업</div>
         <div class="form-group"><label>블랙박스</label>
-          <select id="ce-blackbox"><option value="">-</option><option ${c.blackbox==='파인뷰'?'selected':''}>파인뷰</option><option ${c.blackbox==='아이나비z'?'selected':''}>아이나비z</option><option ${c.blackbox==='아이나비q'?'selected':''}>아이나비q</option></select>
+          <select id="ce-blackbox"><option value="">-</option><option ${c.blackbox==='파인뷰'?'selected':''}>파인뷰</option><option ${c.blackbox==='아이나비z'?'selected':''}>아이나비z</option><option ${c.blackbox==='아이나비q'?'selected':''}>아이나비q</option><option ${c.blackbox==='하이패스'?'selected':''}>하이패스</option></select>
         </div>
         <div class="form-group"><label>보조배터리</label>
           <select id="ce-battery"><option value="">-</option><option ${c.battery==='6A'?'selected':''}>6A</option><option ${c.battery==='12A'?'selected':''}>12A</option><option ${c.battery==='18A'?'selected':''}>18A</option></select>
