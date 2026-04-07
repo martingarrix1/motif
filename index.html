@@ -1,1905 +1,260 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MOTIF | Portfolio</title>
-    <meta property="og:title" content="MOTIF | 프로페셔널 인스톨 샵">
-    <meta property="og:description" content="신차패키지를 직접 디자인하세요. 썬팅·PPF·유리막·가죽코팅 맞춤 견적">
-    <meta property="og:image" content="https://martingarrix1.github.io/motivation/og-image.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:url" content="https://martingarrix1.github.io/motivation/">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content="https://martingarrix1.github.io/motivation/og-image.png">
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-    <script>
-    try {
-      var _fbConfig = {
-        apiKey: "AIzaSyDjB5b6T5m-xTIyTUbGK0QCe5hEr9kZDR4",
-        authDomain: "motif-crm.firebaseapp.com",
-        projectId: "motif-crm",
-        storageBucket: "motif-crm.firebasestorage.app",
-        messagingSenderId: "339614788624",
-        appId: "1:339614788624:web:2e697521ba5cd133172e95"
-      };
-      if (!firebase.apps.length) firebase.initializeApp(_fbConfig);
-    } catch(e) { console.warn('Firebase init:', e); }
-    </script>
-
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        .pkg-form-wrap { display: none; background: #f8f7f5; border-top: 1px solid rgba(0,0,0,0.08); }
-        .pkg-form-wrap.open { display: block; }
-        .pkg-form-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: #1a1a18; position: sticky; top: 0; z-index: 10; }
-        .pkg-form-label { font-size:11px;letter-spacing:.15em;color:rgba(255,255,255,0.45);text-transform:uppercase; }
-        .pkg-form-close { background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.7);font-size:20px;width:34px;height:34px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1; }
-        .pkg-form-close:hover { background:rgba(255,255,255,0.18);color:#fff; }
-        .pkg-form-body { position: relative; height: 860px; overflow: hidden; background: #f8f7f5; }
-        .pkg-form-body .prog { position: absolute !important; }
-        .pkg-form-body .ticker { position: absolute !important; left: 50% !important; transform: translateX(-50%) !important; max-width: 660px !important; width: 100% !important; }
-        .pkg-form-body .scr { position: absolute !important; }
-        .pkg-form-body .intro-wrap { position: absolute !important; inset: 0 !important; }
-        @media (max-width: 768px) {
-            .pkg-form-body { height: auto !important; min-height: 100svh; overflow: visible; }
-            .pkg-form-body .scr { position: relative !important; inset: auto !important; left: auto !important; transform: none !important; opacity: 1 !important; pointer-events: auto !important; max-width: 100% !important; width: 100% !important; padding: 1.5rem 1rem 6rem !important; display: none; flex-direction: column; justify-content: flex-start !important; }
-            .pkg-form-body .scr.on { display: flex !important; }
-            .pkg-form-body .scr.out { display: none !important; }
-            .pkg-form-body .ticker { position: fixed !important; bottom: 0 !important; left: 0 !important; transform: none !important; width: 100% !important; max-width: 100% !important; }
-            .pkg-form-body .prog { position: fixed !important; top: 0 !important; }
-            .opts.g2 { grid-template-columns: 1fr !important; }
-            .on_ { font-size:14px !important; white-space:normal !important; word-break:keep-all !important; }
-            .os  { font-size:11px !important; white-space:normal !important; word-break:keep-all !important; }
-            .opr { font-size:12px !important; white-space:nowrap !important; flex-shrink:0 !important; }
-            .q   { font-size:clamp(17px,5vw,24px) !important; }
-            .nb  { font-size:13px !important; padding:10px 14px !important; }
-            .cr  { flex-direction:column !important; }
-        }
-        .hero-headline { color: #ffffff !important; text-shadow: 0 2px 20px rgba(0,0,0,0.5); }
-        .hero-sub { color: #ffffff !important; font-weight: 700 !important; text-shadow: 0 1px 8px rgba(0,0,0,0.4); }
-        .hero { position: relative; overflow: hidden; }
-        .hero-video { position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:0; }
-        .hero-video-overlay { position:absolute;inset:0;background:rgba(0,0,0,0.55);z-index:1; }
-        .hero-content { position:relative;z-index:2; }
-        .hero-scroll-indicator { position:relative;z-index:2; }
-        .navbar { background: #ffffff !important; }
-        .nav-links a, .nav-container a { color: #1a1a2e !important; }
-        .logo-img { width: 125px !important; height: auto !important; }
-        .section-package-intro { scroll-margin-top:56px; background:#0d0d0d;padding:120px 24px 80px;display:flex;flex-direction:column;align-items:center;text-align:center;border-top:1px solid rgba(255,255,255,0.06); }
-        .pkg-eyebrow { font-size:11px;letter-spacing:.22em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:24px; }
-        .pkg-headline { font-size:clamp(32px,6vw,64px);font-weight:800;color:#fff;line-height:1.2;margin-bottom:20px; }
-        .pkg-headline span { background:linear-gradient(135deg,#c9a84c 0%,#f0d080 50%,#c9a84c 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
-        .pkg-desc { font-size:clamp(15px,2vw,18px);color:rgba(255,255,255,0.45);line-height:1.8;max-width:480px;margin-bottom:48px; }
-        .btn-pkg { display:inline-flex;align-items:center;gap:10px;background:#c9a84c;color:#1a1200;font-size:16px;font-weight:700;padding:16px 36px;border-radius:50px;border:none;cursor:pointer;font-family:inherit;letter-spacing:.02em;transition:all .2s;text-decoration:none; }
-        .btn-pkg:hover { background:#f0d080;transform:translateY(-2px);box-shadow:0 12px 40px rgba(201,168,76,0.35); }
-        .btn-pkg:active { transform:scale(.97); }
-        .pkg-features { display:flex;gap:32px;margin-top:64px;flex-wrap:wrap;justify-content:center; }
-        .pkg-feat { display:flex;flex-direction:column;align-items:center;gap:8px; }
-        .pkg-feat-icon { font-size:24px; }
-        .pkg-feat-label { font-size:12px;color:rgba(255,255,255,0.35);letter-spacing:.05em; }
-        .work-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;max-width:1080px;margin:60px auto 0;padding:0 24px;width:100%;box-sizing:border-box;min-height:400px; }
-        .work-grid .instagram-media, .work-grid iframe { margin:0!important;min-width:unset!important;width:100%!important;border-radius:14px!important;min-height:580px; }
-        .work-more { display:flex;justify-content:center;margin-top:48px;padding-bottom:80px; }
-        .btn-insta { display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);font-size:14px;font-weight:600;padding:13px 28px;border-radius:50px;text-decoration:none;transition:all .2s; }
-        .btn-insta:hover { border-color:rgba(255,255,255,0.5);color:#fff;background:rgba(255,255,255,0.05); }
-        .float-wrap { position:fixed;bottom:28px;right:24px;display:flex;flex-direction:column;align-items:flex-end;gap:12px;z-index:9000; }
-        .float-btn { display:flex;align-items:center;gap:10px;padding:13px 20px;border-radius:50px;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;text-decoration:none;box-shadow:0 4px 20px rgba(0,0,0,0.25);transition:transform .2s,box-shadow .2s;white-space:nowrap;opacity:0;transform:translateY(12px);animation:floatIn .5s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
-        .float-btn:nth-child(1){animation-delay:.2s;} .float-btn:nth-child(2){animation-delay:.35s;}
-        @keyframes floatIn{to{opacity:1;transform:translateY(0);}}
-        .float-btn:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,0.3);}
-        .float-btn:active{transform:scale(.96);}
-        .float-btn-kakao{background:#FEE500;color:#3C1E1E;}
-        .float-btn-naver{background:#03C75A;color:#fff;}
-        .float-icon{width:22px;height:22px;flex-shrink:0;}
-        @media(max-width:768px){
-            .logo-img{width:80px!important;}
-            .hero-headline{font-size:clamp(26px,7vw,38px)!important;}
-            .hero-sub{font-size:13px!important;}
-            .btn-apple{font-size:13px!important;padding:11px 20px!important;}
-            .section-package-intro{padding:60px 20px 50px!important;}
-            .pkg-eyebrow{font-size:10px!important;}
-            .pkg-headline{font-size:clamp(24px,7vw,36px)!important;}
-            .pkg-desc{font-size:13px!important;margin-bottom:28px!important;}
-            .btn-pkg{font-size:14px!important;padding:13px 26px!important;}
-            .pkg-features{gap:20px!important;margin-top:36px!important;}
-            .pkg-feat-icon{font-size:20px!important;}
-            .pkg-feat-label{font-size:10px!important;}
-            .section-full{padding:60px 0!important;}
-            .overline{font-size:10px!important;}
-            .headline-large{font-size:clamp(28px,8vw,40px)!important;}
-            .work-grid{grid-template-columns:1fr!important;gap:16px!important;padding:0 16px!important;margin-top:32px!important;}
-            .work-more{margin-top:28px!important;padding-bottom:50px!important;}
-            .btn-insta{font-size:12px!important;padding:10px 20px!important;}
-            .contact-wrapper{padding:0 20px!important;}
-            .headline-xl{font-size:clamp(32px,10vw,52px)!important;}
-            .contact-sub{font-size:13px!important;}
-            .btn-apple-large{font-size:14px!important;padding:13px 28px!important;}
-            .contact-socials{font-size:12px!important;margin-top:24px!important;}
-            .footer-inner{padding:16px 20px!important;}
-            .float-wrap{bottom:16px!important;right:12px!important;}
-            .float-btn{padding:11px 14px!important;font-size:12px!important;}
-            @media(max-width:480px){.float-btn{padding:14px;border-radius:50%;}.float-label{display:none;}.float-icon{width:24px;height:24px;}}
-        }
-
-
-        /* 스크롤 강제 활성화 */
-        html, body {
-            overflow-x: hidden !important;
-            overflow-y: auto !important;
-            height: auto !important;
-            min-height: 100% !important;
-            -webkit-overflow-scrolling: touch !important;
-        }
-        /* fade-up 애니메이션 비활성화 (스크롤 차단 방지) */
-        .fade-up, .fade-up.delay-1, .fade-up.delay-2 {
-            opacity: 1 !important;
-            transform: none !important;
-            transition: none !important;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ㅡㅐ샬 | Portfolio</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <nav class="navbar" id="navbar">
-        <div class="nav-container">
-            <a href="#hero" class="logo"><img src="logo.png" alt="MOTIF" class="logo-img"></a>
-            <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기">
-                <span></span><span></span>
-            </button>
+  <!-- Navigation -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="#hero" class="logo">ㅡㅐ샬</a>
+      <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기">
+        <span></span>
+        <span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#about">소개</a></li>
+        <li><a href="#work">작업</a></li>
+        <li><a href="#skills">역량</a></li>
+        <li><a href="#contact">연락</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero">
+    <div class="hero-content">
+      <h1 class="hero-headline fade-up">
+        생각을 현실로.<br>
+        <span class="hero-highlight">코드로 디자인합니다.</span>
+      </h1>
+      <p class="hero-sub fade-up delay-1">
+        사용자 경험을 중심에 두고, 아름답고 직관적인 디지털 제품을 만듭니다.
+      </p>
+      <div class="hero-cta fade-up delay-2">
+        <a href="#work" class="btn-apple">작업 살펴보기</a>
+      </div>
+    </div>
+    <div class="hero-scroll-indicator">
+      <div class="scroll-dot"></div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section class="section-full" id="about">
+    <div class="section-intro">
+      <p class="overline fade-up">About</p>
+      <h2 class="headline-large fade-up">
+        복잡한 문제를<br>
+        <span class="text-gradient">단순하게 풀어냅니다.</span>
+      </h2>
+    </div>
+    <div class="about-content">
+      <div class="about-card fade-up">
+        <div class="about-card-inner">
+          <p class="about-desc">
+            저는 기술과 디자인의 교차점에서 일하는 개발자입니다.
+            단순히 작동하는 코드를 넘어, 사용자에게 감동을 주는 경험을 설계합니다.
+            모든 픽셀, 모든 인터랙션에 의미를 담습니다.
+          </p>
         </div>
-    </nav>
-
-    <section class="hero" id="hero">
-        <video class="hero-video" autoplay muted loop playsinline>
-            <source src="0413MM.mp4" type="video/mp4">
-        </video>
-        <div class="hero-video-overlay"></div>
-        <div class="hero-content">
-            <h1 class="hero-headline fade-up">신차패키지를<br><span class="hero-highlight">직접 디자인하다.</span></h1>
-            <p class="hero-sub fade-up delay-1">사용자 경험을 중심에 두고, 맞춤형 패키지를 제공합니다.</p>
-            <div class="hero-cta fade-up delay-2">
-                <a href="#package" class="btn-apple" style="text-decoration:none;display:inline-flex;align-items:center;" onclick="scrollToPackage(event)">패키지 구성하기</a>
-            </div>
+      </div>
+      <div class="stats-row fade-up delay-1">
+        <div class="stat-item">
+          <span class="stat-num">3+</span>
+          <span class="stat-text">Years of<br>Experience</span>
         </div>
-        <div class="hero-scroll-indicator"><div class="scroll-dot"></div></div>
-    </section>
-
-    <section class="section-package-intro" id="package">
-        <p class="pkg-eyebrow fade-up">New Car Package</p>
-        <h2 class="pkg-headline fade-up">원하는 대로,<br><span>직접 구성하세요.</span></h2>
-        <p class="pkg-desc fade-up delay-1">썬팅부터 PPF, 유리막, 가죽코팅까지<br>항목을 선택하면 신차패키지 할인가로<br>예상 견적이 자동으로 계산됩니다.</p>
-        <button class="btn-pkg fade-up delay-2" onclick="openPkgForm()">패키지 디자인하기 →</button>
-        <div class="pkg-features fade-up delay-2">
-            <div class="pkg-feat"><span class="pkg-feat-icon">🎨</span><span class="pkg-feat-label">항목 직접 선택</span></div>
-            <div class="pkg-feat"><span class="pkg-feat-icon">💰</span><span class="pkg-feat-label">실시간 견적 계산</span></div>
-            <div class="pkg-feat"><span class="pkg-feat-icon">📄</span><span class="pkg-feat-label">견적서 자동 발행</span></div>
-            <div class="pkg-feat"><span class="pkg-feat-icon">💬</span><span class="pkg-feat-label">카카오 알림톡 발송</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num">10+</span>
+          <span class="stat-text">Completed<br>Projects</span>
         </div>
-    </section>
-
-    <div class="pkg-form-wrap" id="pkgFormWrap">
-        <div class="pkg-form-bar">
-            <span class="pkg-form-label">MOTIF · 신차 패키지 구성</span>
-            <button class="pkg-form-close" onclick="closePkgForm()">×</button>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num">100%</span>
+          <span class="stat-text">Passion &<br>Dedication</span>
         </div>
-        <div class="pkg-form-body">
-<div class="prog" id="prog"></div>
-
-<div class="ticker" id="ticker">
-  <div><div class="t-lbl">신차패키지 할인 적용가</div></div>
-  <div class="t-row"><span class="t-orig" id="t-orig"></span><span class="t-val" id="t-val">-</span></div>
-</div>
-
-<!-- INTRO -->
-<div class="intro-wrap" id="scr-intro">
-  <div class="il">MOTIF · 전주 프로페셔널 인스톨 샵</div>
-  <h1 class="it">신차 패키지를<br>직접 디자인해보세요.</h1>
-  <p class="id_">원하시는 시공항목을 선택하면<br>신차패키지 할인가로<br>예상견적이 자동으로 나옵니다.</p>
-  <button class="stb" id="btn-start" type="button" onclick="startFlow()">시작하기 →</button>
-</div>
-
-<!-- 0: 성함 -->
-<div class="scr" id="scr-0">
-  <div class="slbl" id="lbl-0"></div>
-  <div class="q">성함이 어떻게 되세요?</div>
-  <div class="qh">상담 시 호칭으로 사용됩니다.</div>
-  <input class="ti" id="inp-name" type="text" placeholder="홍길동" maxlength="20" oninput="A.name=this.value;un()">
-  <div class="eh">입력 후 Enter ↵</div>
-</div>
-
-<!-- 1: 연락처 -->
-<div class="scr" id="scr-1">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-1"></div>
-  <div class="q">연락처를 남겨주세요.</div>
-  <div class="qh">견적 안내 및 예약 확인에 사용됩니다.</div>
-  <input class="ti" id="inp-phone" type="tel" placeholder="010-0000-0000" maxlength="13" oninput="fp(this);A.phone=this.value;un()" onkeydown="if(event.key==='Enter'){event.preventDefault();if(ca()){this.blur();setTimeout(()=>handleNext(),50);}}">
-  <div class="eh">입력 후 Enter ↵</div>
-</div>
-
-<!-- 2: 차종 -->
-<div class="scr" id="scr-2">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-2"></div>
-  <div class="q">차종이 어떻게 되세요?</div>
-  <div class="qh">차종에 따라 가격 기준이 달라집니다.</div>
-  <div class="opts g2">
-    <div class="opt" onclick="ps('vehicle','sedan',this)"><div class="ok">A</div><div class="ob"><div class="otxt"><div class="on_">승용 세단</div><div class="os">소·중·대형 세단, 해치백</div></div></div></div>
-    <div class="opt" onclick="ps('vehicle','suv',this)"><div class="ok">B</div><div class="ob"><div class="otxt"><div class="on_">SUV · RV</div><div class="os">중형~대형 SUV</div></div></div></div>
-    <div class="opt" onclick="ps('vehicle','large',this)"><div class="ok">C</div><div class="ob"><div class="otxt"><div class="on_">대형</div><div class="os">대형 세단 · 리무진 (SUV 기준 적용)</div></div></div></div>
-    <div class="opt" onclick="pickTesla(this)"><div class="ok">D</div><div class="ob"><div class="otxt"><div class="on_">테슬라</div><div class="os">Model S · 3 · X · Y</div></div></div></div>
-  </div>
-</div>
-
-<!-- 3: 시공 항목 -->
-<div class="scr" id="scr-3">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-3"></div>
-  <div class="q">시공하고자 하는 항목을<br>모두 선택해 주세요.</div>
-  <div class="mh">복수 선택 가능합니다.</div>
-  <div class="opts">
-    <div class="opt multi" onclick="pm('services','tinting',this,'btn-svc')"><div class="ok">A</div><div class="ob"><div class="otxt"><div class="on_">썬팅</div><div class="os">열·빛·자외선 동시 차단</div></div></div></div>
-    <div class="opt multi" onclick="pm('services','glass',this,'btn-svc')"><div class="ok">B</div><div class="ob"><div class="otxt"><div class="on_">유리막 코팅</div><div class="os">발수·광택·도막 보호</div></div></div></div>
-    <div class="opt multi" onclick="pm('services','leather',this,'btn-svc')"><div class="ok">C</div><div class="ob"><div class="otxt"><div class="on_">가죽 코팅</div><div class="os">열화·퇴색 방지</div></div></div></div>
-    <div class="opt multi" onclick="pm('services','ppf',this,'btn-svc')"><div class="ok">D</div><div class="ob"><div class="otxt"><div class="on_">PPF</div><div class="os">페인트 보호 필름</div></div></div></div>
-    <div class="opt multi" onclick="pm('services','elec',this,'btn-svc')"><div class="ok">E</div><div class="ob"><div class="otxt"><div class="on_">전장기기</div><div class="os">블랙박스·보조배터리·하이패스</div></div></div></div>
-  </div>
-  <button class="nb" id="btn-svc" onclick="nextFromSvc()" disabled>다음 →</button>
-</div>
-
-<!-- 썬팅 부위 -->
-<div class="scr" id="scr-tinting-areas">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-tinting-areas"></div>
-  <div class="q">시공할 유리를<br>선택해 주세요.</div>
-  <div class="mh">복수 선택 가능합니다.</div>
-  <div class="opts">
-    <div class="opt multi" onclick="pm('tint_areas','front',this,'btn-ta')"><div class="ok">A</div><div class="ob"><div class="otxt"><div class="on_">전면 유리</div><div class="os">앞 윈드실드</div></div></div></div>
-    <div class="opt multi" onclick="pm('tint_areas','side',this,'btn-ta')"><div class="ok">B</div><div class="ob"><div class="otxt"><div class="on_">측후면 유리</div><div class="os">운전석·조수석·뒷좌석 측면 + 후면</div></div></div></div>
-    <div class="opt multi" onclick="pm('tint_areas','sunroof',this,'btn-ta')"><div class="ok">C</div><div class="ob"><div class="otxt"><div class="on_">선루프</div><div class="os">일반 선루프 유리</div></div></div></div>
-    <div class="opt multi" onclick="pm('tint_areas','panorama',this,'btn-ta')"><div class="ok">D</div><div class="ob"><div class="otxt"><div class="on_">파노라마 선루프</div><div class="os">대형 파노라마 루프 유리</div></div></div></div>
-  </div>
-  <button class="nb" id="btn-ta" onclick="nextFromTA()" disabled>다음 →</button>
-</div>
-
-<!-- 썬팅 필름: 전면 -->
-<div class="scr" id="scr-tinting-front">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-tinting-front"></div>
-  <div class="q">전면 유리 — 필름 선택</div>
-  <div class="opts" id="opts-front"></div>
-</div>
-
-<!-- 썬팅 필름: 측후면 -->
-<div class="scr" id="scr-tinting-side">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-tinting-side"></div>
-  <div class="q">측후면 유리 — 필름 선택</div>
-  <div class="opts" id="opts-side"></div>
-</div>
-
-<!-- 테슬라 모델 선택 -->
-<div class="scr" id="scr-tesla-model">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-tesla-model"></div>
-  <div class="q">테슬라 모델을<br>선택해 주세요.</div>
-  <div class="opts">
-    <div class="opt" onclick="pickTeslaModel('S',this)">
-      <div class="ok">A</div>
-      <div class="ob"><div class="otxt"><div class="on_">Model S</div><div class="os">승용 기준 · 일반 선루프</div></div></div>
+      </div>
     </div>
-    <div class="opt" onclick="pickTeslaModel('3',this)">
-      <div class="ok">B</div>
-      <div class="ob"><div class="otxt"><div class="on_">Model 3</div><div class="os">승용 기준 · 열선 하프/통시공 · 일반 선루프</div></div></div>
+  </section>
+
+  <!-- Work Section -->
+  <section class="section-full section-dark" id="work">
+    <div class="section-intro">
+      <p class="overline fade-up">Featured Work</p>
+      <h2 class="headline-large fade-up">
+        최근 프로젝트.
+      </h2>
     </div>
-    <div class="opt" onclick="pickTeslaModel('X',this)">
-      <div class="ok">C</div>
-      <div class="ob"><div class="otxt"><div class="on_">Model X</div><div class="os">SUV 기준 · 파노라마 선루프</div></div></div>
-    </div>
-    <div class="opt" onclick="pickTeslaModel('Y',this)">
-      <div class="ok">D</div>
-      <div class="ob"><div class="otxt"><div class="on_">Model Y</div><div class="os">승용 기준 · 파노라마 선루프</div></div></div>
-    </div>
-  </div>
-</div>
 
-<!-- 테슬라 열선 분기 -->
-<div class="scr" id="scr-tesla-wire">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-tesla-wire"></div>
-  <div class="q">후면 유리 열선 시공<br>방식을 선택해 주세요.</div>
-  <div class="qh">테슬라 모델3 후면 유리에는 열선이 내장돼 있어<br>시공 방식에 따라 난이도와 가격이 달라집니다.</div>
-  <div class="opts">
-    <div class="opt" onclick="ps('tesla_wire','half',this)">
-      <div class="ok">A</div>
-      <div class="ob"><div class="otxt"><div class="on_">하프 시공</div><div class="os">열선 부위를 제외한 범위 시공 · 안전한 방식</div></div><div class="opr">추가 없음</div></div>
-    </div>
-    <div class="opt" onclick="ps('tesla_wire','full',this)">
-      <div class="ok">B</div>
-      <div class="ob"><div class="otxt"><div class="on_">통 시공</div><div class="os">열선 포함 전체 시공 · 난이도 높음</div></div><div class="opr">+20만원</div></div>
-    </div>
-  </div>
-</div>
-
-<!-- 썬팅 필름: 선루프 -->
-<div class="scr" id="scr-tinting-sunroof">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-tinting-sunroof"></div>
-  <div class="q">선루프 — 필름 선택</div>
-  <div class="opts" id="opts-sunroof"></div>
-</div>
-
-<!-- 썬팅 필름: 파노라마 -->
-<div class="scr" id="scr-tinting-panorama">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-tinting-panorama"></div>
-  <div class="q">파노라마 선루프 — 필름 선택</div>
-  <div class="opts" id="opts-panorama"></div>
-</div>
-
-<!-- 기타 직접입력 -->
-<div class="scr" id="scr-tinting-other">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-tinting-other"></div>
-  <div class="q">원하시는 필름명을<br>직접 입력해 주세요.</div>
-  <div class="qh" id="other-hint"></div>
-  <input class="ti" id="inp-tint-other" type="text" placeholder="예: 솔라가드 퀀텀" maxlength="40" oninput="A.tint_other=this.value;un()">
-  <div class="eh">입력 후 Enter ↵</div>
-</div>
-
-<!-- 유리막 -->
-<div class="scr" id="scr-glass">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-glass"></div>
-  <div class="q">유리막 코팅 제품을<br>선택해 주세요.</div>
-  <div class="opts">
-    <div class="opt" onclick="ps('glass_p','carboflex',this)"><div class="ok">A</div><div class="ob"><div class="otxt"><div class="on_">커버플릭 3X</div><div class="os">3년 내구 고경도 코팅</div></div><div class="opr">50만원</div></div></div>
-    <div class="opt rec-opt" onclick="ps('glass_p','motif_sig',this)">
-      <div class="bdg rec">추천</div>
-      <div class="ok">B</div>
-      <div class="ob"><div class="otxt"><div class="on_">모티프 시그니처</div><div class="os">발수·발유·광택 중심</div></div><div class="opr">40만원</div></div>
-    </div>
-    <div class="opt" onclick="ps('glass_p','motif_bl',this)">
-      <div class="bdg gold">PREMIUM</div>
-      <div class="ok">C</div>
-      <div class="ob"><div class="otxt"><div class="on_">모티프 블랙라벨</div><div class="os">장기 내구 최상위</div></div><div class="opr">80만원</div></div>
-    </div>
-    <div class="opt" onclick="ps('glass_p','glass_ask',this)"><div class="ok">D</div><div class="ob"><div class="otxt"><div class="on_">추천 받겠습니다</div><div class="os">상담 시 결정</div></div><div class="opr na">별도 안내</div></div></div>
-  </div>
-</div>
-
-<!-- 가죽 -->
-<div class="scr" id="scr-leather">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-leather"></div>
-  <div class="q">가죽 코팅 제품을<br>선택해 주세요.</div>
-  <div class="opts">
-    <div class="opt rec-opt" onclick="ps('leather_p','motif_sig',this)">
-      <div class="bdg rec">추천</div>
-      <div class="ok">A</div>
-      <div class="ob"><div class="otxt"><div class="on_">모티프 시그니처</div><div class="os">기본 열화·퇴색 방지</div></div><div class="opr">40만원</div></div>
-    </div>
-    <div class="opt" onclick="ps('leather_p','yawara_std',this)"><div class="ok">B</div><div class="ob"><div class="otxt"><div class="on_">야와라 스탠다드</div><div class="os">밀착력·유연성 중심</div></div><div class="opr">70만원</div></div></div>
-    <div class="opt" onclick="ps('leather_p','yawara_exc',this)">
-      <div class="bdg gold">PREMIUM</div>
-      <div class="ok">C</div>
-      <div class="ob"><div class="otxt"><div class="on_">야와라 익스클루시브</div><div class="os">최상위 가죽 보호</div></div><div class="opr">120만원</div></div>
-    </div>
-    <div class="opt" onclick="ps('leather_p','ug',this)"><div class="ok">D</div><div class="ob"><div class="otxt"><div class="on_">UG</div><div class="os">유광 마감 특화</div></div><div class="opr">50만원</div></div></div>
-    <div class="opt" onclick="ps('leather_p','leather_ask',this)"><div class="ok">E</div><div class="ob"><div class="otxt"><div class="on_">추천 받겠습니다</div><div class="os">상담 시 결정</div></div><div class="opr na">별도 안내</div></div></div>
-  </div>
-</div>
-
-<!-- PPF 범위 -->
-<div class="scr" id="scr-ppf">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-ppf"></div>
-  <div class="q">PPF 시공 범위를<br>선택해 주세요.</div>
-  <div class="mh">복수 선택 가능합니다.</div>
-  <div class="opts">
-    <div class="opt multi" onclick="pm('ppf_range','life4',this,'btn-ppf')"><div class="ok">A</div><div class="ob"><div class="otxt"><div class="on_">생활보호 4종</div><div class="os">도어컵·손잡이·트렁크 등</div></div><div class="opr">10만원</div></div></div>
-    <div class="opt multi" onclick="pm('ppf_range','light',this,'btn-ppf')"><div class="ok">B</div><div class="ob"><div class="otxt"><div class="on_">라이트</div><div class="os">앞범퍼 하단 + 생활보호</div></div><div class="opr">10만원</div></div></div>
-    <div class="opt multi" onclick="pm('ppf_range','bc_pillar',this,'btn-ppf')"><div class="ok">C</div><div class="ob"><div class="otxt"><div class="on_">BC 필러</div><div class="os">B·C 필러 시공</div></div><div class="opr">10만원</div></div></div>
-    <div class="opt multi" onclick="pm('ppf_range','bonnet',this,'btn-ppf')"><div class="ok">D</div><div class="ob"><div class="otxt"><div class="on_">보닛</div><div class="os">보닛 단독</div></div><div class="opr">50만원</div></div></div>
-    <div class="opt multi" onclick="pm('ppf_range','front_a',this,'btn-ppf')"><div class="ok">E</div><div class="ob"><div class="otxt"><div class="on_">프런트 패키지 A</div><div class="os">보닛 + 앞범퍼</div></div><div class="opr">120만원</div></div></div>
-    <div class="opt multi" onclick="pm('ppf_range','front_b',this,'btn-ppf')"><div class="ok">F</div><div class="ob"><div class="otxt"><div class="on_">프런트 패키지 B</div><div class="os">보닛 + 앞범퍼 + 펜더</div></div><div class="opr">190만원</div></div></div>
-    <div class="opt multi" onclick="pm('ppf_range','dooredge',this,'btn-ppf')"><div class="ok">G</div><div class="ob"><div class="otxt"><div class="on_">문콕 패키지</div><div class="os">도어 엣지 전체</div></div><div class="opr">180만원</div></div></div>
-    <div class="opt multi" onclick="pm('ppf_range','full',this,'btn-ppf')">
-      <div class="bdg gold">FULL</div>
-      <div class="ok">H</div>
-      <div class="ob"><div class="otxt"><div class="on_">전체 PPF</div><div class="os">전차체 도막 완전 보호</div></div><div class="opr">제품별 상이</div></div>
-    </div>
-  </div>
-  <button class="nb" id="btn-ppf" onclick="nextFromPPF()" disabled>다음 →</button>
-</div>
-
-<!-- PPF 마감 (전체PPF만) -->
-<div class="scr" id="scr-ppf-finish">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-ppf-finish"></div>
-  <div class="q">전체 PPF 마감을<br>선택해 주세요.</div>
-  <div class="opts g2">
-    <div class="opt" onclick="ps('ppf_finish','gloss',this)"><div class="ok">A</div><div class="ob"><div class="otxt"><div class="on_">유광</div><div class="os">광택 도장 유지</div></div></div></div>
-    <div class="opt" onclick="ps('ppf_finish','matte',this)"><div class="ok">B</div><div class="ob"><div class="otxt"><div class="on_">무광</div><div class="os">무광 래핑 효과</div></div></div></div>
-  </div>
-</div>
-
-<!-- PPF 시공 필름 (항상 표시) -->
-<div class="scr" id="scr-ppf-product">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-ppf-product"></div>
-  <div class="q">PPF 시공 필름을<br>선택해 주세요.</div>
-  <div class="qh" id="ppf-prod-hint">선택 범위의 시공에 사용될 PPF 필름입니다.</div>
-  <div class="opts">
-    <div class="opt" onclick="ps('ppf_prod','claus',this)"><div class="ok">A</div><div class="ob"><div class="otxt"><div class="on_">울트라핏 클라우스</div><div class="os">자가복원, 국내 인기</div></div><div class="opr" id="pr-claus">-</div></div></div>
-    <div class="opt" onclick="ps('ppf_prod','crystal',this)"><div class="ok">B</div><div class="ob"><div class="otxt"><div class="on_">울트라핏 크리스탈</div><div class="os">고투명 고경도</div></div><div class="opr" id="pr-crystal">-</div></div></div>
-    <div class="opt" onclick="ps('ppf_prod','xpel',this)">
-      <div class="bdg gold">PREMIUM</div>
-      <div class="ok">C</div>
-      <div class="ob"><div class="otxt"><div class="on_">엑스펠</div><div class="os">글로벌 프리미엄 PPF</div></div><div class="opr" id="pr-xpel">-</div></div>
-    </div>
-    <div class="opt" onclick="ps('ppf_prod','ppf_ask',this)"><div class="ok">D</div><div class="ob"><div class="otxt"><div class="on_">추천 받겠습니다</div><div class="os">상담 시 결정</div></div><div class="opr na">별도 안내</div></div></div>
-  </div>
-</div>
-
-<!-- 전장기기 항목 -->
-<div class="scr" id="scr-elec">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-elec"></div>
-  <div class="q">전장기기 항목을<br>선택해 주세요.</div>
-  <div class="mh">복수 선택 가능합니다.</div>
-  <div class="opts">
-    <div class="opt multi" onclick="pm('elec_items','blackbox',this,'btn-elec')"><div class="ok">A</div><div class="ob"><div class="otxt"><div class="on_">블랙박스</div><div class="os">아이나비 시리즈</div></div></div></div>
-    <div class="opt multi" onclick="pm('elec_items','battery',this,'btn-elec')"><div class="ok">B</div><div class="ob"><div class="otxt"><div class="on_">보조배터리</div><div class="os">상시전원 공급 장치</div></div></div></div>
-    <div class="opt multi" onclick="pm('elec_items','hipass',this,'btn-elec')"><div class="ok">C</div><div class="ob"><div class="otxt"><div class="on_">하이패스</div><div class="os">단말기 설치</div></div><div class="opr">10만원</div></div></div>
-    <div class="opt multi" onclick="pm('elec_items','elec_other',this,'btn-elec')"><div class="ok">D</div><div class="ob"><div class="otxt"><div class="on_">기타 직접입력</div></div></div></div>
-  </div>
-  <button class="nb" id="btn-elec" onclick="nextFromElec()" disabled>다음 →</button>
-</div>
-
-<!-- 블랙박스 -->
-<div class="scr" id="scr-blackbox">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-blackbox"></div>
-  <div class="q">블랙박스 모델을<br>선택해 주세요.</div>
-  <div class="opts">
-    <div class="opt" onclick="ps('bb_model','inavi_basic',this)"><div class="ok">A</div><div class="ob"><div class="otxt"><div class="on_">아이나비 최상급</div><div class="os">4K 프리미엄</div></div><div class="opr">55만원</div></div></div>
-    <div class="opt rec-opt" onclick="ps('bb_model','finevu_rec',this)">
-      <div class="bdg rec">추천</div>
-      <div class="ok">B</div>
-      <div class="ob"><div class="otxt"><div class="on_">아이나비 Q시리즈</div><div class="os">화질·내구성 균형</div></div><div class="opr">45만원</div></div>
-    </div>
-    <div class="opt" onclick="ps('bb_model','finevu_a',this)"><div class="ok">C</div><div class="ob"><div class="otxt"><div class="on_">아이나비 Z시리즈</div><div class="os">기본형</div></div><div class="opr">35만원</div></div></div>
-    <div class="opt" onclick="ps('bb_model','bb_ask',this)"><div class="ok">D</div><div class="ob"><div class="otxt"><div class="on_">추천 받겠습니다</div></div><div class="opr na">별도 안내</div></div></div>
-  </div>
-</div>
-
-<!-- 보조배터리 -->
-<div class="scr" id="scr-battery">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-battery"></div>
-  <div class="q">보조배터리 용량을<br>선택해 주세요.</div>
-  <div class="opts">
-    <div class="opt" onclick="ps('bat_cap','6a',this)"><div class="ok">A</div><div class="ob"><div class="otxt"><div class="on_">6A</div><div class="os">소형차·단거리 주차</div></div><div class="opr">30만원</div></div></div>
-    <div class="opt rec-opt" onclick="ps('bat_cap','12a',this)">
-      <div class="bdg rec">추천</div>
-      <div class="ok">B</div>
-      <div class="ob"><div class="otxt"><div class="on_">12A</div><div class="os">일반 추천 용량</div></div><div class="opr">40만원</div></div>
-    </div>
-    <div class="opt" onclick="ps('bat_cap','18a',this)"><div class="ok">C</div><div class="ob"><div class="otxt"><div class="on_">18A</div><div class="os">장시간 주차·대형 블랙박스</div></div><div class="opr">55만원</div></div></div>
-  </div>
-</div>
-
-<!-- 기타 전장 -->
-<div class="scr" id="scr-elec-other">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" id="lbl-elec-other"></div>
-  <div class="q">원하시는 기기를<br>직접 입력해 주세요.</div>
-  <input class="ti" id="inp-elec-other" type="text" placeholder="예: 애플 카플레이 연동" maxlength="50" oninput="A.elec_other_text=this.value;un()">
-  <div class="eh">입력 후 Enter ↵</div>
-</div>
-
-<!-- SUMMARY -->
-<div class="scr" id="scr-summary" style="justify-content:flex-start;padding-top:3rem;">
-  <button class="bk" onclick="goBack()"><span class="bk-arr">←</span> 이전으로</button>
-  <div class="slbl" style="font-size:11px;letter-spacing:.15em;color:var(--tx3);text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:8px;"><span style="display:inline-block;width:14px;height:1px;background:var(--tx3);"></span>완료 · 접수 내용</div>
-  <div class="q" style="font-size:20px;margin-bottom:1.2rem;">구성이 완료됐습니다.</div>
-  <div id="sum" style="width:100%;"></div>
-</div>
-<script>
-
-// ── PRICE TABLES (만원) ─────────────────────────────────────
-const TINT_PR = {
-  front: {
-    sedan:{lx:90,vogue:70,zenith:60,quantum:55,titanium:45,g:35,s:30},
-    suv:  {lx:95,vogue:75,zenith:65,quantum:60,titanium:50,g:40,s:35},
-    large:{lx:100,vogue:80,zenith:70,quantum:65,titanium:55,g:45,s:40}
-  },
-  side: {
-    sedan:{lx:150,vogue:110,zenith:90,quantum:85,titanium:65,g:45,s:40},
-    suv:  {lx:155,vogue:115,zenith:95,quantum:90,titanium:70,g:50,s:45},
-    large:{lx:160,vogue:120,zenith:100,quantum:95,titanium:75,g:55,s:50}
-  },
-  sunroof: {
-    sedan:{lx:30,vogue:25,zenith:20,quantum:20,titanium:15,g:10,s:8},
-    suv:  {lx:35,vogue:30,zenith:25,quantum:25,titanium:20,g:15,s:13},
-    large:{lx:40,vogue:35,zenith:30,quantum:30,titanium:25,g:20,s:18}
-  },
-  panorama: {
-    sedan:{lx:60,vogue:45,zenith:40,quantum:35,titanium:25,g:20,s:16},
-    suv:  {lx:65,vogue:50,zenith:45,quantum:40,titanium:30,g:25,s:21},
-    large:{lx:70,vogue:55,zenith:50,quantum:45,titanium:35,g:30,s:26}
-  }
-};
-const GLASS_PR = {
-  sedan: {carboflex:50, motif_sig:40, motif_bl:80, glass_ask:null},
-  suv:   {carboflex:55, motif_sig:45, motif_bl:85, glass_ask:null},
-  large: {carboflex:60, motif_sig:50, motif_bl:90, glass_ask:null}
-};
-const LEATHER_PR= {motif_sig:40,yawara_std:70,yawara_exc:120,ug:50,leather_ask:null};
-const PPF_RANGE_PR = {life4:10,light:10,bc_pillar:10,bonnet:50,front_a:120,front_b:190,dooredge:180,full:0};
-const PPF_PROD_PR  = {claus:280,crystal:330,xpel:360,ppf_ask:null};
-// 필름 필요 범위
-const PPF_NEEDS_FILM = ['bonnet','front_a','front_b','dooredge','full'];
-// 범위별 필름 추가금 (클라루스 기준, 추가금)
-const PPF_FILM_SURCHARGE = {
-  claus:   {bonnet:0,  front_a:0,  front_b:0,  dooredge:0,  full:0},
-  crystal: {bonnet:10, front_a:20, front_b:20, dooredge:20, full:50},
-  xpel:    {bonnet:15, front_a:30, front_b:30, dooredge:30, full:80},
-};
-// 전체PPF 차종×마감×필름 가격표
-const PPF_FULL_PR = {
-  sedan: {
-    gloss: {claus:350, crystal:400, xpel:450},
-    matte: {claus:370, crystal:440, xpel:490}
-  },
-  suv: {
-    gloss: {claus:370, crystal:420, xpel:470},
-    matte: {claus:390, crystal:460, xpel:520}
-  },
-  large: {
-    gloss: {claus:400, crystal:450, xpel:500},
-    matte: {claus:420, crystal:490, xpel:550}
-  }
-};
-const BB_PR  = {inavi_basic:55,finevu_rec:45,finevu_a:35,bb_ask:null};
-const BAT_PR = {'6a':30,'12a':40,'18a':55};
-const HIPASS_PR = 10;
-const TESLA_WIRE_SURCHARGE = 20;
-const DISCOUNT = 0.20;
-
-// ── 할인율 계산 ─────────────────────────────────────────────
-function calcDiscount(totalBySvc) {
-  const svc = A.services || [];
-  const hasTinting  = svc.includes('tinting');
-  const hasPPF      = svc.includes('ppf');
-  const svcCount    = svc.length;
-  let disc = 0;
-
-  if (hasTinting) {
-    // 썬팅 포함: 썬팅 20%, PPF 10%, 기타 20%
-    disc += Math.round((totalBySvc.tinting||0) * 0.20);
-    disc += Math.round((totalBySvc.ppf||0)     * 0.10);
-    disc += Math.round((totalBySvc.other||0)   * 0.20);
-  } else if (svcCount >= 2) {
-    // 썬팅 없고 2가지 이상: PPF 5%, 기타 10%
-    disc += Math.round((totalBySvc.ppf||0)   * 0.05);
-    disc += Math.round((totalBySvc.other||0) * 0.10);
-  } else if (svcCount === 1) {
-    // 단독 시공: PPF 5%, 기타 5%
-    disc += Math.round((totalBySvc.ppf||0)   * 0.05);
-    disc += Math.round((totalBySvc.other||0) * 0.05);
-  }
-  return disc;
-}
-
-// ── LABELS ───────────────────────────────────────────────────
-const VL  = {sedan:'승용 세단',suv:'SUV·RV',large:'대형',tesla:'테슬라'};
-function vehicleLabel() { if (A.vehicle==='tesla'&&A.tesla_model) return '테슬라 Model '+A.tesla_model; return VL[A.vehicle]||'-'; }
-const FL  = {lx:'Solargard THE LX',vogue:'보그',zenith:'제니스 IR',quantum:'퀀텀',titanium:'티타늄',g:'G라인',s:'S라인',ask:'상담 시 결정',other:'직접입력'};
-const GL  = {carboflex:'커버플릭 3X',motif_sig:'모티프 시그니처',motif_bl:'모티프 블랙라벨',glass_ask:'상담 시 결정'};
-const LL  = {motif_sig:'모티프 시그니처',yawara_std:'야와라 스탠다드',yawara_exc:'야와라 익스클루시브',ug:'UG',leather_ask:'상담 시 결정'};
-const PL  = {life4:'생활보호 4종',light:'라이트',bc_pillar:'BC 필러',bonnet:'보닛',front_a:'프런트 패키지 A',front_b:'프런트 패키지 B',dooredge:'문콕 패키지',full:'전체 PPF'};
-const PPL = {claus:'울트라핏 클라우스',crystal:'울트라핏 크리스탈',xpel:'엑스펠',ppf_ask:'상담 시 결정'};
-const BBL = {inavi_basic:'아이나비 최상급',finevu_rec:'아이나비 Q시리즈',finevu_a:'아이나비 Z시리즈',bb_ask:'상담 시 결정'};
-const BATL= {'6a':'6A','12a':'12A','18a':'18A'};
-const AN  = {front:'전면 유리',side:'측후면 유리',sunroof:'선루프',panorama:'파노라마'};
-
-// Film options — order from price table
-const FILM_OPTS = [
-  {id:'lx',      n:'Solargard THE LX', s:'IWFA 인증', premium:true},
-  {id:'vogue',   n:'보그',             s:'컬러 특화'},
-  {id:'zenith',  n:'제니스 IR',        s:'고성능 IR 차단', rec:true},
-  {id:'quantum', n:'퀀텀',             s:'세라믹 IR'},
-  {id:'titanium',n:'티타늄',           s:'금속 IR'},
-  {id:'g',       n:'G라인',            s:'투명도 중심'},
-  {id:'s',       n:'S라인',            s:'자외선·열 차단'},
-  {id:'ask',     n:'추천 받겠습니다',  s:'상담 시 결정', na:true},
-  {id:'other',   n:'기타 직접입력',    s:'직접 입력', na:true}
-];
-
-// ── STATE ────────────────────────────────────────────────────
-const A = {};
-let FLOW = [], curId = 'intro';
-
-function tier() {
-  if (A.vehicle === 'tesla') return A.tesla_model === 'X' ? 'large' : 'sedan';
-  if (A.vehicle === 'large') return 'large';
-  return A.vehicle === 'sedan' ? 'sedan' : 'suv';
-}
-
-function filmPrice(filmId, areaId) {
-  if (!filmId || filmId === 'ask' || filmId === 'other') return null;
-  return TINT_PR[areaId]?.[tier()]?.[filmId] ?? null;
-}
-
-// ── FILM OPTION BUILDER ──────────────────────────────────────
-function buildFilmOpts(areaId, ansKey) {
-  const el = document.getElementById(`opts-${areaId}`);
-  if (!el) return;
-  const keys = 'ABCDEFGHI';
-  // Model 3 통시공이면 LX 비활성화
-  const lxDisabled = A.vehicle === 'tesla' && A.tesla_model === '3' && A.tesla_wire === 'full';
-  el.innerHTML = FILM_OPTS.map((f, i) => {
-    const p = filmPrice(f.id, areaId);
-    const isDisabled = lxDisabled && f.id === 'lx';
-    const prHtml = f.na
-      ? `<div class="opr na">별도 안내</div>`
-      : isDisabled
-        ? `<div class="opr na">3 통시공 불가</div>`
-        : `<div class="opr">${p != null ? p + '만원' : '-'}</div>`;
-    const recCls = f.rec ? ' rec-opt' : '';
-    const recBdg = f.rec ? '<div class="bdg rec">추천</div>' : '';
-    const preBdg = f.premium ? '<div class="bdg gold">PREMIUM</div>' : '';
-    const disabledStyle = isDisabled ? 'opacity:0.35;pointer-events:none;' : '';
-    return `<div class="opt${recCls}" onclick="${isDisabled ? '' : `pickFilm('${ansKey}','${f.id}','${areaId}',this)`}" style="${disabledStyle}">
-      ${recBdg}${preBdg}
-      <div class="ok">${keys[i]}</div>
-      <div class="ob"><div class="otxt"><div class="on_">${f.n}</div><div class="os">${f.s}</div></div>${prHtml}</div>
-    </div>`;
-  }).join('');
-}
-
-// 테슬라 선택 → 모델 선택 화면으로
-function pickTesla(el) {
-  A.vehicle = 'tesla';
-  el.closest('.opts').querySelectorAll('.opt').forEach(o => o.classList.remove('on'));
-  el.classList.add('on');
-  updateTicker();
-  setTimeout(() => goTo('tesla-model'), 380);
-}
-
-// 테슬라 모델 선택
-function pickTeslaModel(model, el) {
-  A.tesla_model = model;
-  el.closest('.opts').querySelectorAll('.opt').forEach(o => o.classList.remove('on'));
-  el.classList.add('on');
-  // 모델에 따라 tint_areas 기본값 설정
-  if (model === 'Y') {
-    // 파노라마 자동 포함 안내
-    A._tesla_panorama = true;
-    A._tesla_sunroof = false;
-  } else if (model === 'S') {
-    A._tesla_panorama = false;
-    A._tesla_sunroof = true;
-  } else if (model === 'X') {
-    A._tesla_panorama = true;
-    A._tesla_sunroof = false;
-  } else {
-    // Model 3
-    A._tesla_panorama = false;
-    A._tesla_sunroof = true;
-  }
-  updateTicker(); un();
-  setTimeout(() => goTo('3'), 380);
-}
-
-function pickFilm(ansKey, val, areaId, el) {
-  A[ansKey] = val;
-  el.closest('.opts').querySelectorAll('.opt').forEach(o => o.classList.remove('on'));
-  el.classList.add('on');
-  updateTicker();
-  if (val === 'other') {
-    document.getElementById('other-hint').textContent = AN[areaId] + ' — 필름명을 입력해 주세요.';
-    setTimeout(() => goTo('tinting-other'), 380);
-  } else { un(); setTimeout(gn, 380); }
-}
-
-// Update PPF product price labels based on whether full is selected
-function updatePPFProdLabels() {
-  const hasFull = (A.ppf_range || []).includes('full');
-  const ppfr = A.ppf_range || [];
-
-  ['claus','crystal','xpel'].forEach(id => {
-    const el = document.getElementById(`pr-${id}`);
-    if (!el) return;
-    if (hasFull) {
-      const finish = A.ppf_finish === 'matte' ? 'matte' : 'gloss';
-      const t = tier();
-      const p = (PPF_FULL_PR[t] || PPF_FULL_PR.sedan)[finish][id];
-      el.textContent = p != null ? p + '만원' : '-';
-    } else {
-      const surcharges = ppfr
-        .filter(r => PPF_NEEDS_FILM.includes(r) && r !== 'full')
-        .map(r => (PPF_FILM_SURCHARGE[id] || {})[r] || 0);
-      const extra = surcharges.reduce((a,b)=>a+b, 0);
-      el.textContent = extra > 0 ? '+' + extra + '만원' : (id === 'claus' ? '기본' : '범위별 추가');
-    }
-  });
-
-  const hint = document.getElementById('ppf-prod-hint');
-  if (hint) hint.textContent = hasFull
-    ? '전체 PPF 가격은 차종·마감·필름에 따라 결정됩니다.'
-    : '클라루스 기준 가격에 필름별 추가금이 적용됩니다.';
-}
-
-// ── FLOW BUILDER ─────────────────────────────────────────────
-function buildFlow() {
-  const svc  = A.services    || [];
-  const areas= A.tint_areas  || [];
-  const elec = A.elec_items  || [];
-  const ppfr = A.ppf_range   || [];
-  FLOW = ['0','1','2'];
-  if (A.vehicle === 'tesla') FLOW.push('tesla-model');
-  FLOW.push('3');
-
-  if (svc.includes('tinting')) {
-    FLOW.push('tinting-areas');
-    if (areas.includes('front'))    FLOW.push('tinting-front');
-    if (areas.includes('side')) {
-      FLOW.push('tinting-side');
-      // 열선 분기는 Model 3만
-      if (A.vehicle === 'tesla' && A.tesla_model === '3') FLOW.push('tesla-wire');
-    }
-    if (areas.includes('sunroof'))  FLOW.push('tinting-sunroof');
-    if (areas.includes('panorama')) FLOW.push('tinting-panorama');
-  }
-  if (svc.includes('glass'))   FLOW.push('glass');
-  if (svc.includes('leather')) FLOW.push('leather');
-  if (svc.includes('ppf')) {
-    FLOW.push('ppf');
-    if (ppfr.length > 0) {
-      const needsFilm = ppfr.some(r => PPF_NEEDS_FILM.includes(r));
-      if (ppfr.includes('full')) FLOW.push('ppf-finish');
-      if (needsFilm) FLOW.push('ppf-product');
-    }
-  }
-  if (svc.includes('elec')) {
-    FLOW.push('elec');
-    if (elec.includes('blackbox'))   FLOW.push('blackbox');
-    if (elec.includes('battery'))    FLOW.push('battery');
-    if (elec.includes('elec_other')) FLOW.push('elec-other');
-  }
-  FLOW.push('summary');
-
-  // Rebuild film UIs with current vehicle tier
-  if (svc.includes('tinting')) {
-    if (areas.includes('front'))    buildFilmOpts('front','film_front');
-    if (areas.includes('side'))     buildFilmOpts('side','film_side');
-    if (areas.includes('sunroof'))  buildFilmOpts('sunroof','film_sunroof');
-    if (areas.includes('panorama')) buildFilmOpts('panorama','film_panorama');
-  }
-  updatePPFProdLabels();
-  updateLabels();
-}
-
-function updateLabels() {
-  const total = FLOW.length - 1;
-  FLOW.forEach((id, i) => {
-    const el = document.getElementById(`lbl-${id}`);
-    if (el) el.textContent = `${String(i+1).padStart(2,'0')} / ${String(total).padStart(2,'0')}`;
-  });
-}
-
-// ── CALC ─────────────────────────────────────────────────────
-function calcTotal() {
-  let tintingTotal = 0, ppfTotal = 0, otherTotal = 0, hasNull = false;
-  const svc=A.services||[], areas=A.tint_areas||[], elec=A.elec_items||[];
-
-  if (svc.includes('tinting')) {
-    ['front','side','sunroof','panorama'].forEach(area => {
-      if (!areas.includes(area)) return;
-      const key = 'film_' + area;
-      const p = filmPrice(A[key], area);
-      if (p == null) { if (A[key] && A[key] !== 'other') hasNull = true; }
-      else tintingTotal += p;
-    });
-    if (A.vehicle === 'tesla' && areas.includes('side') && A.tesla_wire === 'full') {
-      tintingTotal += TESLA_WIRE_SURCHARGE;
-    }
-  }
-  if (svc.includes('glass'))  { const glPr=(GLASS_PR[tier()]||GLASS_PR.sedan); const p=glPr[A.glass_p]; if(p==null&&A.glass_p)hasNull=true; else if(p)otherTotal+=p; }
-  if (svc.includes('leather')){ const p=LEATHER_PR[A.leather_p]; if(p==null&&A.leather_p)hasNull=true; else if(p)otherTotal+=p; }
-  if (svc.includes('ppf')) {
-    (A.ppf_range||[]).forEach(r => {
-      if (r === 'full') {
-        if (!A.ppf_prod || A.ppf_prod === 'ppf_ask') {
-          if (!A.ppf_prod) hasNull = true;
-        } else {
-          const finish = A.ppf_finish === 'matte' ? 'matte' : 'gloss';
-          const t = tier();
-          const p = (PPF_FULL_PR[t] || PPF_FULL_PR.sedan)[finish][A.ppf_prod];
-          if (p != null) ppfTotal += p;
-          else hasNull = true;
-        }
-      } else {
-        // 썬팅+PPF 조합 시 서비스 항목 0원 처리
-        const svc = A.services || [];
-        const hasTinting = svc.includes('tinting');
-        const hasLX = hasTinting && (A.film_front==='lx'||A.film_side==='lx'||A.film_sunroof==='lx'||A.film_panorama==='lx');
-        const isService = (r==='life4' && hasTinting) || (r==='light' && hasLX);
-        ppfTotal += isService ? 0 : (PPF_RANGE_PR[r] || 0);
-        if (PPF_NEEDS_FILM.includes(r)) {
-          if (!A.ppf_prod || A.ppf_prod === 'ppf_ask') {
-            if (!A.ppf_prod) hasNull = true;
-          } else {
-            ppfTotal += (PPF_FILM_SURCHARGE[A.ppf_prod] || {})[r] || 0;
-          }
-        }
-      }
-    });
-  }
-  if (svc.includes('elec')) {
-    if(elec.includes('blackbox')) { const p=BB_PR[A.bb_model]; if(p==null&&A.bb_model)hasNull=true; else if(p)otherTotal+=p; }
-    if(elec.includes('battery'))  otherTotal += BAT_PR[A.bat_cap] || 0;
-    if(elec.includes('hipass'))   otherTotal += HIPASS_PR;
-  }
-
-  const total = tintingTotal + ppfTotal + otherTotal;
-  return {total, tintingTotal, ppfTotal, otherTotal, hasNull};
-}
-
-function updateTicker() {
-  const {total, tintingTotal, ppfTotal, otherTotal, hasNull} = calcTotal();
-  if (total === 0 && !hasNull) { document.getElementById('ticker').style.display='none'; return; }
-  const discAmt = calcDiscount({tinting:tintingTotal, ppf:ppfTotal, other:otherTotal});
-  const disc = total - discAmt;
-  document.getElementById('ticker').style.display = 'flex';
-  document.getElementById('t-orig').textContent = total + '만원';
-  document.getElementById('t-val').textContent = disc + '만원' + (hasNull ? ' +α' : '');
-}
-
-// ── TRANSITIONS ──────────────────────────────────────────────
-function goTo(id) {
-  const prev = document.getElementById(`scr-${curId}`);
-  if (prev) { if(curId==="intro"){prev.classList.add("hidden");}else{prev.classList.remove('on'); prev.classList.add('out'); setTimeout(()=>prev.classList.remove('out'),350);} }
-  curId = id;
-  const next = document.getElementById(`scr-${id}`);
-  if (next) next.classList.add('on');
-  upProg(); un();
-  const showT = !['intro','0','1','2','summary'].includes(id);
-  if (showT) updateTicker(); else document.getElementById('ticker').style.display='none';
-  // 하단 네비 업데이트
-  updateBottomNav(id);
-  // 테슬라 → 파노라마 옵션 숨김
-  if (id === 'tinting-areas') {
-    const panoOpt = document.querySelector("#scr-tinting-areas .opt[onclick*='panorama']");
-    const sunroofOpt = document.querySelector("#scr-tinting-areas .opt[onclick*='sunroof']");
-    const isPano = A.vehicle === 'tesla' && (A.tesla_model === 'Y' || A.tesla_model === 'X');
-    const isSunroof = A.vehicle === 'tesla' && (A.tesla_model === 'S' || A.tesla_model === '3');
-    const isNotTesla = A.vehicle !== 'tesla';
-
-    if (panoOpt) panoOpt.style.display = isNotTesla ? '' : (isPano ? '' : 'none');
-    if (sunroofOpt) sunroofOpt.style.display = isNotTesla ? '' : (isSunroof ? '' : 'none');
-
-    // 파노라마 모델이면 파노라마 자동 선택
-    if (isPano && panoOpt) {
-      if (!(A.tint_areas||[]).includes('panorama')) {
-        A.tint_areas = A.tint_areas || [];
-        A.tint_areas.push('panorama');
-        panoOpt.classList.add('on');
-      }
-    }
-    // 선루프 모델이면 선루프 자동 선택
-    if (isSunroof && sunroofOpt) {
-      if (!(A.tint_areas||[]).includes('sunroof')) {
-        A.tint_areas = A.tint_areas || [];
-        A.tint_areas.push('sunroof');
-        sunroofOpt.classList.add('on');
-      }
-    }
-    const btn = document.getElementById('btn-ta');
-    if (btn) btn.disabled = !(A.tint_areas && A.tint_areas.length);
-  }
-  // PPF 제품 화면 진입 시 가격 업데이트 (마감 선택 후)
-  if (id === 'ppf-product') {
-    updatePPFProdLabels();
-  }
-
-  // PPF 범위 선택 화면 진입 시 썬팅 조합에 따라 서비스 자동 선택
-  if (id === 'ppf') {
-    const svc = A.services || [];
-    const hasTinting = svc.includes('tinting');
-    const hasLX = hasTinting && (
-      A.film_front === 'lx' || A.film_side === 'lx' ||
-      A.film_sunroof === 'lx' || A.film_panorama === 'lx'
-    );
-
-    if (hasTinting) {
-      // 생활보호 4종 자동 선택
-      if (!(A.ppf_range||[]).includes('life4')) {
-        A.ppf_range = A.ppf_range || [];
-        A.ppf_range.push('life4');
-        const life4Opt = Array.from(document.querySelectorAll('#scr-ppf .opt')).find(o=>o.getAttribute('onclick')||'' && (o.getAttribute('onclick')||'').includes('life4'));
-        if (life4Opt) life4Opt.classList.add('on');
-      }
-    }
-    if (hasLX) {
-      // 라이트 자동 선택
-      if (!(A.ppf_range||[]).includes('light')) {
-        A.ppf_range = A.ppf_range || [];
-        A.ppf_range.push('light');
-        const lightOpt = Array.from(document.querySelectorAll('#scr-ppf .opt')).find(o=>(o.getAttribute('onclick')||'').includes("'light'"));
-        if (lightOpt) lightOpt.classList.add('on');
-      }
-    }
-    // 버튼 활성화
-    const btnPpf = document.getElementById('btn-ppf');
-    if (btnPpf) btnPpf.disabled = !(A.ppf_range && A.ppf_range.length);
-    updateTicker();
-    updateBottomNav('ppf');
-  }
-
-  // 유리막 가격 동적 업데이트
-  if (id === 'glass') {
-    const glPr = GLASS_PR[tier()] || GLASS_PR.sedan;
-    document.querySelectorAll('#scr-glass .opt').forEach(opt => {
-      const oc = opt.getAttribute('onclick') || '';
-      let key = null;
-      if (oc.includes('carboflex')) key = 'carboflex';
-      else if (oc.includes('motif_sig')) key = 'motif_sig';
-      else if (oc.includes('motif_bl')) key = 'motif_bl';
-      if (key && glPr[key] != null) {
-        const prEl = opt.querySelector('.opr');
-        if (prEl) prEl.textContent = glPr[key] + '만원';
-      }
-    });
-  }
-  if (id==='0') setTimeout(()=>document.getElementById('inp-name').focus(),400);
-  if (id==='1') setTimeout(()=>document.getElementById('inp-phone').focus(),400);
-  if (id==='elec-other') setTimeout(()=>document.getElementById('inp-elec-other').focus(),400);
-  if (id==='tinting-other') setTimeout(()=>document.getElementById('inp-tint-other').focus(),400);
-}
-
-function upProg() {
-  const i = FLOW.indexOf(curId);
-  document.getElementById('prog').style.width = i<0 ? '0%' : Math.round(((i+1)/FLOW.length)*100)+'%';
-}
-
-function goBack() {
-  const i = FLOW.indexOf(curId);
-  if (i <= 0) {
-    const cur = document.getElementById(`scr-${curId}`);
-    if(cur){cur.classList.remove('on');cur.classList.add('out');setTimeout(()=>cur.classList.remove('out'),350);}
-    curId='intro';
-    const introEl = document.getElementById('scr-intro');
-    if(introEl){introEl.classList.remove('hidden');}
-    document.getElementById('ticker').style.display='none';
-    document.getElementById('prog').style.width='0%';
-    return;
-  }
-  goTo(FLOW[i-1]);
-}
-
-function ca() {
-  switch(curId) {
-    case '0': return !!(A.name&&A.name.trim());
-    case '1': return !!(A.phone&&A.phone.length>=9);
-    case '2': return !!A.vehicle;
-    case '3': return !!(A.services&&A.services.length);
-    case 'tinting-areas': return !!(A.tint_areas&&A.tint_areas.length);
-    case 'tinting-front':    return !!A.film_front;
-    case 'tinting-side':     return !!A.film_side;
-    case 'tesla-wire':       return !!A.tesla_wire;
-    case 'tinting-sunroof':  return !!A.film_sunroof;
-    case 'tinting-panorama': return !!A.film_panorama;
-    case 'tinting-other': return !!(A.tint_other&&A.tint_other.trim());
-    case 'glass':   return !!A.glass_p;
-    case 'leather': return !!A.leather_p;
-    case 'ppf':         return !!(A.ppf_range&&A.ppf_range.length);
-    case 'ppf-finish':  return !!A.ppf_finish;
-    case 'ppf-product': return !!A.ppf_prod;
-    case 'elec':    return !!(A.elec_items&&A.elec_items.length);
-    case 'blackbox': return !!A.bb_model;
-    case 'battery':  return !!A.bat_cap;
-    case 'elec-other': return !!(A.elec_other_text&&A.elec_other_text.trim());
-    default: return false;
-  }
-}
-
-function un() {
-  const nd = document.getElementById('nnd');
-  if (nd) nd.disabled = !ca();
-  const inlineNext = document.getElementById('inline-btn-next');
-  if (inlineNext) inlineNext.disabled = !ca();
-}
-
-function gn() {
-  const i = FLOW.indexOf(curId);
-  if (i < 0 || i >= FLOW.length-1) return;
-  const nxt = FLOW[i+1];
-  if (nxt === 'summary') { renderSummary(); goTo('summary'); }
-  else goTo(nxt);
-}
-
-function updateBottomNav(id) {
-  // 기존 nav-row 모두 제거
-  document.querySelectorAll('.nav-row').forEach(el => el.remove());
-
-  // 인트로/요약 화면엔 네비 없음
-  if (['intro','summary'].includes(id)) return;
-
-  const scr = document.getElementById('scr-' + id);
-  if (!scr) return;
-
-  const row = document.createElement('div');
-  row.className = 'nav-row';
-
-  // 이름/전화번호: 이전 버튼만 (Enter로 자동 진행)
-  const prevOnly = ['0','1'].includes(id);
-
-  if (prevOnly) {
-    row.innerHTML = `<button class="nav-btn-prev" style="flex:1" onclick="goBack()">← 이전</button>`;
-  } else {
-    const canNext = ca();
-    row.innerHTML = `
-      <button class="nav-btn-prev" onclick="goBack()">← 이전</button>
-      <button class="nav-btn-next" id="inline-btn-next" onclick="handleNext()" ${canNext ? '' : 'disabled'}>다음 →</button>
-    `;
-  }
-  scr.appendChild(row);
-}
-
-function handleNext() {
-  if (!ca()) return;
-  switch(curId) {
-    case '3':             nextFromSvc(); break;
-    case 'tinting-areas': nextFromTA();  break;
-    case 'ppf':           nextFromPPF(); break;
-    case 'elec':          nextFromElec(); break;
-    default:              buildFlow(); gn(); break;
-  }
-}
-
-function startFlow() {
-  var introEl=document.getElementById("scr-intro");if(introEl)introEl.classList.add("hidden");
-  FLOW = ['0','1','2','3','summary'];
-  goTo('0');
-}
-
-// ── INPUTS ───────────────────────────────────────────────────
-function fp(el){
-  let v=el.value.replace(/\D/g,'');
-  if(v.length<=3)el.value=v;
-  else if(v.length<=7)el.value=v.slice(0,3)+'-'+v.slice(3);
-  else el.value=v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7,11);
-}
-document.getElementById('inp-name').addEventListener('keydown',e=>{if(e.key==='Enter'&&ca())gn();});
-document.getElementById('inp-tint-other').addEventListener('keydown',e=>{if(e.key==='Enter'&&ca())gn();});
-document.getElementById('inp-elec-other').addEventListener('keydown',e=>{if(e.key==='Enter'&&ca())gn();});
-
-// ── SELECTIONS ────────────────────────────────────────────────
-function ps(key, val, el) {
-  A[key] = val;
-  el.closest('.opts').querySelectorAll('.opt').forEach(o=>o.classList.remove('on'));
-  el.classList.add('on');
-  updateTicker(); un();
-  updateBottomNav(curId);
-  setTimeout(gn, 380);
-}
-
-function pm(key, val, el, btnId) {
-  if (!A[key]) A[key] = [];
-  const arr=A[key], i=arr.indexOf(val);
-  if(i>=0){arr.splice(i,1);el.classList.remove('on');}
-  else{arr.push(val);el.classList.add('on');}
-  if(btnId){const b=document.getElementById(btnId);if(b)b.disabled=arr.length===0;}
-  updateTicker(); un();
-  updateBottomNav(curId);
-}
-
-function nextFromSvc() { buildFlow(); gn(); }
-function nextFromTA()  { buildFlow(); gn(); }
-function nextFromPPF() { buildFlow(); updatePPFProdLabels(); gn(); }
-function nextFromElec(){ buildFlow(); gn(); }
-
-// ── SUMMARY ──────────────────────────────────────────────────
-function wan(p) { return p != null ? p+'만원' : null; }
-function row(l, v, p) {
-  const prHtml = p !== undefined ? `<span class="sp">${p != null ? p+'만원' : '별도'}</span>` : '';
-  return `<div class="sr"><span class="sl">${l}</span><span class="sv">${v||'-'}${prHtml}</span></div>`;
-}
-function fLabel(key, area) {
-  const v = A[key];
-  if (v === 'other') return A.tint_other || '직접입력';
-  return FL[v] || '-';
-}
-
-function renderSummary() {
-  const svc=A.services||[], areas=A.tint_areas||[], elec=A.elec_items||[];
-  const {total, hasNull} = calcTotal();
-  const {tintingTotal:st, ppfTotal:sp, otherTotal:so} = calcTotal();
-  const save = calcDiscount({tinting:st, ppf:sp, other:so});
-  const disc = total - save;
-  let h = '';
-
-  h += `<div class="sb"><div class="sbh">기본 정보</div>
-    ${row('성함',A.name)}${row('연락처',A.phone)}${row('차종',vehicleLabel())}
-  </div>`;
-
-  if (svc.includes('tinting')) {
-    h += '<div class="sb"><div class="sbh">썬팅</div>';
-    if(areas.includes('front'))    h+=row('전면 유리', fLabel('film_front','front'), filmPrice(A.film_front,'front'));
-    if(areas.includes('side')) {
-      let sideNote = fLabel('film_side','side');
-      if (A.vehicle==='tesla') sideNote += A.tesla_wire==='full' ? ' · 통시공' : ' · 하프시공';
-      const sideP = filmPrice(A.film_side,'side');
-      const totalSideP = sideP != null ? sideP + (A.tesla_wire==='full'?TESLA_WIRE_SURCHARGE:0) : null;
-      h += row('측후면 유리', sideNote, totalSideP);
-    }
-    if(areas.includes('sunroof'))  h+=row('선루프', fLabel('film_sunroof','sunroof'), filmPrice(A.film_sunroof,'sunroof'));
-    if(areas.includes('panorama')) h+=row('파노라마', fLabel('film_panorama','panorama'), filmPrice(A.film_panorama,'panorama'));
-    h += '</div>';
-  }
-
-  if (svc.includes('glass')) {
-    const glPrSum = (GLASS_PR[tier()]||GLASS_PR.sedan); h += `<div class="sb"><div class="sbh">유리막 코팅</div>${row('제품',GL[A.glass_p],glPrSum[A.glass_p])}</div>`;
-  }
-
-  if (svc.includes('leather')) {
-    h += `<div class="sb"><div class="sbh">가죽 코팅</div>${row('제품',LL[A.leather_p],LEATHER_PR[A.leather_p])}</div>`;
-  }
-
-  if (svc.includes('ppf')) {
-    const hasFull = (A.ppf_range||[]).includes('full');
-    h += '<div class="sb"><div class="sbh">PPF</div>';
-    (A.ppf_range||[]).forEach(r => {
-      if (r==='full') { const finS=A.ppf_finish==='matte'?'matte':'gloss'; const ppfFullP=(PPF_FULL_PR[tier()]||PPF_FULL_PR.sedan)[finS][A.ppf_prod]; h += row('전체 PPF', `${PPL[A.ppf_prod]||'-'} · ${A.ppf_finish==='gloss'?'유광':'무광'}`, ppfFullP); }
-      else {
-        const svc2 = A.services||[];
-        const hasTint2 = svc2.includes('tinting');
-        const hasLX2 = hasTint2&&(A.film_front==='lx'||A.film_side==='lx'||A.film_sunroof==='lx'||A.film_panorama==='lx');
-        const isSvc = (r==='life4'&&hasTint2)||(r==='light'&&hasLX2);
-        if (isSvc) {
-          h += `<div class="sr"><span class="sl">${PL[r]}</span><span class="sv">시공 <span style="background:#FFE500;color:#1a1200;font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;margin-left:4px;">SERVICE</span></span><span class="sp">0원</span></div>`;
-        } else {
-          h += row(PL[r], '시공', PPF_RANGE_PR[r]);
-        }
-      }
-    });
-    if (!hasFull && A.ppf_prod) h += row('시공 필름', PPL[A.ppf_prod]||'-');
-    h += '</div>';
-  }
-
-  if (svc.includes('elec')) {
-    h += '<div class="sb"><div class="sbh">전장기기</div>';
-    if(elec.includes('blackbox'))   h+=row('블랙박스',BBL[A.bb_model],BB_PR[A.bb_model]);
-    if(elec.includes('battery'))    h+=row('보조배터리',BATL[A.bat_cap],BAT_PR[A.bat_cap]);
-    if(elec.includes('hipass'))     h+=row('하이패스','설치',HIPASS_PR);
-    if(elec.includes('elec_other')) h+=row('기타',A.elec_other_text);
-    h += '</div>';
-  }
-
-  const alpha = hasNull ? ' +α' : '';
-  h += `<div class="ptotal">
-    <div class="pt-r"><span class="pt-l">정상가 합계</span><span class="pt-v">${total}만원${alpha}</span></div>
-    <div class="pt-r"><span class="pt-l">신차패키지 할인</span><span class="pt-v pt-dis">- ${save}만원${alpha}</span></div>
-    <div class="pt-r pt-fin"><span class="pt-l">최종 예상 견적</span><span class="pt-v">${disc}만원${alpha}</span></div>
-    ${hasNull?'<div class="pt-note">별도 안내 항목은 상담 후 추가됩니다. 최종 확정은 입고 시 안내드립니다.</div>':'<div class="pt-note">최종 금액은 차량 입고 후 확정됩니다.</div>'}
-  </div>`;
-
-  h += `<div class="cr">
-    <button class="cb ck" onclick="sendKakao()">카카오톡으로 바로 문의</button>
-    <button class="cb cx" onclick="resetAll()">처음부터 다시</button>
-  </div>`;
-  h += `<p class="cn">전주 덕진구 · MOTIF 모티프 · 010-4814-4506</p>`;
-  h += `<div style="text-align:center;margin-top:.6rem;">
-    <p id="quote-status" style="font-size:12px;color:var(--tx3);min-height:18px;margin-bottom:4px;"></p>
-    <p id="alimtalk-status" style="font-size:12px;color:var(--tx3);min-height:18px;"></p>
-  </div>`;
-
-  document.getElementById('sum').innerHTML = h;
-  // Apps Script에서 PDF 생성 + 알림톡 동시 처리
-  // 요약 진입 즉시 Firebase 저장
-  saveToFirebase();
-
-  (async () => {
-    var quoteUrl = null;
-    if (QUOTE_SCRIPT_URL) {
-      try { quoteUrl = await generateQuote(); } catch(e) { console.error('generateQuote error:', e); }
-    }
-    // GAS 성공 여부와 무관하게 알림톡 발송
-    await sendAlimtalk(quoteUrl);
-  })();
-}
-
-// ── SOLAPI 설정 ──────────────────────────────────────────────
-const KAKAO_CHAT   = 'https://pf.kakao.com/_IJxmgb/chat';
-const TEMPLATE_ID  = 'KA01TP260127092931680wVnaoItiQf3';
-const API_KEY      = 'NCSECPBZ4EH3TXPI';
-const API_SECRET   = '19X9EEDRJMKJIQLCNIGH5166GUKWETYJ';
-const SOLAPI_FROM  = '01048144506'; // ← 발신번호 입력 (예: '0630000000')
-const SOLAPI_PF_ID  = 'KA01PF260125004648390uJbcnTT5nRu';
-const NAVER_RESERVE = ''; // ← 네이버 예약 URL 입력
-const FORM_URL        = ''; // ← 폼 배포 URL (배포 후 입력)
-const QUOTE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzv3xVInSeTmisnUk7X9u2eRNeRbOgrCs--Wuaqh0BtCx4n4BV00Ik4RsoqoMKi071zDw/exec'; // ← Apps Script 배포 URL 입력
-
-function sendKakao() { window.open(KAKAO_CHAT, '_blank'); }
-
-// URL 프로토콜 제거 (템플릿에 https:// 이미 있어서 중복 방지)
-function noProto(url) {
-  return url ? url.replace(/^https?:\/\//, '') : '';
-}
-
-// ── 견적서 자동 생성 ──────────────────────────────────────────
-async function generateQuote() {
-  if (!QUOTE_SCRIPT_URL) return null;
-  const statusEl = document.getElementById('quote-status');
-  if (statusEl) { statusEl.style.color='var(--tx3)'; statusEl.textContent = '견적서 생성 중...'; }
-
-  const svc=A.services||[], areas=A.tint_areas||[], elec=A.elec_items||[];
-  const {total,tintingTotal:gt,ppfTotal:gp,otherTotal:go,hasNull} = calcTotal();
-  const discAmt = calcDiscount({tinting:gt, ppf:gp, other:go});
-  const disc = total - discAmt;
-  const alpha = hasNull?'+α':'';
-  const areaMap = {front:'전면',side:'측후면',sunroof:'선루프',panorama:'파노라마'};
-
-  const lines = [];
-  if (svc.includes('tinting')) {
-    areas.forEach(area => {
-      const key = 'film_' + area;
-      const film = A[key]==='other' ? (A.tint_other||'-') : (FL[A[key]]||'-');
-      lines.push(`· 썬팅 ${areaMap[area]}: ${film}`);
-    });
-    if (A.vehicle==='tesla'&&areas.includes('side'))
-      lines.push(`  후면 시공: ${A.tesla_wire==='full'?'통시공':'하프시공'}`);
-  }
-  if (svc.includes('glass'))   lines.push(`· 유리막: ${GL[A.glass_p]||'-'}`);
-  if (svc.includes('leather')) lines.push(`· 가죽: ${LL[A.leather_p]||'-'}`);
-  if (svc.includes('ppf')) {
-    const ranges=(A.ppf_range||[]).map(r=>PL[r]).join(', ');
-    lines.push(`· PPF: ${ranges}`);
-    if (A.ppf_prod&&A.ppf_prod!=='ppf_ask') lines.push(`  필름: ${PPL[A.ppf_prod]||'-'}`);
-    if ((A.ppf_range||[]).includes('full')) lines.push(`  마감: ${A.ppf_finish==='gloss'?'유광':'무광'}`);
-  }
-  if (svc.includes('elec')) {
-    if(elec.includes('blackbox'))   lines.push(`· 블랙박스: ${BBL[A.bb_model]||'-'}`);
-    if(elec.includes('battery'))    lines.push(`· 보조배터리: ${BATL[A.bat_cap]||'-'}`);
-    if(elec.includes('hipass'))     lines.push('· 하이패스');
-    if(elec.includes('elec_other')&&A.elec_other_text) lines.push(`· 기타: ${A.elec_other_text}`);
-  }
-
-  const payload = {
-    action:   'generateQuote',
-    name:     A.name    || '-',
-    vehicle:  VL[A.vehicle] || '-',
-    phone:    A.phone   || '-',
-    services: lines.join('\n'),
-    estimate: String(disc) + alpha,
-    deposit:  '상담 후 결정'
-  };
-
-  try {
-    const res  = await fetch(QUOTE_SCRIPT_URL, {
-      method: 'POST',
-      headers: {'Content-Type':'text/plain'},
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    console.log('[generateQuote 응답]', JSON.stringify(data));
-    if (data.ok && (data.pdfUrl || data.pdfId)) {
-      const url = data.pdfUrl || ('https://drive.google.com/file/d/' + data.pdfId + '/view');
-
-      // ── Firebase 고객 추가 (CRM 웹앱 목록에 표시) ────────
-      try {
-        const ts = new Date().toISOString().slice(0,16).replace('T',' ');
-        const cleanPhone = (A.phone||'').replace(/-/g,'');
-        const phoneNum = cleanPhone.startsWith('0') ? cleanPhone : '0'+cleanPhone;
-        const areaMap = {front:'전면',side:'측후면',sunroof:'선루프',panorama:'파노라마'};
-        const svc = A.services||[], areas = A.tint_areas||[], elec = A.elec_items||[];
-        const items = [];
-        if (svc.includes('tinting')) { const an = areas.map(a=>areaMap[a]).filter(Boolean).join('·'); items.push('썬팅('+an+')'); }
-        if (svc.includes('glass'))   items.push('유리막코팅');
-        if (svc.includes('leather')) items.push('가죽코팅');
-        if (svc.includes('ppf'))     items.push('PPF');
-        if (svc.includes('elec'))    items.push('전장기기');
-        const {total, hasNull} = calcTotal();
-        const {tintingTotal:gt, ppfTotal:gp, otherTotal:go} = calcTotal();
-        await firebase.firestore().collection('customers').doc(ts.replace(/[^0-9a-zA-Z]/g,'_')).set({
-          timestamp:  ts,
-          name:       A.name    || '',
-          phone:      phoneNum,
-          carType:    VL[A.vehicle] || '',
-          category:   '신차패키지',
-          summary:    payload.services || '',
-          estPrice:   payload.estimate || '',
-          status:     '상담',
-          note:       '',
-          deposit:    '',
-          ppf:        '',
-          etc:        '',
-          tintF:'', tintS1:'', tintS2:'', tintR:'', tintSun:'',
-          entryDate:  '',
-          pdfId:      data.pdfId || '',
-          blackbox:   '',
-          battery:    '',
-          doneDate:   ''
-        });
-        console.log('[generateQuote] Firebase 고객 저장 완료');
-      } catch(fbErr) {
-        console.warn('[generateQuote] Firebase 저장 실패(무시):', fbErr);
-      }
-      // ──────────────────────────────────────────────────────
-
-      if (statusEl) {
-        statusEl.style.color = 'var(--gr)';
-        statusEl.innerHTML = `<a href="${url}" target="_blank"
-          style="color:var(--gr);text-decoration:none;font-weight:600;">
-          ✓ 견적서가 생성됐습니다 →</a>`;
-      }
-      return url;
-    } else {
-      if (statusEl) { statusEl.style.color='#e74c3c'; statusEl.textContent='견적서 생성 실패'; }
-      return null;
-    }
-  } catch(err) {
-    if (statusEl) { statusEl.style.color='#e74c3c'; statusEl.textContent='견적서 생성 실패'; }
-    console.error('generateQuote:', err);
-    return null;
-  }
-}
-
-// HMAC-SHA256 (Web Crypto API)
-async function hmacSHA256(secret, message) {
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw', enc.encode(secret),
-    {name:'HMAC', hash:'SHA-256'}, false, ['sign']
-  );
-  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(message));
-  return Array.from(new Uint8Array(sig)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-async function getSolapiHeaders() {
-  const date = new Date().toISOString();
-  const salt = crypto.randomUUID ? crypto.randomUUID().replace(/-/g,'') : Math.random().toString(36).slice(2,18);
-  const sig  = await hmacSHA256(API_SECRET, date + salt);
-  return {
-    'Content-Type':  'application/json',
-    'Authorization': `HMAC-SHA256 apiKey=${API_KEY}, date=${date}, salt=${salt}, signature=${sig}`
-  };
-}
-
-
-// ── Firebase 고객 저장 (요약 진입 시 자동 실행) ──────────────
-async function saveToFirebase() {
-  try {
-    const ts = new Date().toISOString().slice(0,16).replace('T',' ');
-    const cleanPhone = (A.phone||'').replace(/-/g,'');
-    const phoneNum = cleanPhone.startsWith('0') ? cleanPhone : '0'+cleanPhone;
-    const areaMap = {front:'전면',side:'측후면',sunroof:'선루프',panorama:'파노라마'};
-    const svc = A.services||[], areas = A.tint_areas||[], elec = A.elec_items||[];
-    const items = [];
-    if (svc.includes('tinting')) { const an = areas.map(a=>areaMap[a]).filter(Boolean).join('·'); items.push('썬팅('+an+')'); }
-    if (svc.includes('glass'))   items.push('유리막코팅');
-    if (svc.includes('leather')) items.push('가죽코팅');
-    if (svc.includes('ppf'))     items.push('PPF');
-    if (svc.includes('elec'))    items.push('전장기기');
-
-    const {total, tintingTotal:gt, ppfTotal:gp, otherTotal:go, hasNull} = calcTotal();
-    const discAmt = calcDiscount({tinting:gt, ppf:gp, other:go});
-    const disc = total - discAmt;
-    const alpha = hasNull ? '+α' : '';
-    const docId = ts.replace(/[^0-9a-zA-Z]/g,'_') + '_' + phoneNum.slice(-4);
-
-    await firebase.firestore().collection('customers').doc(docId).set({
-      timestamp:  ts,
-      name:       A.name    || '',
-      phone:      phoneNum,
-      carType:    vehicleLabel() || '',
-      category:   '신차패키지',
-      summary:    items.join(', ') || '',
-      estPrice:   String(disc) + alpha,
-      status:     '상담',
-      note:       '',
-      deposit:    '',
-      ppf:        '',
-      etc:        '',
-      tintF:'', tintS1:'', tintS2:'', tintR:'', tintSun:'',
-      entryDate:  '',
-      pdfId:      '',
-      blackbox:   '',
-      battery:    '',
-      doneDate:   ''
-    });
-    console.log('[saveToFirebase] 저장 완료:', docId);
-  } catch(e) {
-    console.warn('[saveToFirebase] 저장 실패:', e);
-  }
-}
-
-async function sendAlimtalk(quoteUrl) {
-  if (!SOLAPI_FROM || !SOLAPI_PF_ID || !A.phone) return;
-  const statusEl = document.getElementById('alimtalk-status');
-  if (statusEl) statusEl.textContent = '알림톡 발송 중...';
-
-  const svc = A.services||[], areas = A.tint_areas||[], elec = A.elec_items||[];
-  const {total, tintingTotal:at, ppfTotal:ap, otherTotal:ao, hasNull} = calcTotal();
-  const discAmt = calcDiscount({tinting:at, ppf:ap, other:ao});
-  const disc = total - discAmt;
-  const alpha = hasNull ? '+α' : '';
-
-  const areaMap = {front:'전면',side:'측후면',sunroof:'선루프',panorama:'파노라마'};
-  const items = [];
-  if (svc.includes('tinting')) {
-    const an = areas.map(a=>areaMap[a]).filter(Boolean).join('·');
-    items.push('썬팅(' + an + ')');
-  }
-  if (svc.includes('glass'))   items.push('유리막코팅');
-  if (svc.includes('leather')) items.push('가죽코팅');
-  if (svc.includes('ppf'))     items.push('PPF');
-  if (svc.includes('elec'))    items.push('전장기기');
-
-  const body = {
-    message: {
-      to:   A.phone.replace(/-/g,''),
-      from: SOLAPI_FROM,
-      kakaoOptions: {
-        pfId:       SOLAPI_PF_ID,
-        templateId: TEMPLATE_ID,
-        variables: {
-          '#{이름}':     A.name || '-',
-          '#{차종}':     VL[A.vehicle] || '-',
-          '#{시공항목}': items.join(', ') || '-',
-          '#{견적금액}': String(disc) + alpha + '만원',
-          '#{PDF주소}':  noProto(FORM_URL || KAKAO_CHAT)
-        },
-        buttons: [
-          { buttonType: 'AC', buttonName: '채널 추가' },
-          { buttonType: 'WL', buttonName: '상세 견적서 확인하기',
-            linkMo: quoteUrl ? noProto(quoteUrl) : (FORM_URL ? noProto(FORM_URL) : noProto(KAKAO_CHAT)),
-            linkPc: quoteUrl ? noProto(quoteUrl) : (FORM_URL ? noProto(FORM_URL) : noProto(KAKAO_CHAT)) },
-          { buttonType: 'WL', buttonName: '네이버 예약하기',
-            linkMo: noProto(NAVER_RESERVE || KAKAO_CHAT), linkPc: noProto(NAVER_RESERVE || KAKAO_CHAT) },
-          { buttonType: 'WL', buttonName: '추가 상담하기',
-            linkMo: noProto(KAKAO_CHAT), linkPc: noProto(KAKAO_CHAT) }
-        ]
-      }
-    }
-  };
-
-  try {
-    const headers = await getSolapiHeaders();
-    const res = await fetch('https://api.solapi.com/messages/v4/send', {
-      method:  'POST',
-      headers: headers,
-      body:    JSON.stringify(body)
-    });
-    const data = await res.json();
-    if (statusEl) {
-      if (res.ok) {
-        statusEl.style.color = 'var(--gr)';
-        statusEl.textContent = '✓ 알림톡이 고객님께 발송됐습니다.';
-      } else {
-        statusEl.style.color = '#e74c3c';
-        statusEl.textContent = '알림톡 발송 실패 — ' + (data.errorMessage || data.message || res.status);
-        console.error('Solapi error:', data);
-      }
-    }
-  } catch(e) {
-    if (statusEl) {
-      statusEl.style.color = '#e74c3c';
-      statusEl.textContent = '알림톡 발송 실패 — 네트워크 오류';
-    }
-    console.error('sendAlimtalk error:', e);
-  }
-}
-
-function resetAll() {
-  Object.keys(A).forEach(k=>delete A[k]);
-  document.querySelectorAll('.opt.on').forEach(o=>o.classList.remove('on'));
-  ['inp-name','inp-phone','inp-tint-other','inp-elec-other'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  ['btn-svc','btn-ta','btn-ppf','btn-elec'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=true;});
-  const cur=document.getElementById(`scr-${curId}`);
-  if(cur){cur.classList.remove('on');}
-  curId='intro';
-  document.getElementById('scr-intro').classList.add('on');
-  document.getElementById('ticker').style.display='none';
-  document.getElementById('prog').style.width='0%';
-}
-
-document.addEventListener('keydown', e=>{
-  if(curId==='intro'){if(e.key==='Enter'||e.key===' ')startFlow();return;}
-  if(curId==='summary')return;
-  if(e.key==='Escape'){goBack();return;}
-  if(e.key==='ArrowDown'&&ca())gn();
-  if(e.key==='Enter'&&ca()&&!['3','tinting-areas','ppf','elec'].includes(curId))gn();
-});
-
-</script>
-
+    <div class="work-showcase">
+      <!-- Project 1 -->
+      <div class="work-item fade-up">
+        <div class="work-visual">
+          <div class="work-placeholder">
+            <span>01</span>
+          </div>
         </div>
+        <div class="work-details">
+          <p class="work-category">Web Application</p>
+          <h3 class="work-title">프로젝트 이름</h3>
+          <p class="work-desc">
+            프로젝트에 대한 설명을 여기에 작성하세요.
+            어떤 문제를 해결했고, 어떤 가치를 만들었는지 소개합니다.
+          </p>
+          <div class="work-tags">
+            <span>React</span>
+            <span>TypeScript</span>
+            <span>Node.js</span>
+          </div>
+          <a href="#" class="link-arrow">자세히 보기 →</a>
+        </div>
+      </div>
+
+      <!-- Project 2 -->
+      <div class="work-item work-item-reverse fade-up">
+        <div class="work-visual">
+          <div class="work-placeholder work-placeholder-2">
+            <span>02</span>
+          </div>
+        </div>
+        <div class="work-details">
+          <p class="work-category">Mobile App</p>
+          <h3 class="work-title">프로젝트 이름</h3>
+          <p class="work-desc">
+            프로젝트에 대한 설명을 여기에 작성하세요.
+            사용자 중심의 접근 방식으로 문제를 해결한 과정을 소개합니다.
+          </p>
+          <div class="work-tags">
+            <span>React Native</span>
+            <span>Firebase</span>
+            <span>Figma</span>
+          </div>
+          <a href="#" class="link-arrow">자세히 보기 →</a>
+        </div>
+      </div>
+
+      <!-- Project 3 -->
+      <div class="work-item fade-up">
+        <div class="work-visual">
+          <div class="work-placeholder work-placeholder-3">
+            <span>03</span>
+          </div>
+        </div>
+        <div class="work-details">
+          <p class="work-category">Platform</p>
+          <h3 class="work-title">프로젝트 이름</h3>
+          <p class="work-desc">
+            프로젝트에 대한 설명을 여기에 작성하세요.
+            기술적 도전과 해결 과정을 공유합니다.
+          </p>
+          <div class="work-tags">
+            <span>Next.js</span>
+            <span>PostgreSQL</span>
+            <span>AWS</span>
+          </div>
+          <a href="#" class="link-arrow">자세히 보기 →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Skills Section -->
+  <section class="section-full" id="skills">
+    <div class="section-intro">
+      <p class="overline fade-up">Skills</p>
+      <h2 class="headline-large fade-up">
+        도구를 다루는 것이 아닌,<br>
+        <span class="text-gradient">문제를 해결합니다.</span>
+      </h2>
     </div>
 
-    <section class="section-full section-dark" id="work">
-        <div class="section-intro">
-            <p class="overline fade-up">Featured Work</p>
-            <h2 class="headline-large fade-up">최근 작업.</h2>
+    <div class="skills-showcase">
+      <div class="skill-block fade-up">
+        <div class="skill-block-header">
+          <span class="skill-number">01</span>
+          <h3>Frontend</h3>
         </div>
-        <div class="work-grid">
-            <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/DVfTRBFEpsn/" data-instgrm-version="14" style="background:#fff;border:0;border-radius:14px;box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15);margin:0;padding:0;width:100%;"></blockquote>
-            <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/DWi8pOxCVNc/" data-instgrm-version="14" style="background:#fff;border:0;border-radius:14px;box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15);margin:0;padding:0;width:100%;"></blockquote>
-            <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/DTWipS5kpp9/" data-instgrm-version="14" style="background:#fff;border:0;border-radius:14px;box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15);margin:0;padding:0;width:100%;"></blockquote>
-            <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/DNcgdBhxjJK/" data-instgrm-version="14" style="background:#fff;border:0;border-radius:14px;box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15);margin:0;padding:0;width:100%;"></blockquote>
-            <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/DUnQPanEkrz/" data-instgrm-version="14" style="background:#fff;border:0;border-radius:14px;box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15);margin:0;padding:0;width:100%;"></blockquote>
-            <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/DNDB0f_xt7x/" data-instgrm-version="14" style="background:#fff;border:0;border-radius:14px;box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15);margin:0;padding:0;width:100%;"></blockquote>
+        <div class="skill-list">
+          <span>HTML</span>
+          <span>CSS</span>
+          <span>JavaScript</span>
+          <span>TypeScript</span>
+          <span>React</span>
+          <span>Next.js</span>
+          <span>Vue.js</span>
         </div>
-        <div class="work-more">
-            <a href="https://www.instagram.com/auto_motif01/" target="_blank" rel="noopener" class="btn-insta">📷 인스타그램에서 더보기</a>
-        </div>
-    </section>
+      </div>
 
-    <section class="section-full section-dark" id="contact">
-        <div class="contact-wrapper">
-            <p class="overline fade-up">Contact</p>
-            <h2 class="headline-xl fade-up">함께 만들어요.</h2>
-            <p class="contact-sub fade-up delay-1">새로운 프로젝트, 협업 제안, 또는 그냥 문의도 좋습니다.<br>편하게 연락 주세요.</p>
-            <div class="contact-actions fade-up delay-2">
-                <a href="tel:01048144506" class="btn-apple btn-apple-large">📞 전화하기</a>
-            </div>
-            <div class="contact-socials fade-up delay-2">
-                <a href="https://www.instagram.com/auto_motif01/?hl=ko" target="_blank" rel="noopener">Instagram</a>
-                <span class="social-dot"></span>
-                <a href="https://blog.naver.com/motif_jeonju" target="_blank" rel="noopener">블로그</a>
-                <span class="social-dot"></span>
-                <a href="https://map.naver.com/p/search/모티프%20전주" target="_blank" rel="noopener">네이버플레이스</a>
-            </div>
+      <div class="skill-block fade-up delay-1">
+        <div class="skill-block-header">
+          <span class="skill-number">02</span>
+          <h3>Backend</h3>
         </div>
-    </section>
-
-    <footer class="footer">
-        <div class="footer-inner">
-            <p>&copy; 2026 MOTIF</p>
-            <p class="footer-sub">Designed &amp; Built with care.</p>
+        <div class="skill-list">
+          <span>Node.js</span>
+          <span>Python</span>
+          <span>REST API</span>
+          <span>GraphQL</span>
+          <span>PostgreSQL</span>
+          <span>MongoDB</span>
         </div>
-    </footer>
+      </div>
 
-    <div class="float-wrap">
-        <a href="https://pf.kakao.com/_IJxmgb/chat" target="_blank" rel="noopener" class="float-btn float-btn-kakao">
-            <svg class="float-icon" viewBox="0 0 24 24"><path d="M12 3C6.477 3 2 6.582 2 11c0 2.731 1.582 5.136 4 6.625L4.5 21l4.062-2.125C9.615 19.256 10.791 19.4 12 19.4c5.523 0 10-3.582 10-8.4C22 6.582 17.523 3 12 3z" fill="#3C1E1E"/></svg>
-            <span class="float-label">카카오톡 상담</span>
-        </a>
-        <a href="https://talk.naver.com/WCA4KN" target="_blank" rel="noopener" class="float-btn float-btn-naver">
-            <svg class="float-icon" viewBox="0 0 24 24"><path d="M16.273 12.845L7.376 3H3v18h4.727V11.155L16.624 21H21V3h-4.727v9.845z" fill="#fff"/></svg>
-            <span class="float-label">네이버 톡톡 상담</span>
-        </a>
+      <div class="skill-block fade-up delay-2">
+        <div class="skill-block-header">
+          <span class="skill-number">03</span>
+          <h3>Design & Tools</h3>
+        </div>
+        <div class="skill-list">
+          <span>Figma</span>
+          <span>Git</span>
+          <span>Docker</span>
+          <span>AWS</span>
+          <span>CI/CD</span>
+          <span>Agile</span>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <style>
+  <!-- Contact Section -->
+  <section class="section-full section-dark" id="contact">
+    <div class="contact-wrapper">
+      <p class="overline fade-up">Contact</p>
+      <h2 class="headline-xl fade-up">
+        함께 만들어요.
+      </h2>
+      <p class="contact-sub fade-up delay-1">
+        새로운 프로젝트, 협업 제안, 또는 그냥 인사도 좋습니다.<br>
+        편하게 연락 주세요.
+      </p>
+      <div class="contact-actions fade-up delay-2">
+        <a href="mailto:your@email.com" class="btn-apple btn-apple-large">이메일 보내기</a>
+      </div>
+      <div class="contact-socials fade-up delay-2">
+        <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
+        <span class="social-dot"></span>
+        <a href="https://linkedin.com/" target="_blank" rel="noopener">LinkedIn</a>
+        <span class="social-dot"></span>
+        <a href="https://twitter.com/" target="_blank" rel="noopener">Twitter</a>
+      </div>
+    </div>
+  </section>
 
-.pkg-form-body *,.pkg-form-body *::before,.pkg-form-body *::after{box-sizing:border-box;margin:0;padding:0;}
-.pkg-form-wrap{
-  --bg:#f8f7f5;--sur:#ffffff;--sur2:#f0efec;
-  --bd:rgba(0,0,0,0.09);--bd2:rgba(0,0,0,0.2);
-  --tx:#1a1a18;--tx2:#6b6b67;--tx3:#a3a39e;
-  --ac:#a37e28;--ac2:#7f6118;--r:10px;
-  --gr:#2d7d5a;
-}
-html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'Apple SD Gothic Neo','Noto Sans KR',sans-serif;-webkit-font-smoothing:antialiased;-webkit-overflow-scrolling:touch;}
-.prog{position:fixed;top:0;left:0;height:2px;background:var(--ac);transition:width .5s;z-index:100;}
-.scr{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;padding:2.5rem 2rem 5.5rem;max-width:660px;left:50%;transform:translateX(-50%) translateY(30px);opacity:0;pointer-events:none;transition:opacity .35s,transform .35s;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
-.scr::-webkit-scrollbar{display:none;}
-.scr.on{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0);}
-.scr.out{opacity:0;transform:translateX(-50%) translateY(-30px);transition:opacity .25s,transform .25s;}
-/* 이전으로 버튼 — 선명하게 */
-.bk{display:none;}
-.bk-arr{color:var(--ac);font-size:14px;}
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <p>&copy; 2026 ㅡㅐ샬</p>
+      <p class="footer-sub">Designed & Built with care.</p>
+    </div>
+  </footer>
 
-/* ── 하단 네비 바 ── */
-
-/* ── 인라인 이전/다음 버튼 ── */
-.nav-row{display:flex;gap:8px;margin-top:1.8rem;width:100%;}
-.nav-btn-prev{
-  flex:1;background:var(--sur2);border:1px solid var(--bd);
-  border-radius:var(--r);padding:12px;font-size:14px;font-weight:600;
-  color:var(--tx2);cursor:pointer;font-family:inherit;transition:all .15s;
-}
-.nav-btn-prev:hover{color:var(--tx);border-color:var(--bd2);}
-.nav-btn-next{
-  flex:1;background:var(--tx);color:#fff;border:none;
-  border-radius:var(--r);padding:12px;font-size:14px;font-weight:700;
-  cursor:pointer;font-family:inherit;transition:opacity .15s;
-}
-.nav-btn-next:hover{opacity:.85;}
-.nav-btn-next:disabled{opacity:.3;cursor:default;}
-
-.bottom-nav{
-  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
-  max-width:660px;width:100%;
-  display:none;
-  background:var(--sur);
-  border-top:1px solid var(--bd);
-  z-index:95;
-  padding:8px 12px;
-  padding-bottom:calc(8px + env(safe-area-inset-bottom));
-  gap:8px;
-  flex-direction:row;
-}
-.bottom-nav.show{display:flex;}
-.btn-prev{
-  flex:1;background:var(--sur2);border:1px solid var(--bd);
-  border-radius:var(--r);padding:12px;font-size:14px;font-weight:600;
-  color:var(--tx2);cursor:pointer;font-family:inherit;transition:all .15s;
-}
-.btn-prev:hover{color:var(--tx);border-color:var(--bd2);}
-.btn-next{
-  flex:1;background:var(--tx);color:#fff;border:none;
-  border-radius:var(--r);padding:12px;font-size:14px;font-weight:700;
-  cursor:pointer;font-family:inherit;transition:opacity .15s;
-}
-.btn-next:hover{opacity:.85;}
-.btn-next:disabled{opacity:.3;cursor:default;}
-.slbl{font-size:11px;letter-spacing:.15em;color:var(--tx3);text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:8px;font-weight:600;}
-.slbl::before{content:'';display:inline-block;width:14px;height:1px;background:var(--tx3);}
-.q{font-size:clamp(18px,3.5vw,25px);font-weight:700;line-height:1.4;margin-bottom:.4rem;}
-.qh{font-size:13px;color:var(--tx2);line-height:1.7;margin-bottom:1.3rem;font-weight:500;}
-.ti{width:100%;background:transparent;border:none;border-bottom:1.5px solid var(--bd2);color:var(--tx);font-size:clamp(20px,3vw,26px);font-weight:600;padding:.5rem 0;outline:none;font-family:inherit;caret-color:var(--ac);}
-.ti::placeholder{color:var(--tx3);}
-.ti:focus{border-bottom-color:var(--ac);}
-.eh{font-size:12px;color:var(--tx3);margin-top:.8rem;}
-/* Options */
-.opts{display:flex;flex-direction:column;gap:7px;width:100%;}
-.opts.g2{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
-.opt{background:var(--sur);border:1px solid var(--bd);border-radius:var(--r);padding:.8rem .9rem;cursor:pointer;transition:border-color .15s,background .15s,transform .1s;display:flex;align-items:flex-start;gap:10px;position:relative;overflow:hidden;}
-.opt:hover{border-color:var(--bd2);background:var(--sur2);}
-.opt:active{transform:scale(.985);}
-.opt.on{border-color:var(--ac);background:rgba(163,126,40,.07);}
-.opt.multi.on .ok,.opt.on:not(.multi) .ok{background:var(--ac);border-color:var(--ac);color:#1a1200;}
-.opt.rec-opt{border-color:#FFE500;}
-.opt.rec-opt.on{border-color:#FFE500;background:rgba(255,229,0,.07);}
-.ok{width:21px;height:21px;border:1px solid var(--bd2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--tx2);flex-shrink:0;margin-top:1px;transition:all .15s;}
-.ob{flex:1;min-width:0;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
-.otxt{flex:1;min-width:0;}
-.on_{font-size:14px;font-weight:700;color:var(--tx);}
-.os{font-size:11px;color:var(--tx2);margin-top:2px;line-height:1.4;font-weight:500;}
-.opr{font-size:12px;color:var(--ac2);font-weight:700;white-space:nowrap;margin-top:2px;text-align:right;}
-.opr.na{color:var(--tx3);font-weight:400;}
-.bdg{position:absolute;top:0;right:10px;font-size:9px;font-weight:700;letter-spacing:.07em;padding:2px 8px;border-radius:0 0 5px 5px;text-transform:uppercase;}
-.bdg.gold{background:rgba(163,126,40,.15);color:var(--ac);}
-.bdg.rec{background:#FFE500;color:#1a1200;font-weight:800;}
-.mh{font-size:12px;color:var(--tx3);margin-bottom:.9rem;font-weight:500;}
-.nb{display:none !important;}
-.nb:hover{opacity:.87;} .nb:active{transform:scale(.96);} .nb:disabled{opacity:.3;cursor:default;}
-/* Summary */
-.sb{background:var(--sur);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin-bottom:.8rem;width:100%;}
-.sbh{padding:.6rem 1rem;border-bottom:1px solid var(--bd);font-size:11px;letter-spacing:.1em;color:var(--tx3);text-transform:uppercase;}
-.sr{display:flex;justify-content:space-between;padding:.55rem 1rem;border-bottom:.5px solid var(--bd);font-size:13px;gap:8px;align-items:center;}
-.sr:last-child{border-bottom:none;}
-.sl{color:var(--tx2);font-size:12px;white-space:nowrap;font-weight:500;}
-.sv{color:var(--tx);font-weight:600;text-align:right;font-size:13px;}
-.sp{color:var(--ac2);font-weight:600;white-space:nowrap;font-size:12px;margin-left:6px;}
-.ptotal{background:var(--sur2);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin-bottom:1rem;width:100%);}
-.pt-r{display:flex;justify-content:space-between;padding:.65rem 1rem;border-bottom:.5px solid var(--bd);font-size:13px;gap:8px;}
-.pt-r:last-child{border-bottom:none;}
-.pt-l{color:var(--tx2);font-weight:500;}
-.pt-v{font-weight:700;color:var(--tx);}
-.pt-dis{color:var(--gr);}
-.pt-fin{background:rgba(163,126,40,.07);border-top:1px solid rgba(163,126,40,.25);}
-.pt-fin .pt-l{color:var(--ac);font-weight:700;}
-.pt-fin .pt-v{color:var(--ac);font-size:18px;}
-.pt-note{font-size:11px;color:var(--tx3);padding:.5rem 1rem;border-top:.5px solid var(--bd);}
-.cr{display:flex;gap:8px;flex-wrap:wrap;width:100%;}
-.cb{flex:1;min-width:130px;padding:12px;border-radius:var(--r);font-size:14px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:opacity .2s,transform .1s;}
-.cb:active{transform:scale(.97);}
-.ck{background:#FEE500;color:#3C1E1E;} .ck:hover{opacity:.88;}
-.cx{background:var(--sur2);color:var(--tx2);border:1px solid var(--bd);} .cx:hover{color:var(--tx);}
-.cn{font-size:12px;color:var(--tx3);margin-top:.8rem;line-height:1.9;width:100%;}
-/* Ticker */
-.ticker{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:660px;width:100%;padding:.7rem 1.5rem;background:rgba(255,255,255,.97);border-top:1px solid var(--bd);backdrop-filter:blur(12px);display:none;justify-content:space-between;align-items:center;z-index:90;}
-.t-lbl{font-size:11px;color:var(--tx3);}
-.t-row{display:flex;align-items:center;gap:8px;}
-.t-orig{font-size:11px;color:var(--tx3);text-decoration:line-through;}
-.t-val{font-size:15px;font-weight:700;color:var(--ac);}
-/* Intro */
-.il{font-size:10px;letter-spacing:.2em;color:var(--tx3);text-transform:uppercase;margin-bottom:1rem;}
-.it{font-size:clamp(24px,5vw,36px);font-weight:700;line-height:1.35;margin-bottom:.9rem;}
-.id_{font-size:14px;color:var(--tx2);line-height:1.8;margin-bottom:2.2rem;max-width:440px;font-weight:500;}
-.stb{display:inline-flex;align-items:center;gap:10px;background:var(--tx);color:#ffffff;border:none;border-radius:var(--r);padding:14px 26px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .2s;}
-.stb:hover{opacity:.88;}
-
-
-/* 인트로 - fixed 대신 별도 레이어 */
-.intro-wrap{
-  position:absolute;inset:0;
-  display:flex;flex-direction:column;justify-content:center;
-  padding:2.5rem 2rem;
-  background:var(--bg);
-  z-index:50;
-  transition:opacity .3s;
-}
-.intro-wrap.hidden{opacity:0;pointer-events:none;}
-/* iOS Safari fix */
-* { -webkit-tap-highlight-color: transparent; }
-button { cursor: pointer; touch-action: manipulation; }
-.stb { touch-action: manipulation; }
-.opt { touch-action: manipulation; cursor: pointer; }
-.nav-btn-prev, .nav-btn-next { touch-action: manipulation; }
-@media(max-width:768px){
-  /* 스크린 전체 너비 활용 */
-  .scr{
-    padding:1.2rem 0.8rem 6rem;
-    max-width:100% !important;
-    width:100% !important;
-    left:0 !important;
-    right:0 !important;
-    transform:translateY(30px) !important;
-    justify-content:flex-start !important;
-    overflow-y:auto !important;
-    -webkit-overflow-scrolling:touch !important;
-  }
-  .scr.on{ transform:translateY(0) !important; }
-  .scr.out{ transform:translateY(-30px) !important; }
-
-  /* 2열 → 1열 */
-  .opts.g2{grid-template-columns:1fr;}
-
-  /* 버튼 세로 */
-  .cr{flex-direction:column;}
-
-  /* 옵션 카드 — 풀너비, 텍스트 완전 표시 */
-  .opt{
-    padding:.6rem .8rem;
-    width:100%;
-    box-sizing:border-box;
-    align-items:flex-start;
-  }
-  .ob{
-    flex-direction:row;
-    align-items:flex-start;
-    gap:8px;
-    width:100%;
-    min-width:0;
-  }
-  .otxt{flex:1;min-width:0;}
-  .on_{
-    font-size:14px;
-    white-space:normal;
-    word-break:keep-all;
-    line-height:1.4;
-  }
-  .os{
-    font-size:11px;
-    white-space:normal;
-    word-break:keep-all;
-    margin-top:3px;
-    line-height:1.4;
-  }
-  .opr{
-    font-size:12px;
-    white-space:nowrap;
-    flex-shrink:0;
-    margin-top:2px;
-  }
-  .ok{width:20px;height:20px;flex-shrink:0;margin-top:2px;}
-  .bdg{font-size:9px;padding:2px 6px;}
-
-  /* 질문 */
-  .q{font-size:clamp(17px,5vw,24px);}
-  .qh{font-size:12px;}
-
-  /* 인트로 */
-  .it{font-size:clamp(22px,6vw,32px);}
-  .id_{font-size:13px;}
-  .stb{font-size:14px;padding:12px 22px;}
-
-  /* 입력 */
-  .ti{font-size:clamp(18px,5vw,22px);}
-
-  /* 버튼 */
-  .nb{font-size:13px;padding:10px 14px;}
-  .bk{font-size:12px;}
-  .cb{font-size:13px;padding:11px;}
-  .cn{font-size:11px;}
-
-  /* 요약 */
-  .sv{font-size:12px;}
-  .sl{font-size:11px;}
-  .pt-v{font-size:14px;}
-  .pt-fin .pt-v{font-size:16px;}
-  .sp{font-size:11px;}
-  .sr{padding:.5rem .8rem;}
-  .sbh{font-size:10px;}
-
-  /* 틱커 */
-  .ticker{
-    padding:.6rem 1rem;
-    left:0 !important;
-    transform:none !important;
-    width:100% !important;
-    max-width:100% !important;
-  }
-  .t-val{font-size:14px;}
-}
-
-    </style>
-    <script async src="//www.instagram.com/embed.js"></script>
-    <script>
-        window.addEventListener('load', () => {
-            if (window.instgrm) window.instgrm.Embeds.process();
-        });
-        function openPkgForm() {
-            var wrap = document.getElementById('pkgFormWrap');
-            wrap.classList.add('open');
-            document.querySelector('.float-wrap').style.display = 'none';
-            setTimeout(function() {
-                var bar = wrap.querySelector('.pkg-form-bar');
-                var target = bar || wrap;
-                var y = target.getBoundingClientRect().top + window.scrollY;
-                window.scrollTo({ top: y, behavior: 'smooth' });
-            }, 300);
-        }
-        function closePkgForm() {
-            document.getElementById('pkgFormWrap').classList.remove('open');
-            document.querySelector('.float-wrap').style.display = 'flex';
-            
-            
-            document.getElementById('package').scrollIntoView({ behavior: 'smooth' });
-        }
-    </script>
-    <script>
-    // ── Scroll Animations ──
-    var obsOpts = { threshold: 0.15, rootMargin: '0px 0px -40px 0px' };
-    var obs = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting) entry.target.classList.add('visible');
-      });
-    }, obsOpts);
-    document.querySelectorAll('.fade-up').forEach(function(el) { obs.observe(el); });
-
-    // ── Navbar scroll ──
-    window.addEventListener('scroll', function() {
-      var nb = document.getElementById('navbar');
-      if (nb) nb.style.borderBottomColor = window.scrollY > 10 ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.08)';
-    }, { passive: true });
-
-    // ── Mobile menu ──
-    var navToggle = document.getElementById('navToggle');
-    var navLinks = document.querySelector('.nav-links');
-    if (navToggle) {
-      navToggle.addEventListener('click', function() {
-        navToggle.classList.toggle('active');
-        if (navLinks) {
-          navLinks.classList.toggle('open');
-          document.body.style.overflow = navLinks.classList.contains('open') ? 'hidden' : '';
-        }
-      });
-    }
-    if (navLinks) {
-      navLinks.querySelectorAll('a').forEach(function(link) {
-        link.addEventListener('click', function() {
-          if (navToggle) navToggle.classList.remove('active');
-          navLinks.classList.remove('open');
-          
-        });
-      });
-    }
-
-    // ── 패키지 섹션 스크롤 ──
-    function scrollToPackage(e) {
-      if (e) e.preventDefault();
-      var target = document.getElementById('package');
-      if (!target) return;
-      function go() { target.scrollIntoView({ behavior:'smooth', block:'start' }); }
-      go();
-      setTimeout(go, 600);
-      setTimeout(go, 1500);
-    }
-    </script>
+  <script src="script.js"></script>
 </body>
 </html>
