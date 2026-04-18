@@ -2719,17 +2719,10 @@ function getFuzzyDateValue() {
 
 let displayCount = 30;
 </script>
- <!-- ============================================================
-     MOTIF 콘텐츠 자산화 모듈 (Phase 2)
-     ============================================================
-     설치 위치: index.html 파일의 </script> 태그 바로 앞에 통째로 붙여넣기
-     기존 코드 수정 없음 (단, setDoneDate 함수에 1줄만 추가 필요 — 별도 안내)
-     ============================================================ -->
-
-<script>
+ // ============================================
 // 콘텐츠 생성 GAS 프록시 URL
+// ============================================
 const MOTIF_CONTENT_API = 'https://script.google.com/macros/s/AKfycbyhrV7unL3PfTUqvYEPBCG7hM1-p-CtQfnkE4MLzHbH0O-NZJaSf6TC0udVmmlTLNjw/exec';
-
 // ============================================
 // 콘텐츠 생성 팝업 열기 (외부 호출 진입점)
 // ============================================
@@ -3017,7 +3010,25 @@ async function regenerateInstaOnly(carType, filmLine, name, doneDate) {
 // Firestore에 콘텐츠 저장
 // ============================================
 async function saveContentToFirestore(name, carType, doneDate, data, meta) {
-  ...
+  try {
+    const docId = (name + '_' + carType + '_' + (doneDate || '')).replace(/[^0-9a-zA-Z가-힣]/g, '_');
+    await db.collection('content_assets').doc(docId).set({
+      name, carType, doneDate,
+      filmLine: meta.filmLine,
+      packageTier: meta.packageTier,
+      ppf: meta.ppf,
+      glass: meta.glass,
+      leather: meta.leather,
+      specialNotes: meta.specialNotes,
+      blog_draft: data.blog_draft || '',
+      insta_feed: data.insta_feed || '',
+      insta_story: data.insta_story || {},
+      status: 'draft',
+      generatedAt: new Date().toISOString()
+    });
+  } catch(e) {
+    console.error('콘텐츠 저장 실패:', e);
+  }
 }
 
 // ============================================
