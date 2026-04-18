@@ -1965,6 +1965,7 @@ async function sendDoneWithWarranty(name, carType, phone, doneDate) {
           showCalendarDay(doneDate);
         } else { showToast('❌ 알림톡 실패: ' + (r.error || '')); }
       }
+     setTimeout(() => openContentGenerator(name, carType, phone, '', '', doneDate), 1500);
     } catch(e) { showToast('❌ ' + e.message); }
   })();
 }
