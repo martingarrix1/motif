@@ -681,6 +681,9 @@ async function submitConsult() {
   const ts = new Date().toISOString().slice(0, 16).replace('T', ' ');
   const newCustomer = { timestamp: ts, name, phone, carType, category, summary, estPrice, status, note: finalNote, deposit, ppf: ppfText, etc: combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, doneDate: '' };
 
+  // 알림톡 발송 여부 확인
+  const sendAlimtalk = confirm(`📨 ${name} 고객님께 알림톡을 발송할까요?\n\n[확인] 발송 / [취소] 발송 안 함`);
+
   db.collection('customers').doc(ts).set(newCustomer).catch(e => showToast('❌ Firebase: ' + e.message));
   resetForm();
   allCustomers = [];
@@ -691,16 +694,23 @@ async function submitConsult() {
     const timeoutId = setTimeout(() => controller.abort(), 25000);
     const res = await fetch(API_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note: finalNote, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, sendAlimtalk: true }),
+      body: JSON.stringify({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note: finalNote, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, sendAlimtalk: sendAlimtalk }),
       signal: controller.signal
     });
     clearTimeout(timeoutId);
     const r = await res.json();
-    if (r === 'ok' || (r && r.success)) showToast('✅ 전송 완료 + 📨 알림톡 발송됨');
-    else showToast('✅ 전송 완료 (⚠️ 알림톡: ' + JSON.stringify(r) + ')');
+    if (sendAlimtalk) {
+      if (r === 'ok' || (r && r.success)) showToast('✅ 전송 완료 + 📨 알림톡 발송됨');
+      else showToast('✅ 전송 완료 (⚠️ 알림톡: ' + JSON.stringify(r) + ')');
+    } else {
+      showToast('✅ 전송 완료 (알림톡 미발송)');
+    }
   } catch(e) {
-    if (e.name === 'AbortError') showToast('✅ 전송 완료 (⏱️ 알림톡 처리 중...)');
-    else showToast('✅ 전송 완료 (❌ 알림톡 오류: ' + e.message + ')');
+    if (e.name === 'AbortError') {
+      showToast(sendAlimtalk ? '✅ 전송 완료 (⏱️ 알림톡 처리 중...)' : '✅ 전송 완료');
+    } else {
+      showToast(sendAlimtalk ? '✅ 전송 완료 (❌ 알림톡 오류: ' + e.message + ')' : '✅ 전송 완료');
+    }
   }
 }
 
@@ -2381,14 +2391,22 @@ async function submitCalendarForm(dateStr) {
   if (combinedM) summaryParts.push(combinedM);
   const summary = summaryParts.join(' / ');
   if (!confirm(`${name} / ${carType}\n${entryDate} 입고 예약을 등록할까요?`)) return;
+
+  // 알림톡 발송 여부를 별도로 확인
+  const sendAlimtalk = confirm(`📨 ${name} 고객님께 알림톡을 발송할까요?\n\n[확인] 발송 / [취소] 발송 안 함`);
+
   showToast('⏳ 등록 중...');
   try {
     const ts = new Date().toISOString().slice(0, 16).replace('T', ' ');
     const newCustomer = { timestamp: ts, name, phone, carType, category, summary, estPrice, status, note, deposit, ppf: ppfText, etc: combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, doneDate: '' };
     await db.collection('customers').doc(ts).set(newCustomer);
-    const r = await apiPost({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, sendAlimtalk: true });
-    if (r === 'ok' || (r && r.success)) showToast('✅ 예약 등록 + 알림톡 발송 완료!');
-    else showToast('✅ 예약 등록 완료 (⚠️ 알림톡: ' + JSON.stringify(r) + ')');
+    const r = await apiPost({ action: 'submitFromWebApp', name, phone, carType, category, summary, estPrice, status, note, deposit, ppfText, combinedM, tintF, tintS1, tintS2, tintR, tintSun, entryDate, blackbox, battery, sendAlimtalk: sendAlimtalk });
+    if (sendAlimtalk) {
+      if (r === 'ok' || (r && r.success)) showToast('✅ 예약 등록 + 📨 알림톡 발송 완료!');
+      else showToast('✅ 예약 등록 완료 (⚠️ 알림톡: ' + JSON.stringify(r) + ')');
+    } else {
+      showToast('✅ 예약 등록 완료 (알림톡 미발송)');
+    }
     document.getElementById('cal-full-form-popup').remove();
     allCustomers = [];
     await loadCustomers();
