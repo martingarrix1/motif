@@ -103,14 +103,15 @@ const db = firebase.firestore();
 
 <!-- 더보기 메뉴 -->
 <div id="more-menu" style="display:none;position:fixed;top:84px;right:0;left:0;background:white;z-index:98;border-bottom:2px solid #eee;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
-  <div style="display:grid;grid-template-columns:repeat(6,1fr);padding:8px">
-    <button onclick="showPage('aftercare',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📋<span>사후관리</span></button>
-    <button onclick="showPage('glass',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🔵<span>유리막</span></button>
-    <button onclick="showPage('memo',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📓<span>메모</span></button>
-    <button onclick="showPage('invoice',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📑<span>견적서</span></button>
-    <button onclick="showPage('tint',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🎫<span>썬팅보증서</span></button>
-    <button onclick="showPage('ppf',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🛡️<span>PPF보증서</span></button>
-  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);padding:8px">
+  <button onclick="showPage('aftercare',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📋<span>사후관리</span></button>
+  <button onclick="showPage('glass',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🔵<span>유리막</span></button>
+  <button onclick="showPage('memo',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📓<span>메모</span></button>
+  <button onclick="showPage('invoice',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📑<span>견적서</span></button>
+  <button onclick="showPage('tint',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🎫<span>썬팅보증서</span></button>
+  <button onclick="showPage('ppf',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🛡️<span>PPF보증서</span></button>
+  <button onclick="showPage('archive',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📚<span>콘텐츠</span></button>
+</div>
   <div style="padding:8px 12px;border-top:1px solid #eee">
     <button onclick="migrateDataToFirebase()" style="width:100%;padding:10px;background:#fff3e0;color:#e65100;border:1px solid #ffb74d;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit">🚀 기존 시트 데이터 → Firebase 이사 (최초 1회)</button>
   </div>
@@ -460,6 +461,19 @@ const db = firebase.firestore();
 </div>
 
 <div id="customer-modal" class="modal">
+ <!-- 콘텐츠 보관함 페이지 -->
+  <div id="page-archive" class="page">
+    <div class="search-box">
+      <span style="color:#bbb">🔍</span>
+      <input type="text" id="ca-search" placeholder="고객명, 차종, 필름 검색" oninput="filterContentArchive()">
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:12px;padding:0 2px">
+      <button id="ca-filter-all" class="ca-filter-btn" onclick="setContentStatusFilter('all')" style="flex:1;padding:8px;background:#1a1a2e;color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">전체</button>
+      <button id="ca-filter-draft" class="ca-filter-btn" onclick="setContentStatusFilter('draft')" style="flex:1;padding:8px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">📝 초안</button>
+      <button id="ca-filter-published" class="ca-filter-btn" onclick="setContentStatusFilter('published')" style="flex:1;padding:8px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">✅ 발행됨</button>
+    </div>
+    <div id="content-archive-list"><div class="loading">⚡ 불러오는 중...</div></div>
+  </div>
   <div class="modal-content">
     <div class="modal-header">
       <div class="modal-title" id="modal-title"></div>
@@ -612,6 +626,7 @@ function showPage(page, btn) {
   if (page === 'invoice') { initInvoice(); }
   if (page === 'tint') { initTint(); }
   if (page === 'ppf') { initPpf(); }
+ if (page === 'archive') { initContentArchive(); }
 }
 
 (function() {
@@ -3022,6 +3037,339 @@ async function saveContentToFirestore(name, carType, doneDate, data, meta) {
     console.error('콘텐츠 저장 실패:', e);
     // 저장 실패해도 사용자 경험은 방해하지 않음
   }
+}
+ <!-- ============================================================
+     MOTIF 콘텐츠 보관함 모듈 (Phase 2.5)
+     ============================================================
+     설치 위치: ContentModule.html 끝의 </script> 바로 앞에 붙여넣기
+     (즉, 기존 ContentModule.html 스크립트 블록 안에 함수 추가)
+
+     + index.html 상단 더보기 메뉴에 버튼 1개 추가 필요 (별도 안내)
+     + showPage 함수에 1줄 추가 필요 (별도 안내)
+     + HTML에 페이지 div 1개 추가 필요 (별도 안내)
+     ============================================================ -->
+
+// ============================================
+// 콘텐츠 보관함 — 상태
+// ============================================
+let allContentAssets = [];
+let contentSearchQuery = '';
+let contentStatusFilter = 'all';
+
+// ============================================
+// 진입점
+// ============================================
+async function initContentArchive() {
+  const container = document.getElementById('content-archive-list');
+  if (!container) return;
+
+  if (allContentAssets.length === 0) {
+    container.innerHTML = '<div class="loading">⚡ 불러오는 중...</div>';
+    await loadContentAssets();
+  }
+  renderContentArchive();
+}
+
+async function loadContentAssets() {
+  try {
+    const snap = await db.collection('content_assets').orderBy('generatedAt', 'desc').get();
+    allContentAssets = [];
+    snap.forEach(doc => allContentAssets.push({ fbId: doc.id, ...doc.data() }));
+  } catch(e) {
+    console.error('콘텐츠 로드 실패:', e);
+    allContentAssets = [];
+  }
+}
+
+// ============================================
+// 렌더링
+// ============================================
+function renderContentArchive() {
+  const container = document.getElementById('content-archive-list');
+  if (!container) return;
+
+  // 필터 적용
+  let filtered = allContentAssets;
+  if (contentStatusFilter !== 'all') {
+    filtered = filtered.filter(a => (a.status || 'draft') === contentStatusFilter);
+  }
+  if (contentSearchQuery) {
+    const q = contentSearchQuery.toLowerCase();
+    filtered = filtered.filter(a =>
+      (a.name || '').toLowerCase().includes(q) ||
+      (a.carType || '').toLowerCase().includes(q) ||
+      (a.filmLine || '').toLowerCase().includes(q)
+    );
+  }
+
+  if (!filtered.length) {
+    container.innerHTML = `<div class="loading">
+      ${allContentAssets.length === 0 ? '아직 생성된 콘텐츠가 없어요 📚' : '검색 결과가 없어요'}
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map((a, idx) => {
+    const blogPreview = (a.blog_draft || '').replace(/\n/g, ' ').slice(0, 80);
+    const genDate = a.generatedAt ? new Date(a.generatedAt).toLocaleDateString('ko-KR', {month:'short',day:'numeric'}) : '';
+    const status = a.status || 'draft';
+    const statusColor = status === 'published'
+      ? { bg:'#e8f5e9', border:'#a5d6a7', text:'#2e7d32', label:'발행됨' }
+      : { bg:'#fff3e0', border:'#ffcc80', text:'#e65100', label:'초안' };
+
+    return `
+      <div class="card" style="cursor:pointer" onclick="openContentAssetDetail('${esc(a.fbId)}')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:15px;font-weight:700;color:#1a1a2e">${esc(a.name||'-')} · ${esc(a.carType||'-')}</div>
+            <div style="font-size:12px;color:#888;margin-top:2px">
+              <span style="color:#1a73e8;font-weight:600">${esc(a.filmLine||'')}</span>
+              ${a.packageTier ? ` · ${esc(a.packageTier)}` : ''}
+              ${a.doneDate ? ` · ✅ ${esc(a.doneDate)}` : ''}
+            </div>
+          </div>
+          <span style="font-size:11px;background:${statusColor.bg};color:${statusColor.text};border:1px solid ${statusColor.border};border-radius:6px;padding:3px 8px;font-weight:600;white-space:nowrap;margin-left:8px">${statusColor.label}</span>
+        </div>
+        <div style="font-size:12px;color:#666;margin-top:6px;line-height:1.5;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${esc(blogPreview)}${blogPreview.length >= 80 ? '...' : ''}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid #f5f5f5">
+          <span style="font-size:11px;color:#bbb">📅 ${genDate}</span>
+          <div style="display:flex;gap:6px">
+            <button onclick="event.stopPropagation();quickCopyBlog('${esc(a.fbId)}')" style="padding:5px 10px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">📝 블로그</button>
+            <button onclick="event.stopPropagation();quickCopyInsta('${esc(a.fbId)}')" style="padding:5px 10px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">📸 인스타</button>
+            <button onclick="event.stopPropagation();deleteContentAsset('${esc(a.fbId)}')" style="padding:5px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:11px;cursor:pointer">🗑</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ============================================
+// 빠른 복사
+// ============================================
+function quickCopyBlog(fbId) {
+  const a = allContentAssets.find(x => x.fbId === fbId);
+  if (!a || !a.blog_draft) { showToast('❌ 블로그 내용 없음'); return; }
+  navigator.clipboard.writeText(a.blog_draft).then(() => showToast('📝 블로그 초안 복사됨!'));
+}
+
+function quickCopyInsta(fbId) {
+  const a = allContentAssets.find(x => x.fbId === fbId);
+  if (!a || !a.insta_feed) { showToast('❌ 인스타 내용 없음'); return; }
+  navigator.clipboard.writeText(a.insta_feed).then(() => showToast('📸 인스타 피드 복사됨!'));
+}
+
+// ============================================
+// 상세 열기 (편집 UI)
+// ============================================
+function openContentAssetDetail(fbId) {
+  const a = allContentAssets.find(x => x.fbId === fbId);
+  if (!a) { showToast('❌ 콘텐츠 없음'); return; }
+
+  const popup = document.createElement('div');
+  popup.id = 'content-archive-detail';
+  popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:white;z-index:10000;display:flex;flex-direction:column;overflow:hidden';
+  popup.innerHTML = `
+    <div style="background:#1a1a2e;color:white;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div style="font-size:15px;font-weight:700">📚 ${esc(a.name)} · ${esc(a.carType)}</div>
+      <button onclick="closeContentArchiveDetail()" style="background:none;border:none;color:white;font-size:26px;cursor:pointer;line-height:1;padding:0 4px">×</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px">
+      <div style="background:#e8f5e9;border:1px solid #c8e6c9;border-radius:10px;padding:12px;margin-bottom:14px">
+        <div style="font-size:13px;color:#2e7d32;font-weight:600">
+          ${esc(a.filmLine||'')} · ${esc(a.packageTier||'')} 
+          ${a.doneDate ? '· ✅ ' + esc(a.doneDate) : ''}
+        </div>
+        ${a.specialNotes ? `<div style="font-size:11px;color:#666;margin-top:4px">특이사항: ${esc(a.specialNotes)}</div>` : ''}
+        <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+          <span style="font-size:11px;color:#666;font-weight:600">상태:</span>
+          <select id="ca-status" onchange="updateContentStatus('${esc(fbId)}',this.value)" style="font-size:11px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;background:white;font-family:inherit">
+            <option value="draft" ${(a.status||'draft')==='draft'?'selected':''}>📝 초안</option>
+            <option value="published" ${a.status==='published'?'selected':''}>✅ 발행됨</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+          <span>📝 블로그 초안</span>
+          <div style="display:flex;gap:6px">
+            <button onclick="copyContentText('ca-blog')" style="padding:5px 10px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">📋 복사</button>
+            <button onclick="saveContentEdits('${esc(fbId)}')" style="padding:5px 10px;background:#1a1a2e;color:white;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">💾 저장</button>
+          </div>
+        </div>
+        <textarea id="ca-blog" style="width:100%;height:280px;padding:12px;border:1.5px solid #e8e8e8;border-radius:10px;font-family:inherit;font-size:13px;line-height:1.6;resize:vertical;background:#fafafa">${esc(a.blog_draft||'')}</textarea>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+          <span>📸 인스타그램 피드</span>
+          <button onclick="copyContentText('ca-insta')" style="padding:5px 10px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">📋 복사</button>
+        </div>
+        <textarea id="ca-insta" style="width:100%;height:220px;padding:12px;border:1.5px solid #e8e8e8;border-radius:10px;font-family:inherit;font-size:13px;line-height:1.6;resize:vertical;background:#fafafa">${esc(a.insta_feed||'')}</textarea>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+          <span>📱 인스타 스토리 3컷</span>
+          <button onclick="copyArchiveStories()" style="padding:5px 10px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">📋 전체복사</button>
+        </div>
+        <div class="form-group">
+          <label style="font-size:11px">1컷 (훅)</label>
+          <input type="text" id="ca-story1" value="${esc((a.insta_story||{}).cut1||'')}" style="width:100%;padding:10px;border:1.5px solid #e8e8e8;border-radius:10px;background:#fafafa">
+        </div>
+        <div class="form-group">
+          <label style="font-size:11px">2컷 (본문)</label>
+          <input type="text" id="ca-story2" value="${esc((a.insta_story||{}).cut2||'')}" style="width:100%;padding:10px;border:1.5px solid #e8e8e8;border-radius:10px;background:#fafafa">
+        </div>
+        <div class="form-group">
+          <label style="font-size:11px">3컷 (전환)</label>
+          <input type="text" id="ca-story3" value="${esc((a.insta_story||{}).cut3||'')}" style="width:100%;padding:10px;border:1.5px solid #e8e8e8;border-radius:10px;background:#fafafa">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button onclick="regenerateFromArchive('${esc(fbId)}','blog')" style="flex:1;padding:10px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">📝 블로그 재생성</button>
+        <button onclick="regenerateFromArchive('${esc(fbId)}','insta')" style="flex:1;padding:10px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">📸 인스타 재생성</button>
+      </div>
+    </div>
+    <div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:10px;flex-shrink:0;background:white">
+      <button onclick="closeContentArchiveDetail()" style="flex:1;padding:14px;background:#f5f5f5;color:#555;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">닫기</button>
+      <button onclick="saveContentEdits('${esc(fbId)}')" style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">💾 변경사항 저장</button>
+    </div>
+  `;
+  document.body.appendChild(popup);
+}
+
+function closeContentArchiveDetail() {
+  const p = document.getElementById('content-archive-detail');
+  if (p) p.remove();
+}
+
+// ============================================
+// 편집 저장
+// ============================================
+async function saveContentEdits(fbId) {
+  try {
+    const blog = document.getElementById('ca-blog').value;
+    const insta = document.getElementById('ca-insta').value;
+    const story = {
+      cut1: document.getElementById('ca-story1').value,
+      cut2: document.getElementById('ca-story2').value,
+      cut3: document.getElementById('ca-story3').value
+    };
+    await db.collection('content_assets').doc(fbId).update({
+      blog_draft: blog,
+      insta_feed: insta,
+      insta_story: story,
+      editedAt: new Date().toISOString()
+    });
+    // 로컬 캐시 업데이트
+    const idx = allContentAssets.findIndex(x => x.fbId === fbId);
+    if (idx !== -1) {
+      allContentAssets[idx].blog_draft = blog;
+      allContentAssets[idx].insta_feed = insta;
+      allContentAssets[idx].insta_story = story;
+    }
+    showToast('✅ 저장됨');
+    renderContentArchive();
+  } catch(e) { showToast('❌ ' + e.message); }
+}
+
+// ============================================
+// 상태 업데이트
+// ============================================
+async function updateContentStatus(fbId, status) {
+  try {
+    await db.collection('content_assets').doc(fbId).update({ status });
+    const idx = allContentAssets.findIndex(x => x.fbId === fbId);
+    if (idx !== -1) allContentAssets[idx].status = status;
+    showToast('✅ 상태 변경');
+    renderContentArchive();
+  } catch(e) { showToast('❌ ' + e.message); }
+}
+
+// ============================================
+// 삭제
+// ============================================
+async function deleteContentAsset(fbId) {
+  if (!confirm('콘텐츠를 삭제할까요?')) return;
+  try {
+    await db.collection('content_assets').doc(fbId).delete();
+    allContentAssets = allContentAssets.filter(x => x.fbId !== fbId);
+    renderContentArchive();
+    showToast('✅ 삭제됨');
+  } catch(e) { showToast('❌ ' + e.message); }
+}
+
+// ============================================
+// 재생성 (보관함에서)
+// ============================================
+async function regenerateFromArchive(fbId, type) {
+  const a = allContentAssets.find(x => x.fbId === fbId);
+  if (!a) return;
+  if (!confirm(`${type === 'blog' ? '블로그' : '인스타'}를 재생성할까요? 기존 내용은 새 내용으로 덮어씌워집니다.`)) return;
+
+  showToast('⏳ 재생성 중...');
+  try {
+    const res = await fetch(MOTIF_CONTENT_API, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: type === 'blog' ? 'regenerate_blog' : 'regenerate_insta',
+        payload: {
+          carModel: a.carType,
+          filmLine: a.filmLine,
+          specialNotes: a.specialNotes || '',
+          feedback: '다른 오프닝과 접근으로'
+        }
+      })
+    });
+    const result = await res.json();
+    if (!result.success) { showToast('❌ ' + result.error); return; }
+
+    if (type === 'blog' && result.data.blog_draft) {
+      document.getElementById('ca-blog').value = result.data.blog_draft;
+      showToast('✅ 블로그 재생성 완료 — 저장 버튼 눌러주세요');
+    } else if (type === 'insta' && result.data.insta_feed) {
+      document.getElementById('ca-insta').value = result.data.insta_feed;
+      showToast('✅ 인스타 재생성 완료 — 저장 버튼 눌러주세요');
+    }
+  } catch(e) { showToast('❌ ' + e.message); }
+}
+
+// ============================================
+// 스토리 3컷 복사 (보관함 버전)
+// ============================================
+function copyArchiveStories() {
+  const s1 = document.getElementById('ca-story1').value;
+  const s2 = document.getElementById('ca-story2').value;
+  const s3 = document.getElementById('ca-story3').value;
+  const combined = `[1컷] ${s1}\n\n[2컷] ${s2}\n\n[3컷] ${s3}`;
+  navigator.clipboard.writeText(combined).then(() => showToast('📋 스토리 3컷 복사됨!'));
+}
+
+// ============================================
+// 검색 & 필터
+// ============================================
+function filterContentArchive() {
+  contentSearchQuery = document.getElementById('ca-search').value.trim();
+  renderContentArchive();
+}
+
+function setContentStatusFilter(status) {
+  contentStatusFilter = status;
+  document.querySelectorAll('.ca-filter-btn').forEach(btn => {
+    btn.style.background = '#f5f5f5';
+    btn.style.color = '#555';
+    btn.style.border = '1px solid #ddd';
+  });
+  const activeBtn = document.getElementById('ca-filter-' + status);
+  if (activeBtn) {
+    activeBtn.style.background = '#1a1a2e';
+    activeBtn.style.color = 'white';
+    activeBtn.style.border = 'none';
+  }
+  renderContentArchive();
 }
 </script>
 </body>
