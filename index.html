@@ -2726,9 +2726,69 @@ const MOTIF_CONTENT_API = 'https://script.google.com/macros/s/AKfycbyhrV7unL3PfT
 // ============================================
 // 콘텐츠 생성 팝업 열기 (외부 호출 진입점)
 // ============================================
+// CRM에 저장된 customer 전체 데이터를 활용해 콘텐츠 생성 팝업을 연다
+// name, carType, phone, doneDate로 allCustomers에서 실제 데이터를 역조회
 function openContentGenerator(name, carType, phone, summary, category, doneDate) {
-  // 필름 라인 자동 감지 (summary에서 추출)
-  const filmLine = detectFilmLine(summary || '');
+  // 실제 customer 데이터 찾기 (summary/category 무시하고 DB에서 조회)
+  const cust = allCustomers.find(x =>
+    x.name === name && x.carType === carType && (x.phone === phone || !phone)
+  ) || {};
+
+  // summary 우선순위: 인자 > DB의 summary
+  const actualSummary = summary || cust.summary || '';
+  const actualCategory = category || cust.category || '';
+  const ppfText = cust.ppf || cust.ppfText || '';
+  const etcText = cust.etc || '';
+  const tintF = cust.tintF || '';
+  const tintS1 = cust.tintS1 || '';
+  const tintS2 = cust.tintS2 || '';
+  const tintR = cust.tintR || '';
+  const tintSun = cust.tintSun || '';
+  const blackbox = cust.blackbox || '';
+  const battery = cust.battery || '';
+  const note = cust.note || '';
+  const estPrice = cust.estPrice || '';
+
+  // tint 필드에서 필름 라인 감지 (summary보다 더 정확)
+  const allTints = [tintF, tintS1, tintS2, tintR, tintSun].filter(Boolean).join(' ');
+  const filmLine = detectFilmLine(allTints + ' ' + actualSummary);
+
+  // 패키지 등급 감지
+  let packageTier = '커스텀';
+  if (actualCategory.includes('복합') || actualCategory.includes('신차패키지')) {
+    if (filmLine === 'LX' || filmLine === 'Vogue') packageTier = '프레스티지';
+    else if (filmLine === 'Quantum' || filmLine === 'Zenith IR') packageTier = '시그니처';
+    else if (filmLine === 'Titanium' || filmLine === 'G-line' || filmLine === 'S-line') packageTier = '에센셜';
+  }
+
+  // 추가 시공 감지
+  const hasPpf = actualCategory.includes('PPF') || (ppfText && ppfText.length > 0);
+  const hasGlass = etcText.includes('유리막') || etcText.includes('그래핀') || actualCategory.includes('유리막');
+  const hasLeather = etcText.includes('가죽') || etcText.includes('야와라') || actualCategory.includes('가죽');
+
+  // CRM 요약 문자열 구성 (Claude API에 전달할 실제 시공 내역)
+  let actualWorkParts = [];
+  if (actualCategory) actualWorkParts.push('시공분류: ' + actualCategory);
+  let tintParts = [];
+  if (tintF) tintParts.push('전면 ' + tintF);
+  if (tintS1) tintParts.push('측면1 ' + tintS1);
+  if (tintS2) tintParts.push('측면2 ' + tintS2);
+  if (tintR) tintParts.push('후면 ' + tintR);
+  if (tintSun) tintParts.push('썬루프 ' + tintSun);
+  if (tintParts.length) actualWorkParts.push('틴팅: ' + tintParts.join(', '));
+  if (ppfText) actualWorkParts.push('PPF: ' + ppfText);
+  if (etcText) actualWorkParts.push('코팅/기타: ' + etcText);
+  if (blackbox) actualWorkParts.push('블랙박스: ' + blackbox);
+  if (battery) actualWorkParts.push('보조배터리: ' + battery);
+  const actualWork = actualWorkParts.join(' / ');
+
+  // 요약 카드에 보여줄 시공 내역 (사용자에게 표시)
+  const displayWorkHtml = actualWorkParts.length
+    ? actualWorkParts.map(p => `<div style="font-size:12px;color:#444;margin-top:3px">• ${esc(p)}</div>`).join('')
+    : '<div style="font-size:12px;color:#999">CRM에 등록된 시공 내역 없음 — 아래에서 직접 입력하세요</div>';
+
+  // 특이사항 자동 채움 (note + 가격 힌트)
+  const autoNotes = note ? note : '';
 
   const popup = document.createElement('div');
   popup.id = 'content-gen-popup';
@@ -2740,14 +2800,17 @@ function openContentGenerator(name, carType, phone, summary, category, doneDate)
     </div>
     <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px">
       <div style="background:#e8f5e9;border:1px solid #c8e6c9;border-radius:10px;padding:12px;margin-bottom:14px">
-        <div style="font-size:13px;color:#2e7d32;font-weight:600">${esc(name)} · ${esc(carType)} · ${esc(doneDate||'')}</div>
-        <div style="font-size:11px;color:#666;margin-top:2px">시공 정보를 입력하면 블로그/인스타 초안을 자동 생성합니다</div>
+        <div style="font-size:13px;color:#2e7d32;font-weight:700">${esc(name)} · ${esc(carType)} · ${esc(doneDate||'')}</div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px dashed #a5d6a7">
+          <div style="font-size:11px;color:#2e7d32;font-weight:600;margin-bottom:4px">📋 CRM에 등록된 실제 시공 내역</div>
+          ${displayWorkHtml}
+        </div>
       </div>
 
       <div class="card">
-        <div class="card-title">시공 정보</div>
+        <div class="card-title">시공 정보 <span style="font-size:11px;color:#999;font-weight:400">(자동 감지됨 — 수정 가능)</span></div>
         <div class="form-group">
-          <label>필름 라인</label>
+          <label>필름 라인 ${filmLine ? '<span style="color:#2e7d32;font-size:11px">✓ 자동 감지</span>' : ''}</label>
           <select id="cg-filmLine" style="width:100%;padding:12px;border:1.5px solid #e8e8e8;border-radius:10px;background:#fafafa;font-family:inherit">
             <option value="">선택하세요</option>
             <option value="LX" ${filmLine==='LX'?'selected':''}>LX (프레스티지)</option>
@@ -2763,24 +2826,23 @@ function openContentGenerator(name, carType, phone, summary, category, doneDate)
         <div class="form-group">
           <label>패키지 등급</label>
           <select id="cg-packageTier" style="width:100%;padding:12px;border:1.5px solid #e8e8e8;border-radius:10px;background:#fafafa;font-family:inherit">
-            <option value="">선택하세요</option>
-            <option value="에센셜">에센셜</option>
-            <option value="시그니처">시그니처</option>
-            <option value="프레스티지" selected>프레스티지</option>
-            <option value="커스텀">커스텀</option>
+            <option value="에센셜" ${packageTier==='에센셜'?'selected':''}>에센셜</option>
+            <option value="시그니처" ${packageTier==='시그니처'?'selected':''}>시그니처</option>
+            <option value="프레스티지" ${packageTier==='프레스티지'?'selected':''}>프레스티지</option>
+            <option value="커스텀" ${packageTier==='커스텀'?'selected':''}>커스텀</option>
           </select>
         </div>
         <div class="form-group">
-          <label>추가 시공</label>
+          <label>추가 시공 <span style="font-size:11px;color:#2e7d32">✓ CRM에서 자동 체크</span></label>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <label class="check-item"><input type="checkbox" id="cg-ppf"> PPF 포함</label>
-            <label class="check-item"><input type="checkbox" id="cg-glass"> 유리막 코팅</label>
-            <label class="check-item"><input type="checkbox" id="cg-leather"> 가죽 코팅</label>
+            <label class="check-item ${hasPpf?'checked':''}"><input type="checkbox" id="cg-ppf" ${hasPpf?'checked':''}> PPF 포함</label>
+            <label class="check-item ${hasGlass?'checked':''}"><input type="checkbox" id="cg-glass" ${hasGlass?'checked':''}> 유리막 코팅</label>
+            <label class="check-item ${hasLeather?'checked':''}"><input type="checkbox" id="cg-leather" ${hasLeather?'checked':''}> 가죽 코팅</label>
           </div>
         </div>
         <div class="form-group">
           <label>차주 특이사항 (글의 오프닝 소재로 활용됨)</label>
-          <textarea id="cg-specialNotes" placeholder="예) 신차 출고 당일 입고, 차주는 어린 자녀 있음, 영업 목적 긴 운전시간 등" style="width:100%;height:80px;padding:12px;border:1.5px solid #e8e8e8;border-radius:10px;background:#fafafa;font-family:inherit;resize:none"></textarea>
+          <textarea id="cg-specialNotes" placeholder="예) 신차 출고 당일 입고, 차주는 어린 자녀 있음, 영업 목적 긴 운전시간 등 — CRM 특이사항이 자동 입력됨" style="width:100%;height:80px;padding:12px;border:1.5px solid #e8e8e8;border-radius:10px;background:#fafafa;font-family:inherit;resize:none">${esc(autoNotes)}</textarea>
         </div>
       </div>
 
@@ -2788,7 +2850,7 @@ function openContentGenerator(name, carType, phone, summary, category, doneDate)
     </div>
     <div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:10px;flex-shrink:0;background:white">
       <button onclick="closeContentGen()" style="flex:1;padding:14px;background:#f5f5f5;color:#555;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">닫기</button>
-      <button id="cg-generate-btn" onclick="generateContent('${esc(name)}','${esc(carType)}','${esc(phone)}','${esc(doneDate||'')}')" style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">✨ 콘텐츠 생성</button>
+      <button id="cg-generate-btn" data-actualwork="${esc(actualWork)}" onclick="generateContent('${esc(name)}','${esc(carType)}','${esc(phone)}','${esc(doneDate||'')}')" style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">✨ 콘텐츠 생성</button>
     </div>
   `;
   document.body.appendChild(popup);
@@ -2848,6 +2910,10 @@ async function generateContent(name, carType, phone, doneDate) {
     </div>`;
 
   try {
+    // 버튼에서 actualWork 속성 읽기 (openContentGenerator에서 세팅됨)
+    const btnEl = document.getElementById('cg-generate-btn');
+    const actualWork = btnEl ? (btnEl.getAttribute('data-actualwork') || '') : '';
+
     const res = await fetch(MOTIF_CONTENT_API, {
       method: 'POST',
       body: JSON.stringify({
@@ -2858,7 +2924,8 @@ async function generateContent(name, carType, phone, doneDate) {
           packageTier: packageTier || '커스텀',
           ppfApplied: ppf,
           coatingApplied: glass ? '유리막' : (leather ? '가죽' : null),
-          specialNotes: specialNotes
+          specialNotes: specialNotes,
+          actualWork: actualWork
         }
       })
     });
