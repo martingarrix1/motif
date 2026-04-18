@@ -458,10 +458,7 @@ const db = firebase.firestore();
     <div style="height:24px"></div>
   </div>
 
-</div>
-
-<div id="customer-modal" class="modal">
- <!-- 콘텐츠 보관함 페이지 -->
+<!-- 콘텐츠 보관함 페이지 -->
   <div id="page-archive" class="page">
     <div class="search-box">
       <span style="color:#bbb">🔍</span>
@@ -474,6 +471,10 @@ const db = firebase.firestore();
     </div>
     <div id="content-archive-list"><div class="loading">⚡ 불러오는 중...</div></div>
   </div>
+
+</div>
+
+<div id="customer-modal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
       <div class="modal-title" id="modal-title"></div>
@@ -482,7 +483,6 @@ const db = firebase.firestore();
     <div id="modal-body"></div>
   </div>
 </div>
-
 <div id="toast" class="toast"></div>
 
 <script>
@@ -3017,37 +3017,8 @@ async function regenerateInstaOnly(carType, filmLine, name, doneDate) {
 // Firestore에 콘텐츠 저장
 // ============================================
 async function saveContentToFirestore(name, carType, doneDate, data, meta) {
-  try {
-    const docId = (name + '_' + carType + '_' + (doneDate || '')).replace(/[^0-9a-zA-Z가-힣]/g, '_');
-    await db.collection('content_assets').doc(docId).set({
-      name, carType, doneDate,
-      filmLine: meta.filmLine,
-      packageTier: meta.packageTier,
-      ppf: meta.ppf,
-      glass: meta.glass,
-      leather: meta.leather,
-      specialNotes: meta.specialNotes,
-      blog_draft: data.blog_draft || '',
-      insta_feed: data.insta_feed || '',
-      insta_story: data.insta_story || {},
-      status: 'draft',
-      generatedAt: new Date().toISOString()
-    });
-  } catch(e) {
-    console.error('콘텐츠 저장 실패:', e);
-    // 저장 실패해도 사용자 경험은 방해하지 않음
-  }
+  ...
 }
- <!-- ============================================================
-     MOTIF 콘텐츠 보관함 모듈 (Phase 2.5)
-     ============================================================
-     설치 위치: ContentModule.html 끝의 </script> 바로 앞에 붙여넣기
-     (즉, 기존 ContentModule.html 스크립트 블록 안에 함수 추가)
-
-     + index.html 상단 더보기 메뉴에 버튼 1개 추가 필요 (별도 안내)
-     + showPage 함수에 1줄 추가 필요 (별도 안내)
-     + HTML에 페이지 div 1개 추가 필요 (별도 안내)
-     ============================================================ -->
 
 // ============================================
 // 콘텐츠 보관함 — 상태
