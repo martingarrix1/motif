@@ -2842,7 +2842,6 @@ async function generateContent(name, carType, phone, doneDate) {
   try {
     const res = await fetch(MOTIF_CONTENT_API, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'generate_content_package',
         payload: {
@@ -2967,7 +2966,6 @@ async function regenerateBlogOnly(carType, filmLine, name, doneDate) {
   try {
     const res = await fetch(MOTIF_CONTENT_API, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'regenerate_blog',
         payload: { carModel: carType, filmLine, specialNotes, feedback: '이전과 다른 오프닝으로' }
@@ -2987,7 +2985,6 @@ async function regenerateInstaOnly(carType, filmLine, name, doneDate) {
   try {
     const res = await fetch(MOTIF_CONTENT_API, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'regenerate_insta',
         payload: { carModel: carType, filmLine, specialNotes }
