@@ -110,6 +110,7 @@ const db = firebase.firestore();
   <button onclick="showPage('invoice',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📑<span>견적서</span></button>
   <button onclick="showPage('tint',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🎫<span>썬팅보증서</span></button>
   <button onclick="showPage('ppf',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🛡️<span>PPF보증서</span></button>
+  <button onclick="showPage('content-gen',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">✨<span>콘텐츠생성</span></button>
   <button onclick="showPage('archive',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📚<span>콘텐츠</span></button>
 </div>
   <div style="padding:8px 12px;border-top:1px solid #eee">
@@ -459,6 +460,84 @@ const db = firebase.firestore();
   </div>
 
 <!-- 콘텐츠 보관함 페이지 -->
+  <div id="page-content-gen" class="page">
+    <div style="background:linear-gradient(135deg,#1a1a2e 0%,#2d2d5f 100%);color:white;padding:14px 16px;border-radius:12px;margin-bottom:12px">
+      <div style="font-size:15px;font-weight:700">✨ 콘텐츠 생성 허브</div>
+      <div style="font-size:11px;color:#bbb;margin-top:3px">시공 완료 여부와 상관없이 언제든 콘텐츠를 생성하세요</div>
+    </div>
+
+    <!-- 모드 전환 -->
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      <button id="cg-mode-pick" onclick="setContentGenMode('pick')" style="flex:1;padding:10px;background:#1a1a2e;color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">👥 고객 선택</button>
+      <button id="cg-mode-manual" onclick="setContentGenMode('manual')" style="flex:1;padding:10px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">✍️ 임의 입력</button>
+    </div>
+
+    <!-- 모드 1: 고객 선택 -->
+    <div id="cg-panel-pick">
+      <div class="search-box">
+        <span style="color:#bbb">🔍</span>
+        <input type="text" id="cg-customer-search" placeholder="고객명, 차종, 필름 검색" oninput="renderContentGenCustomerList()">
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        <button id="cg-filter-all" onclick="setCGFilter('all')" style="flex:1;padding:7px;background:#1a1a2e;color:white;border:none;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer">전체</button>
+        <button id="cg-filter-done" onclick="setCGFilter('done')" style="flex:1;padding:7px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer">✅ 시공완료</button>
+        <button id="cg-filter-pending" onclick="setCGFilter('pending')" style="flex:1;padding:7px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer">⏳ 미완료</button>
+      </div>
+      <div id="cg-customer-list"><div class="loading">⚡ 고객 목록 불러오는 중...</div></div>
+    </div>
+
+    <!-- 모드 2: 임의 입력 -->
+    <div id="cg-panel-manual" style="display:none">
+      <div class="card">
+        <div class="card-title">빠른 입력</div>
+        <div class="form-group">
+          <label>차종</label>
+          <input type="text" id="cg-m-carType" placeholder="예: BMW X5, 테슬라 모델 Y" style="width:100%;padding:12px;border:1.5px solid #e8e8e8;border-radius:10px;background:#fafafa;font-family:inherit">
+        </div>
+        <div class="form-group">
+          <label>필름 라인</label>
+          <select id="cg-m-filmLine" style="width:100%;padding:12px;border:1.5px solid #e8e8e8;border-radius:10px;background:#fafafa;font-family:inherit">
+            <option value="">선택하세요</option>
+            <option value="LX">LX (프레스티지)</option>
+            <option value="Vogue">Vogue (프레스티지)</option>
+            <option value="Quantum">Quantum (시그니처)</option>
+            <option value="Zenith IR">Zenith IR (시그니처)</option>
+            <option value="Titanium">Titanium (에센셜)</option>
+            <option value="G-line">G-line (에센셜)</option>
+            <option value="S-line">S-line (에센셜)</option>
+            <option value="XR Plus">XR Plus</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>패키지 등급</label>
+          <select id="cg-m-packageTier" style="width:100%;padding:12px;border:1.5px solid #e8e8e8;border-radius:10px;background:#fafafa;font-family:inherit">
+            <option value="에센셜">에센셜</option>
+            <option value="시그니처">시그니처</option>
+            <option value="프레스티지" selected>프레스티지</option>
+            <option value="커스텀">커스텀</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>추가 시공 (선택)</label>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <label class="check-item"><input type="checkbox" id="cg-m-ppf"> PPF 포함</label>
+            <label class="check-item"><input type="checkbox" id="cg-m-glass"> 유리막 코팅</label>
+            <label class="check-item"><input type="checkbox" id="cg-m-leather"> 가죽 코팅</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>시공 상세 (선택)</label>
+          <textarea id="cg-m-actualWork" placeholder="예: 전면 LX70, 측후면 LX15, 썬루프 LX05 / PPF 본넷+생활보호4종" style="width:100%;height:70px;padding:12px;border:1.5px solid #e8e8e8;border-radius:10px;background:#fafafa;font-family:inherit;resize:none"></textarea>
+        </div>
+        <div class="form-group">
+          <label>차주 특이사항 (글 오프닝 소재)</label>
+          <textarea id="cg-m-notes" placeholder="예: 신차 출고 당일, 어린 자녀 있음, 장거리 출퇴근 차주" style="width:100%;height:70px;padding:12px;border:1.5px solid #e8e8e8;border-radius:10px;background:#fafafa;font-family:inherit;resize:none"></textarea>
+        </div>
+        <button onclick="startManualContentGen()" style="width:100%;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">✨ 콘텐츠 생성 시작</button>
+      </div>
+    </div>
+  </div>
+
   <div id="page-archive" class="page">
     <div class="search-box">
       <span style="color:#bbb">🔍</span>
@@ -627,6 +706,7 @@ function showPage(page, btn) {
   if (page === 'tint') { initTint(); }
   if (page === 'ppf') { initPpf(); }
  if (page === 'archive') { initContentArchive(); }
+ if (page === 'content-gen') { initContentGenHub(); }
 }
 
 (function() {
@@ -2741,6 +2821,266 @@ let displayCount = 30;
 // 콘텐츠 생성 GAS 프록시 URL
 // ============================================
 const MOTIF_CONTENT_API = 'https://script.google.com/macros/s/AKfycbyhrV7unL3PfTUqvYEPBCG7hM1-p-CtQfnkE4MLzHbH0O-NZJaSf6TC0udVmmlTLNjw/exec';
+
+// ============================================
+// 콘텐츠 생성 허브 탭 (더보기 → ✨ 콘텐츠생성)
+// ============================================
+let cgCurrentMode = 'pick';
+let cgCurrentFilter = 'all';
+
+function initContentGenHub() {
+  // 고객 목록 없으면 로드
+  if (!allCustomers || allCustomers.length === 0) {
+    loadCustomers().then(() => renderContentGenCustomerList());
+  } else {
+    renderContentGenCustomerList();
+  }
+  setContentGenMode(cgCurrentMode);
+}
+
+function setContentGenMode(mode) {
+  cgCurrentMode = mode;
+  const pickBtn = document.getElementById('cg-mode-pick');
+  const manualBtn = document.getElementById('cg-mode-manual');
+  const pickPanel = document.getElementById('cg-panel-pick');
+  const manualPanel = document.getElementById('cg-panel-manual');
+  if (mode === 'pick') {
+    pickBtn.style.cssText = 'flex:1;padding:10px;background:#1a1a2e;color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer';
+    manualBtn.style.cssText = 'flex:1;padding:10px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer';
+    pickPanel.style.display = 'block';
+    manualPanel.style.display = 'none';
+  } else {
+    manualBtn.style.cssText = 'flex:1;padding:10px;background:#1a1a2e;color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer';
+    pickBtn.style.cssText = 'flex:1;padding:10px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer';
+    pickPanel.style.display = 'none';
+    manualPanel.style.display = 'block';
+  }
+}
+
+function setCGFilter(filter) {
+  cgCurrentFilter = filter;
+  const btns = { all: 'cg-filter-all', done: 'cg-filter-done', pending: 'cg-filter-pending' };
+  Object.entries(btns).forEach(([k, id]) => {
+    const el = document.getElementById(id);
+    if (k === filter) el.style.cssText = 'flex:1;padding:7px;background:#1a1a2e;color:white;border:none;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer';
+    else el.style.cssText = 'flex:1;padding:7px;background:#f5f5f5;color:#555;border:1px solid #ddd;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer';
+  });
+  renderContentGenCustomerList();
+}
+
+function renderContentGenCustomerList() {
+  const container = document.getElementById('cg-customer-list');
+  if (!container) return;
+  const q = (document.getElementById('cg-customer-search').value || '').trim().toLowerCase();
+
+  // 중복 제거 (timestamp, name+carType 기준)
+  const seen = new Set();
+  let list = (allCustomers || []).filter(c => {
+    const key = c.timestamp || (c.name + '_' + c.carType);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  // 필터 적용
+  if (cgCurrentFilter === 'done') list = list.filter(c => c.doneDate);
+  else if (cgCurrentFilter === 'pending') list = list.filter(c => !c.doneDate);
+
+  // 검색
+  if (q) {
+    list = list.filter(c => {
+      return (c.name || '').toLowerCase().includes(q) ||
+             (c.carType || '').toLowerCase().includes(q) ||
+             (c.summary || '').toLowerCase().includes(q) ||
+             (c.tintF || '').toLowerCase().includes(q);
+    });
+  }
+
+  if (list.length === 0) {
+    container.innerHTML = '<div style="padding:30px;text-align:center;color:#999;font-size:13px">등록된 고객이 없습니다</div>';
+    return;
+  }
+
+  // 최근 등록 순
+  list.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+
+  container.innerHTML = list.slice(0, 50).map(c => {
+    const done = c.doneDate ? `<span style="background:#e8f5e9;color:#2e7d32;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600">✅ ${esc(c.doneDate)}</span>` : `<span style="background:#fff3e0;color:#e65100;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600">⏳ 미완료</span>`;
+    const filmHint = [c.tintF, c.tintS1].filter(Boolean).slice(0, 2).join('/') || c.summary || '';
+    return `
+      <div style="background:white;border:1px solid #e8e8e8;border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer"
+           onclick="launchCGFromCustomer('${esc(c.timestamp||'')}','${esc(c.name||'')}','${esc(c.carType||'')}','${esc(c.phone||'')}','${esc(c.doneDate||'')}')">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div style="font-size:14px;font-weight:700;color:#1a1a2e">${esc(c.name)} · ${esc(c.carType)}</div>
+          ${done}
+        </div>
+        <div style="font-size:11px;color:#888;margin-top:2px">${esc(filmHint.substring(0, 60))}</div>
+        <div style="font-size:10px;color:#bbb;margin-top:4px">입력: ${esc((c.timestamp||'').substring(0,10))}</div>
+      </div>
+    `;
+  }).join('') + (list.length > 50 ? `<div style="text-align:center;color:#999;font-size:11px;padding:10px">최근 50건만 표시 (전체 ${list.length}건)</div>` : '');
+}
+
+function launchCGFromCustomer(timestamp, name, carType, phone, doneDate) {
+  // 시공완료일 없으면 확인
+  if (!doneDate) {
+    const today = new Date().toISOString().slice(0, 10);
+    if (confirm(`${name} / ${carType}\n\n시공완료일이 등록되지 않은 고객입니다.\n\n[확인] 오늘(${today}) 완료 처리 후 콘텐츠 생성\n[취소] 완료 처리 없이 콘텐츠만 생성`)) {
+      // 시공완료 처리 (기존 setDoneDate 로직 재사용)
+      const cust = allCustomers.find(x => x.timestamp === timestamp);
+      if (cust) {
+        setDoneDate(
+          timestamp,
+          name,
+          carType,
+          phone,
+          cust.category || '',
+          cust.summary || '',
+          cust.estPrice || '',
+          today
+        );
+        // setDoneDate가 내부적으로 showDoneAlimtalkPopup + 1초 후 openContentGenerator 호출함
+        return;
+      }
+    }
+  }
+  // 바로 콘텐츠 생성 팝업
+  openContentGenerator(name, carType, phone, '', '', doneDate || new Date().toISOString().slice(0, 10));
+}
+
+function startManualContentGen() {
+  const carType = document.getElementById('cg-m-carType').value.trim();
+  const filmLine = document.getElementById('cg-m-filmLine').value;
+  const packageTier = document.getElementById('cg-m-packageTier').value;
+  const ppf = document.getElementById('cg-m-ppf').checked;
+  const glass = document.getElementById('cg-m-glass').checked;
+  const leather = document.getElementById('cg-m-leather').checked;
+  const actualWork = document.getElementById('cg-m-actualWork').value.trim();
+  const notes = document.getElementById('cg-m-notes').value.trim();
+
+  if (!carType) { showToast('차종을 입력하세요'); return; }
+  if (!filmLine) { showToast('필름 라인을 선택하세요'); return; }
+
+  // 임시 이름(date stamp)으로 팝업 열기. 고객 저장은 하지 않음.
+  const stampName = '콘텐츠_' + new Date().toISOString().slice(5, 10).replace('-', '');
+  const today = new Date().toISOString().slice(0, 10);
+
+  openManualContentGenerator({
+    name: stampName,
+    carType: carType,
+    filmLine: filmLine,
+    packageTier: packageTier,
+    ppf: ppf,
+    glass: glass,
+    leather: leather,
+    actualWork: actualWork,
+    notes: notes,
+    doneDate: today
+  });
+}
+
+// 임의 입력 모드 전용 팝업 (고객 DB 조회 생략)
+function openManualContentGenerator(p) {
+  const name = p.name, carType = p.carType;
+  const actualWorkDisplay = p.actualWork
+    ? `<div style="font-size:12px;color:#444;margin-top:3px">• ${esc(p.actualWork)}</div>`
+    : '<div style="font-size:12px;color:#999">시공 상세 미입력</div>';
+
+  const popup = document.createElement('div');
+  popup.id = 'content-gen-popup';
+  popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:white;z-index:10000;display:flex;flex-direction:column;overflow:hidden';
+  popup.innerHTML = `
+    <div style="background:#1a1a2e;color:white;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div style="font-size:15px;font-weight:700">✨ 콘텐츠 자동 생성 (임의 입력)</div>
+      <button onclick="closeContentGen()" style="background:none;border:none;color:white;font-size:26px;cursor:pointer;line-height:1;padding:0 4px">×</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px">
+      <div style="background:#e3f2fd;border:1px solid #90caf9;border-radius:10px;padding:12px;margin-bottom:14px">
+        <div style="font-size:13px;color:#1565c0;font-weight:700">${esc(carType)} · ${esc(p.filmLine)} · ${esc(p.packageTier)}</div>
+        <div style="margin-top:6px;padding-top:6px;border-top:1px dashed #90caf9">
+          <div style="font-size:11px;color:#1565c0;font-weight:600;margin-bottom:3px">📋 입력한 시공 내역</div>
+          ${actualWorkDisplay}
+        </div>
+      </div>
+
+      <div id="cg-result" style="display:none"></div>
+    </div>
+    <div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:10px;flex-shrink:0;background:white">
+      <button onclick="closeContentGen()" style="flex:1;padding:14px;background:#f5f5f5;color:#555;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">닫기</button>
+      <button id="cg-generate-btn"
+        data-actualwork="${esc(p.actualWork)}"
+        data-filmline="${esc(p.filmLine)}"
+        data-packagetier="${esc(p.packageTier)}"
+        data-ppf="${p.ppf?'1':'0'}"
+        data-glass="${p.glass?'1':'0'}"
+        data-leather="${p.leather?'1':'0'}"
+        data-notes="${esc(p.notes)}"
+        onclick="generateContentManual('${esc(name)}','${esc(carType)}','','${esc(p.doneDate)}')"
+        style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">✨ 콘텐츠 생성</button>
+    </div>
+  `;
+  document.body.appendChild(popup);
+}
+
+async function generateContentManual(name, carType, phone, doneDate) {
+  const btn = document.getElementById('cg-generate-btn');
+  const filmLine = btn.getAttribute('data-filmline');
+  const packageTier = btn.getAttribute('data-packagetier');
+  const ppf = btn.getAttribute('data-ppf') === '1';
+  const glass = btn.getAttribute('data-glass') === '1';
+  const leather = btn.getAttribute('data-leather') === '1';
+  const actualWork = btn.getAttribute('data-actualwork') || '';
+  const specialNotes = btn.getAttribute('data-notes') || '';
+
+  btn.disabled = true;
+  btn.textContent = '⏳ 생성 중... (20~40초)';
+
+  const resultEl = document.getElementById('cg-result');
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = `
+    <div style="padding:30px;text-align:center">
+      <div style="font-size:14px;color:#666">✨ Claude가 글을 쓰고 있습니다...</div>
+      <div style="font-size:12px;color:#999;margin-top:6px">블로그 · 인스타 피드 · 스토리 3종</div>
+    </div>`;
+
+  try {
+    const res = await fetch(MOTIF_CONTENT_API, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'generate_content_package',
+        payload: {
+          carModel: carType,
+          filmLine: filmLine,
+          packageTier: packageTier || '커스텀',
+          ppfApplied: ppf,
+          coatingApplied: glass ? '유리막' : (leather ? '가죽' : null),
+          specialNotes: specialNotes,
+          actualWork: actualWork
+        }
+      })
+    });
+    const result = await res.json();
+    if (!result.success) {
+      resultEl.innerHTML = `<div style="padding:20px;background:#ffebee;border-radius:10px;color:#c62828;font-size:13px">❌ 생성 실패: ${esc(result.error || '알 수 없는 오류')}</div>`;
+      btn.disabled = false;
+      btn.textContent = '✨ 콘텐츠 생성';
+      return;
+    }
+    renderContentResult(result.data, { name, carType, phone, doneDate, filmLine });
+    // 임의 입력 모드는 Firestore에 저장할지 선택
+    const saveConfirm = confirm('생성된 콘텐츠를 보관함에 저장할까요?\n\n[확인] 저장 / [취소] 저장 안 함');
+    if (saveConfirm) {
+      saveContentToFirestore(name, carType, doneDate, result.data, { filmLine, packageTier, ppf, glass, leather, specialNotes });
+    }
+    btn.disabled = false;
+    btn.textContent = '🔄 다시 생성';
+  } catch(e) {
+    resultEl.innerHTML = `<div style="padding:20px;background:#ffebee;border-radius:10px;color:#c62828;font-size:13px">❌ 네트워크 오류: ${esc(e.message)}</div>`;
+    btn.disabled = false;
+    btn.textContent = '✨ 콘텐츠 생성';
+  }
+}
+
 // ============================================
 // 콘텐츠 생성 팝업 열기 (외부 호출 진입점)
 // ============================================
