@@ -3412,15 +3412,26 @@ function copyAllStories() {
 // ============================================
 // data-속성으로 안전하게 인자 전달 (esc 이스케이프 이슈 회피)
 function openRegenFromButton(btn) {
-  const type = btn.getAttribute('data-regen-type');
-  const carType = btn.getAttribute('data-car-type');
-  const filmLine = btn.getAttribute('data-film-line');
-  const name = btn.getAttribute('data-name');
-  const doneDate = btn.getAttribute('data-done-date');
-  openRegenFeedbackPopup(type, carType, filmLine, name, doneDate);
+  try {
+    const type = btn.getAttribute('data-regen-type');
+    const carType = btn.getAttribute('data-car-type');
+    const filmLine = btn.getAttribute('data-film-line');
+    const name = btn.getAttribute('data-name');
+    const doneDate = btn.getAttribute('data-done-date');
+    console.log('[재생성 버튼 클릭]', { type, carType, filmLine, name, doneDate });
+    if (!type) {
+      alert('재생성 타입이 설정되지 않았습니다. 페이지를 새로고침해 주세요.');
+      return;
+    }
+    openRegenFeedbackPopup(type, carType || '', filmLine || '', name || '', doneDate || '');
+  } catch(e) {
+    alert('재생성 팝업 열기 실패: ' + e.message);
+    console.error('[openRegenFromButton 에러]', e);
+  }
 }
 
 function openRegenFeedbackPopup(type, carType, filmLine, name, doneDate) {
+  try {
   // type: 'blog' or 'insta'
   const typeLabel = type === 'blog' ? '블로그' : '인스타';
   const typeIcon = type === 'blog' ? '📝' : '📸';
@@ -3518,6 +3529,10 @@ function openRegenFeedbackPopup(type, carType, filmLine, name, doneDate) {
 
   // 직접 입력 변경 시 미리보기 갱신
   document.getElementById('rfb-custom-feedback').addEventListener('input', updateRegenPreview);
+  } catch(e) {
+    alert('피드백 팝업 렌더링 실패: ' + e.message);
+    console.error('[openRegenFeedbackPopup 에러]', e);
+  }
 }
 
 function toggleRegenPreset(idx, btn) {
