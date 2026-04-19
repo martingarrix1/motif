@@ -3605,6 +3605,15 @@ async function submitRegenFeedback(type, carType, filmLine, name, doneDate) {
   }
   closeRegenFeedback();
 
+  // 보관함에서 열린 경우 — name에 fbId가 들어있고 _archiveRegenMode가 true
+  if (window._archiveRegenMode && window._archiveRegenFbId) {
+    const fbId = window._archiveRegenFbId;
+    window._archiveRegenMode = false;
+    window._archiveRegenFbId = null;
+    await regenerateFromArchive(fbId, type, feedback);
+    return;
+  }
+
   if (type === 'blog') {
     await regenerateBlogOnly(carType, filmLine, name, doneDate, feedback);
   } else if (type === 'insta') {
@@ -3907,8 +3916,22 @@ function openContentAssetDetail(fbId) {
       </div>
 
       <div style="display:flex;gap:8px;margin-bottom:14px">
-        <button onclick="regenerateFromArchive('${esc(fbId)}','blog')" style="flex:1;padding:10px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">📝 블로그 재생성</button>
-        <button onclick="regenerateFromArchive('${esc(fbId)}','insta')" style="flex:1;padding:10px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">📸 인스타 재생성</button>
+        <button
+          data-archive-regen-type="blog"
+          data-fbid="${esc(fbId)}"
+          data-car-type="${esc(a.carType||'')}"
+          data-film-line="${esc(a.filmLine||'')}"
+          data-special-notes="${esc(a.specialNotes||'')}"
+          onclick="openArchiveRegenPopup(this)"
+          style="flex:1;padding:10px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">📝 블로그 재생성</button>
+        <button
+          data-archive-regen-type="insta"
+          data-fbid="${esc(fbId)}"
+          data-car-type="${esc(a.carType||'')}"
+          data-film-line="${esc(a.filmLine||'')}"
+          data-special-notes="${esc(a.specialNotes||'')}"
+          onclick="openArchiveRegenPopup(this)"
+          style="flex:1;padding:10px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">📸 인스타 재생성</button>
       </div>
     </div>
     <div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:10px;flex-shrink:0;background:white">
@@ -3983,12 +4006,35 @@ async function deleteContentAsset(fbId) {
 // ============================================
 // 재생성 (보관함에서)
 // ============================================
-async function regenerateFromArchive(fbId, type) {
-  const a = allContentAssets.find(x => x.fbId === fbId);
-  if (!a) return;
-  if (!confirm(`${type === 'blog' ? '블로그' : '인스타'}를 재생성할까요? 기존 내용은 새 내용으로 덮어씌워집니다.`)) return;
+// 보관함 재생성 — 피드백 팝업 경유용 브릿지
+function openArchiveRegenPopup(btn) {
+  try {
+    const type = btn.getAttribute('data-archive-regen-type');
+    const fbId = btn.getAttribute('data-fbid');
+    const carType = btn.getAttribute('data-car-type') || '';
+    const filmLine = btn.getAttribute('data-film-line') || '';
+    if (!type || !fbId) {
+      alert('재생성 정보가 누락되었습니다.');
+      return;
+    }
+    // 팝업 띄우되, 재생성 시작 버튼은 보관함 전용 경로로 분기
+    // 기존 openRegenFeedbackPopup 재활용하되 fbId를 name에 숨겨 전달
+    window._archiveRegenFbId = fbId;
+    window._archiveRegenMode = true;
+    openRegenFeedbackPopup(type, carType, filmLine, fbId, '');
+  } catch(e) {
+    alert('팝업 열기 실패: ' + e.message);
+    console.error('[openArchiveRegenPopup 에러]', e);
+  }
+}
 
-  showToast('⏳ 재생성 중...');
+async function regenerateFromArchive(fbId, type, feedback) {
+  const a = allContentAssets.find(x => x.fbId === fbId);
+  if (!a) { showToast('❌ 원본 데이터를 찾을 수 없습니다'); return; }
+
+  showToast('⏳ 재생성 중... (20~40초)');
+  console.log('[보관함 재생성]', { fbId, type, feedback });
+
   try {
     const res = await fetch(MOTIF_CONTENT_API, {
       method: 'POST',
@@ -3998,21 +4044,39 @@ async function regenerateFromArchive(fbId, type) {
           carModel: a.carType,
           filmLine: a.filmLine,
           specialNotes: a.specialNotes || '',
-          feedback: '다른 오프닝과 접근으로'
+          actualWork: a.actualWork || '',
+          feedback: feedback || '다른 오프닝과 접근으로'
         }
       })
     });
     const result = await res.json();
-    if (!result.success) { showToast('❌ ' + result.error); return; }
+    console.log('[보관함 재생성 응답]', result);
+    if (!result.success) { showToast('❌ ' + (result.error || '실패')); return; }
 
-    if (type === 'blog' && result.data.blog_draft) {
-      document.getElementById('ca-blog').value = result.data.blog_draft;
-      showToast('✅ 블로그 재생성 완료 — 저장 버튼 눌러주세요');
-    } else if (type === 'insta' && result.data.insta_feed) {
-      document.getElementById('ca-insta').value = result.data.insta_feed;
-      showToast('✅ 인스타 재생성 완료 — 저장 버튼 눌러주세요');
+    if (type === 'blog' && result.data && result.data.blog_draft) {
+      const el = document.getElementById('ca-blog');
+      if (el) {
+        el.value = result.data.blog_draft;
+        showToast('✅ 블로그 재생성 완료 — 저장 버튼 눌러주세요');
+      } else {
+        showToast('⚠️ 결과는 받았으나 표시할 영역이 닫혔습니다');
+      }
+    } else if (type === 'insta' && result.data && result.data.insta_feed) {
+      const el = document.getElementById('ca-insta');
+      if (el) {
+        el.value = result.data.insta_feed;
+        showToast('✅ 인스타 재생성 완료 — 저장 버튼 눌러주세요');
+      } else {
+        showToast('⚠️ 결과는 받았으나 표시할 영역이 닫혔습니다');
+      }
+    } else {
+      showToast('❌ 응답 형식 오류');
+      console.error('[응답 형식 오류]', result);
     }
-  } catch(e) { showToast('❌ ' + e.message); }
+  } catch(e) {
+    showToast('❌ ' + e.message);
+    console.error('[보관함 재생성 예외]', e);
+  }
 }
 
 // ============================================
