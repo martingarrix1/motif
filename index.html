@@ -3075,11 +3075,7 @@ async function generateContentManual(name, carType, phone, doneDate) {
       return;
     }
     renderContentResult(result.data, { name, carType, phone, doneDate, filmLine });
-    // 임의 입력 모드는 Firestore에 저장할지 선택
-    const saveConfirm = confirm('생성된 콘텐츠를 보관함에 저장할까요?\n\n[확인] 저장 / [취소] 저장 안 함');
-    if (saveConfirm) {
-      saveContentToFirestore(name, carType, doneDate, result.data, { filmLine, packageTier, ppf, glass, leather, specialNotes });
-    }
+    // 저장은 결과 화면의 "💾 보관함에 저장" 버튼으로 수동 처리
     btn.disabled = false;
     btn.textContent = '🔄 다시 생성';
   } catch(e) {
@@ -3308,11 +3304,11 @@ async function generateContent(name, carType, phone, doneDate) {
     // 결과 표시
     renderContentResult(result.data, { name, carType, phone, doneDate, filmLine });
 
-    // Firestore에 저장 (백그라운드)
-    saveContentToFirestore(name, carType, doneDate, result.data, { filmLine, packageTier, ppf, glass, leather, specialNotes });
-
     btn.disabled = false;
     btn.textContent = '🔄 다시 생성';
+
+    // 저장은 결과 화면의 "💾 보관함에 저장" 버튼으로 수동 처리
+    // (자동 저장 → 수동 저장 방식으로 변경됨)
 
   } catch(e) {
     resultEl.innerHTML = `<div style="padding:20px;background:#ffebee;border-radius:10px;color:#c62828;font-size:13px">❌ 네트워크 오류: ${esc(e.message)}</div>`;
@@ -3386,13 +3382,82 @@ function renderContentResult(data, meta) {
         style="flex:1;padding:10px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">📸 인스타 다시</button>
     </div>
 
-    <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:12px;margin-bottom:10px">
-      <div style="font-size:12px;color:#f57f17;font-weight:600">💾 자동 저장됨</div>
-      <div style="font-size:11px;color:#999;margin-top:2px">편집한 내용은 "콘텐츠 보관함"에서 다시 열 수 있습니다 (추후 추가 예정)</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button
+        data-save-name="${esc(meta.name)}"
+        data-save-car="${esc(meta.carType)}"
+        data-save-done="${esc(meta.doneDate)}"
+        data-save-film="${esc(meta.filmLine)}"
+        onclick="manualSaveContent(this)"
+        style="flex:1;padding:12px;background:#e3f2fd;color:#1565c0;border:1.5px solid #90caf9;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">💾 보관함에 저장</button>
+    </div>
+
+    <div style="background:#f5f5f5;border-radius:8px;padding:10px 12px;margin-bottom:10px">
+      <div style="font-size:11px;color:#666">편집한 내용은 "보관함에 저장" 버튼을 눌러야 저장됩니다.<br>보관함은 ☰ 더보기 → 📚 콘텐츠 에서 확인 가능합니다.</div>
     </div>
   `;
   // 결과로 스크롤
   setTimeout(() => resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+}
+
+// 결과 화면에서 현재 편집된 내용으로 수동 저장
+async function manualSaveContent(btn) {
+  const name = btn.getAttribute('data-save-name');
+  const carType = btn.getAttribute('data-save-car');
+  const doneDate = btn.getAttribute('data-save-done');
+  const filmLine = btn.getAttribute('data-save-film');
+
+  // 현재 textarea에 있는 실제 값 가져오기 (편집된 것 반영)
+  const blog = document.getElementById('cg-blog') ? document.getElementById('cg-blog').value : '';
+  const insta = document.getElementById('cg-insta') ? document.getElementById('cg-insta').value : '';
+  const story = {
+    cut1: (document.getElementById('cg-story1') || {}).value || '',
+    cut2: (document.getElementById('cg-story2') || {}).value || '',
+    cut3: (document.getElementById('cg-story3') || {}).value || ''
+  };
+
+  if (!blog && !insta) {
+    showToast('❌ 저장할 내용이 없습니다');
+    return;
+  }
+
+  if (!confirm('💾 현재 편집된 내용을 보관함에 저장할까요?\n\n같은 고객 건이면 기존 저장본을 덮어씌웁니다.')) return;
+
+  btn.disabled = true;
+  btn.textContent = '⏳ 저장 중...';
+
+  const genBtn = document.getElementById('cg-generate-btn');
+  const meta = {
+    filmLine,
+    packageTier: genBtn ? genBtn.getAttribute('data-packagetier') : '',
+    ppf: genBtn ? genBtn.getAttribute('data-ppf') === '1' : false,
+    glass: genBtn ? genBtn.getAttribute('data-glass') === '1' : false,
+    leather: genBtn ? genBtn.getAttribute('data-leather') === '1' : false,
+    specialNotes: genBtn ? (genBtn.getAttribute('data-notes') || '') : '',
+    actualWork: genBtn ? (genBtn.getAttribute('data-actualwork') || '') : ''
+  };
+
+  const result = await saveContentToFirestore(
+    name, carType, doneDate,
+    { blog_draft: blog, insta_feed: insta, insta_story: story },
+    meta
+  );
+
+  btn.disabled = false;
+  if (result && result.success) {
+    btn.textContent = '✅ 저장 완료';
+    btn.style.background = '#e8f5e9';
+    btn.style.color = '#2e7d32';
+    btn.style.borderColor = '#a5d6a7';
+    setTimeout(() => {
+      btn.textContent = '💾 다시 저장 (덮어쓰기)';
+      btn.style.background = '#e3f2fd';
+      btn.style.color = '#1565c0';
+      btn.style.borderColor = '#90caf9';
+    }, 2000);
+  } else {
+    btn.textContent = '💾 보관함에 저장';
+  }
 }
 
 function copyContentText(elId) {
@@ -3716,23 +3781,39 @@ async function regenerateInstaOnly(carType, filmLine, name, doneDate, feedback) 
 // ============================================
 async function saveContentToFirestore(name, carType, doneDate, data, meta) {
   try {
+    // docId 안전화: 한글 포함 가능하지만 특수문자는 _ 로
     const docId = (name + '_' + carType + '_' + (doneDate || '')).replace(/[^0-9a-zA-Z가-힣]/g, '_');
+    console.log('[콘텐츠 저장 시작]', docId);
+
     await db.collection('content_assets').doc(docId).set({
       name, carType, doneDate,
-      filmLine: meta.filmLine,
-      packageTier: meta.packageTier,
-      ppf: meta.ppf,
-      glass: meta.glass,
-      leather: meta.leather,
-      specialNotes: meta.specialNotes,
+      filmLine: meta.filmLine || '',
+      packageTier: meta.packageTier || '',
+      ppf: !!meta.ppf,
+      glass: !!meta.glass,
+      leather: !!meta.leather,
+      specialNotes: meta.specialNotes || '',
+      actualWork: meta.actualWork || '',
       blog_draft: data.blog_draft || '',
       insta_feed: data.insta_feed || '',
       insta_story: data.insta_story || {},
       status: 'draft',
       generatedAt: new Date().toISOString()
     });
+
+    // 저장 검증 — 실제로 저장됐는지 읽어보기
+    const verify = await db.collection('content_assets').doc(docId).get();
+    if (!verify.exists) {
+      throw new Error('저장 후 검증 실패 — 문서가 존재하지 않음');
+    }
+
+    console.log('[콘텐츠 저장 성공]', docId);
+    showToast('✅ 보관함에 저장되었습니다');
+    return { success: true, docId };
   } catch(e) {
-    console.error('콘텐츠 저장 실패:', e);
+    console.error('[콘텐츠 저장 실패]', e);
+    showToast('❌ 저장 실패: ' + e.message);
+    return { success: false, error: e.message };
   }
 }
 
