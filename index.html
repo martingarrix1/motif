@@ -709,15 +709,23 @@ function showPage(page, btn) {
  if (page === 'content-gen') { initContentGenHub(); }
 }
 
-(function() {
+// 페이지 로드 완료 후 마지막 페이지 복원 (모든 함수·변수 정의 보장)
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _restoreLastPage);
+} else {
+  setTimeout(_restoreLastPage, 0);
+}
+function _restoreLastPage() {
   try {
     const last = localStorage.getItem('motif_last_page');
     if (last && last !== 'consult') {
       const navBtn = document.getElementById('nav-' + last);
       showPage(last, navBtn);
     }
-  } catch(e) {}
-})();
+  } catch(e) {
+    console.warn('마지막 페이지 복원 실패:', e);
+  }
+}
 
 async function submitConsult() {
   const name = document.getElementById('name').value.trim();
@@ -3722,9 +3730,9 @@ async function saveContentToFirestore(name, carType, doneDate, data, meta) {
 // ============================================
 // 콘텐츠 보관함 — 상태
 // ============================================
-let allContentAssets = [];
-let contentSearchQuery = '';
-let contentStatusFilter = 'all';
+var allContentAssets = [];
+var contentSearchQuery = '';
+var contentStatusFilter = 'all';
 
 // ============================================
 // 진입점
