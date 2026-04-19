@@ -3360,8 +3360,22 @@ function renderContentResult(data, meta) {
     </div>
 
     <div style="display:flex;gap:8px;margin-bottom:14px">
-      <button onclick="openRegenFeedbackPopup('blog','${esc(meta.carType)}','${esc(meta.filmLine)}','${esc(meta.name)}','${esc(meta.doneDate)}')" style="flex:1;padding:10px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">📝 블로그 다시</button>
-      <button onclick="openRegenFeedbackPopup('insta','${esc(meta.carType)}','${esc(meta.filmLine)}','${esc(meta.name)}','${esc(meta.doneDate)}')" style="flex:1;padding:10px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">📸 인스타 다시</button>
+      <button
+        data-regen-type="blog"
+        data-car-type="${esc(meta.carType)}"
+        data-film-line="${esc(meta.filmLine)}"
+        data-name="${esc(meta.name)}"
+        data-done-date="${esc(meta.doneDate)}"
+        onclick="openRegenFromButton(this)"
+        style="flex:1;padding:10px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">📝 블로그 다시</button>
+      <button
+        data-regen-type="insta"
+        data-car-type="${esc(meta.carType)}"
+        data-film-line="${esc(meta.filmLine)}"
+        data-name="${esc(meta.name)}"
+        data-done-date="${esc(meta.doneDate)}"
+        onclick="openRegenFromButton(this)"
+        style="flex:1;padding:10px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">📸 인스타 다시</button>
     </div>
 
     <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:12px;margin-bottom:10px">
@@ -3396,6 +3410,16 @@ function copyAllStories() {
 // ============================================
 // 재생성 피드백 팝업 (블로그/인스타 공통)
 // ============================================
+// data-속성으로 안전하게 인자 전달 (esc 이스케이프 이슈 회피)
+function openRegenFromButton(btn) {
+  const type = btn.getAttribute('data-regen-type');
+  const carType = btn.getAttribute('data-car-type');
+  const filmLine = btn.getAttribute('data-film-line');
+  const name = btn.getAttribute('data-name');
+  const doneDate = btn.getAttribute('data-done-date');
+  openRegenFeedbackPopup(type, carType, filmLine, name, doneDate);
+}
+
 function openRegenFeedbackPopup(type, carType, filmLine, name, doneDate) {
   // type: 'blog' or 'insta'
   const typeLabel = type === 'blog' ? '블로그' : '인스타';
@@ -3475,7 +3499,14 @@ function openRegenFeedbackPopup(type, carType, filmLine, name, doneDate) {
 
       <div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:10px;flex-shrink:0;background:white">
         <button onclick="closeRegenFeedback()" style="flex:1;padding:14px;background:#f5f5f5;color:#555;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">취소</button>
-        <button onclick="submitRegenFeedback('${type}','${esc(carType)}','${esc(filmLine)}','${esc(name)}','${esc(doneDate)}')" style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">🔄 재생성 시작</button>
+        <button id="rfb-submit-btn"
+          data-regen-type="${type}"
+          data-car-type="${esc(carType)}"
+          data-film-line="${esc(filmLine)}"
+          data-name="${esc(name)}"
+          data-done-date="${esc(doneDate)}"
+          onclick="submitRegenFromButton(this)"
+          style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">🔄 재생성 시작</button>
       </div>
     </div>
   `;
@@ -3534,6 +3565,16 @@ function buildRegenFeedback() {
   return combined.join(' / ');
 }
 
+// data-속성 기반 안전한 submitRegenFeedback 호출
+function submitRegenFromButton(btn) {
+  const type = btn.getAttribute('data-regen-type');
+  const carType = btn.getAttribute('data-car-type');
+  const filmLine = btn.getAttribute('data-film-line');
+  const name = btn.getAttribute('data-name');
+  const doneDate = btn.getAttribute('data-done-date');
+  submitRegenFeedback(type, carType, filmLine, name, doneDate);
+}
+
 async function submitRegenFeedback(type, carType, filmLine, name, doneDate) {
   const feedback = buildRegenFeedback();
   if (!feedback) {
@@ -3543,8 +3584,10 @@ async function submitRegenFeedback(type, carType, filmLine, name, doneDate) {
 
   if (type === 'blog') {
     await regenerateBlogOnly(carType, filmLine, name, doneDate, feedback);
-  } else {
+  } else if (type === 'insta') {
     await regenerateInstaOnly(carType, filmLine, name, doneDate, feedback);
+  } else {
+    showToast('❌ 재생성 타입 오류: ' + type);
   }
 }
 
@@ -3553,7 +3596,9 @@ async function regenerateBlogOnly(carType, filmLine, name, doneDate, feedback) {
   const genBtn = document.getElementById('cg-generate-btn');
   const actualWork = genBtn ? (genBtn.getAttribute('data-actualwork') || '') : '';
 
-  showToast('⏳ 블로그 재생성 중...');
+  showToast('⏳ 블로그 재생성 중... (20~40초)');
+  console.log('[재생성 시작]', { carType, filmLine, name, feedback });
+
   try {
     const res = await fetch(MOTIF_CONTENT_API, {
       method: 'POST',
@@ -3569,11 +3614,25 @@ async function regenerateBlogOnly(carType, filmLine, name, doneDate, feedback) {
       })
     });
     const result = await res.json();
-    if (result.success && result.data.blog_draft) {
-      document.getElementById('cg-blog').value = result.data.blog_draft;
-      showToast('✅ 블로그 재생성 완료');
-    } else showToast('❌ ' + (result.error || '실패'));
-  } catch(e) { showToast('❌ ' + e.message); }
+    console.log('[재생성 응답]', result);
+
+    if (result.success && result.data && result.data.blog_draft) {
+      const blogEl = document.getElementById('cg-blog');
+      if (blogEl) {
+        blogEl.value = result.data.blog_draft;
+        showToast('✅ 블로그 재생성 완료');
+      } else {
+        showToast('⚠️ 결과는 받았으나 표시할 영역이 닫혔습니다');
+      }
+    } else {
+      const errMsg = result.error || JSON.stringify(result).substring(0, 100);
+      showToast('❌ 재생성 실패: ' + errMsg);
+      console.error('[재생성 실패 상세]', result);
+    }
+  } catch(e) {
+    showToast('❌ 네트워크 오류: ' + e.message);
+    console.error('[재생성 예외]', e);
+  }
 }
 
 async function regenerateInstaOnly(carType, filmLine, name, doneDate, feedback) {
@@ -3581,7 +3640,9 @@ async function regenerateInstaOnly(carType, filmLine, name, doneDate, feedback) 
   const genBtn = document.getElementById('cg-generate-btn');
   const actualWork = genBtn ? (genBtn.getAttribute('data-actualwork') || '') : '';
 
-  showToast('⏳ 인스타 재생성 중...');
+  showToast('⏳ 인스타 재생성 중... (15~30초)');
+  console.log('[인스타 재생성 시작]', { carType, filmLine, name, feedback });
+
   try {
     const res = await fetch(MOTIF_CONTENT_API, {
       method: 'POST',
@@ -3597,11 +3658,25 @@ async function regenerateInstaOnly(carType, filmLine, name, doneDate, feedback) 
       })
     });
     const result = await res.json();
-    if (result.success && result.data.insta_feed) {
-      document.getElementById('cg-insta').value = result.data.insta_feed;
-      showToast('✅ 인스타 재생성 완료');
-    } else showToast('❌ ' + (result.error || '실패'));
-  } catch(e) { showToast('❌ ' + e.message); }
+    console.log('[인스타 재생성 응답]', result);
+
+    if (result.success && result.data && result.data.insta_feed) {
+      const instaEl = document.getElementById('cg-insta');
+      if (instaEl) {
+        instaEl.value = result.data.insta_feed;
+        showToast('✅ 인스타 재생성 완료');
+      } else {
+        showToast('⚠️ 결과는 받았으나 표시할 영역이 닫혔습니다');
+      }
+    } else {
+      const errMsg = result.error || JSON.stringify(result).substring(0, 100);
+      showToast('❌ 재생성 실패: ' + errMsg);
+      console.error('[인스타 재생성 실패 상세]', result);
+    }
+  } catch(e) {
+    showToast('❌ 네트워크 오류: ' + e.message);
+    console.error('[인스타 재생성 예외]', e);
+  }
 }
 
 // ============================================
