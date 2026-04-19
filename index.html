@@ -977,7 +977,10 @@ function renderCustomers(data) {
         <button onclick="completeCustomer('${c.timestamp}')" style="padding:8px 12px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">✅</button>
         <button onclick="deleteCustomer('${c.timestamp}')" style="padding:8px 12px;background:#fff0f0;color:#d32f2f;border:1px solid #ffcdd2;border-radius:8px;font-size:clamp(12px,3vw,13px);font-weight:600;cursor:pointer">🗑</button>
       </div>
-      <button onclick="openCalendarWarrantyPopup('${c.name}','${c.carType}','${c.phone}','${c.timestamp}','${c.entryDate||new Date().toISOString().slice(0,10)}')" style="margin-top:8px;width:100%;padding:8px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📜 보증서 발행</button>
+      <div style="margin-top:8px;display:flex;gap:6px">
+        <button onclick="openCalendarWarrantyPopup('${c.name}','${c.carType}','${c.phone}','${c.timestamp}','${c.entryDate||new Date().toISOString().slice(0,10)}')" style="flex:1;padding:8px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📜 보증서 발행</button>
+        <button onclick="openReviewScheduleFromCalendar('${c.name}','${c.carType}','${c.phone}','${c.entryDate||new Date().toISOString().slice(0,10)}')" style="flex:1;padding:8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">⭐ 리뷰요청</button>
+      </div>
       <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
         <span style="font-size:12px;color:#e65100;white-space:nowrap">입고예정일</span>
         <input type="date" value="${c.entryDate||''}" onchange="changeEntryDate('${c.timestamp}',this.value)"
@@ -1061,6 +1064,71 @@ async function sendDoneAlimtalk(name, carType, phone, doneDate, pdfId, popupEl) 
     if (r === 'ok') showToast('✅ 시공완료 알림톡 발송 완료!');
     else showToast('❌ ' + (r.error || '발송 실패'));
   } catch(e) { showToast('❌ ' + e.message); }
+}
+
+// ────────────────────────────────────────
+// 리뷰 요청 알림톡 — 2시간 뒤 예약 발송
+// ────────────────────────────────────────
+function openReviewScheduleFromCalendar(name, carType, phone, doneDate) {
+  if (!phone) { showToast('❌ 연락처가 없는 고객입니다'); return; }
+
+  // 2시간 뒤 예약 시각 계산
+  const scheduleTime = new Date(Date.now() + 2*60*60*1000);
+  const hh = scheduleTime.getHours().toString().padStart(2,'0');
+  const mm = scheduleTime.getMinutes().toString().padStart(2,'0');
+  const timeStr = `${hh}:${mm}`;
+
+  const popup = document.createElement('div');
+  popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  popup.innerHTML = `
+    <div style="background:white;border-radius:16px;padding:24px;max-width:340px;width:100%;text-align:center">
+      <div style="font-size:32px;margin-bottom:12px">⭐</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px">${esc(name)} 고객님께</div>
+      <div style="font-size:14px;color:#555;margin-bottom:6px">리뷰 요청 알림톡을 예약 발송할까요?</div>
+      <div style="background:#fff3e0;color:#e65100;padding:10px;border-radius:8px;font-size:13px;margin-bottom:16px;font-weight:600">
+        📨 오늘 ${timeStr}에 자동 발송<br>
+        <span style="font-size:11px;font-weight:400;color:#999">(지금부터 2시간 뒤)</span>
+      </div>
+      <div style="font-size:11px;color:#888;margin-bottom:16px;text-align:left;line-height:1.6">
+        • 네이버 플레이스 원탭 리뷰 링크 포함<br>
+        • 고객이 집에 도착해 있을 타이밍<br>
+        • Solapi 서버에서 자동 발송
+      </div>
+      <div style="display:flex;gap:10px">
+        <button onclick="this.closest('div[style*=fixed]').remove()" style="flex:1;padding:12px;background:#f5f5f5;color:#555;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">취소</button>
+        <button onclick="scheduleReviewAlimtalk('${esc(name)}','${esc(carType)}','${esc(phone)}','${esc(doneDate)}',this.closest('div[style*=fixed]'))" style="flex:1;padding:12px;background:#e65100;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">예약 발송</button>
+      </div>
+    </div>`;
+  document.body.appendChild(popup);
+}
+
+async function scheduleReviewAlimtalk(name, carType, phone, doneDate, popupEl) {
+  popupEl.remove();
+  showToast('⏳ 리뷰 요청 예약 중...');
+
+  // 2시간 뒤 ISO 8601 형식 (UTC)
+  const scheduledDate = new Date(Date.now() + 2*60*60*1000).toISOString();
+
+  console.log('[리뷰 요청 예약]', { name, carType, phone, doneDate, scheduledDate });
+
+  try {
+    const r = await apiPost({
+      action: 'scheduleReviewAlimtalk',
+      name, carType, phone, doneDate,
+      scheduledDate
+    });
+    console.log('[리뷰 요청 예약 응답]', r);
+
+    if (r === 'ok' || (r && r.success)) {
+      showToast('✅ 2시간 뒤 자동 발송 예약됨');
+    } else {
+      const msg = (r && r.error) ? r.error : JSON.stringify(r);
+      showToast('❌ 예약 실패: ' + msg);
+    }
+  } catch(e) {
+    showToast('❌ ' + e.message);
+    console.error('[리뷰 요청 예약 예외]', e);
+  }
 }
 
 async function completeCustomer(timestamp) {
@@ -1640,7 +1708,10 @@ function showCalendarDay(dateStr) {
           <button onclick="sendDoneWithWarranty('${c.name}','${c.carType}','${c.phone}','${c.doneDate||dateStr}')" style="padding:6px 8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:12px;cursor:pointer">📨완료</button>
           <button onclick="deleteCustomerFromCalendar('${c.timestamp}','${dateStr}')" style="padding:6px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px;cursor:pointer">🗑</button>
         </div>
-        <button onclick="openCalendarWarrantyPopup('${c.name}','${c.carType}','${c.phone}','${c.timestamp}','${dateStr}')" style="margin-top:8px;width:100%;padding:8px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📜 보증서 발행</button>
+        <div style="margin-top:8px;display:flex;gap:6px">
+          <button onclick="openCalendarWarrantyPopup('${c.name}','${c.carType}','${c.phone}','${c.timestamp}','${dateStr}')" style="flex:1;padding:8px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📜 보증서 발행</button>
+          <button onclick="openReviewScheduleFromCalendar('${c.name}','${c.carType}','${c.phone}','${dateStr}')" style="flex:1;padding:8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">⭐ 리뷰요청</button>
+        </div>
       </div>`).join('') : '<div style="color:#999;font-size:13px;margin-bottom:12px">입고 예정 없음</div>'}
     <div style="border-top:1px solid #eee;padding-top:14px;margin-top:4px">
       <button onclick="openCalendarFullForm('${dateStr}')" style="width:100%;padding:12px;background:#1a73e8;color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">➕ 입고 예약 상담 입력</button>
