@@ -1050,17 +1050,28 @@ function showDoneAlimtalkPopup(name, carType, phone, doneDate, pdfId) {
   const popup = document.createElement('div');
   popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
   popup.innerHTML = `
-    <div style="background:white;border-radius:16px;padding:24px;max-width:340px;width:100%;text-align:center">
-      <div style="font-size:32px;margin-bottom:12px">📨</div>
-      <div style="font-size:16px;font-weight:700;margin-bottom:8px">${name} 고객님께</div>
-      <div style="font-size:14px;color:#555;margin-bottom:4px">시공완료 알림톡을 발송할까요?</div>
-      <div style="font-size:12px;color:#1a73e8;margin-bottom:16px">${pdfId ? '📄 보증서 PDF 포함' : '⚠️ 보증서 생성 중 또는 미생성'}</div>
+    <div style="background:white;border-radius:16px;padding:24px;max-width:340px;width:100%">
+      <div style="text-align:center;font-size:32px;margin-bottom:12px">📨</div>
+      <div style="text-align:center;font-size:16px;font-weight:700;margin-bottom:6px">${name} 고객님께</div>
+      <div style="text-align:center;font-size:13px;color:#888;margin-bottom:16px">발송할 알림톡을 선택해 주세요</div>
 
-      <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:12px;margin-bottom:16px;text-align:left">
+      <!-- 체크박스 1: 시공완료 알림톡 -->
+      <div style="background:#e3f2fd;border:1px solid #bbdefb;border-radius:10px;padding:12px;margin-bottom:10px">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none">
+          <input type="checkbox" id="done-send-chk" checked style="width:18px;height:18px;cursor:pointer;accent-color:#1a73e8;flex-shrink:0">
+          <span style="font-size:13px;color:#333;line-height:1.4">
+            <strong style="color:#1a73e8">📨 시공완료 알림톡 즉시 발송</strong><br>
+            <span style="font-size:11px;color:#888">${pdfId ? '📄 보증서 PDF 포함' : '⚠️ 보증서 생성 중'}</span>
+          </span>
+        </label>
+      </div>
+
+      <!-- 체크박스 2: 리뷰요청 -->
+      <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:12px;margin-bottom:16px">
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none">
           <input type="checkbox" id="done-review-chk" style="width:18px;height:18px;cursor:pointer;accent-color:#e65100;flex-shrink:0">
           <span style="font-size:13px;color:#333;line-height:1.4">
-            <strong style="color:#e65100">⭐ 2시간 뒤 리뷰요청도 함께 예약</strong><br>
+            <strong style="color:#e65100">⭐ 2시간 뒤 리뷰요청 예약</strong><br>
             <span style="font-size:11px;color:#888">오늘 ${timeStr}에 자동 발송됩니다</span>
           </span>
         </label>
@@ -1093,60 +1104,69 @@ function closeDonePopupAndContinue(popupEl, name, carType, phone, doneDate) {
 }
 
 // ────────────────────────────────────────
-// 시공완료 알림톡 + 선택적 리뷰요청 2시간 예약 (통합 발송)
+// 시공완료 알림톡 + 리뷰요청 예약 (각각 독립 제어)
 // ────────────────────────────────────────
 async function sendDoneAlimtalkWithReview(name, carType, phone, doneDate, pdfId, popupEl) {
-  // 체크박스 상태 확인 (팝업 제거 전에!)
+  // 두 체크박스 상태 확인 (팝업 제거 전에!)
+  const doneChk   = popupEl.querySelector('#done-send-chk');
   const reviewChk = popupEl.querySelector('#done-review-chk');
+  const sendDone   = doneChk ? doneChk.checked : false;
   const sendReview = reviewChk ? reviewChk.checked : false;
 
-  popupEl.remove();
-
-  // 1단계: 시공완료 알림톡 발송
-  showToast('⏳ 시공완료 알림톡 발송 중...');
-  let doneResult;
-  try {
-    doneResult = await apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate, pdfId });
-    if (doneResult === 'ok') {
-      showToast(sendReview ? '✅ 시공완료 발송 완료! (리뷰요청 예약 중...)' : '✅ 시공완료 알림톡 발송 완료!');
-    } else {
-      showToast('❌ 시공완료 발송 실패: ' + (doneResult.error || ''));
-      // 실패해도 콘텐츠 생성기는 열어주기
-      setTimeout(() => openContentGenerator(name, carType, phone, '', '', doneDate), 1500);
-      return;
-    }
-  } catch(e) {
-    showToast('❌ ' + e.message);
-    setTimeout(() => openContentGenerator(name, carType, phone, '', '', doneDate), 1500);
+  // 둘 다 체크 해제 → 경고 + 팝업 유지
+  if (!sendDone && !sendReview) {
+    showToast('⚠️ 발송할 항목을 하나 이상 선택해 주세요');
     return;
   }
 
-  // 2단계: 리뷰요청 2시간 뒤 예약 (체크된 경우만)
-  if (sendReview) {
-    const scheduledDate = new Date(Date.now() + 2*60*60*1000).toISOString();
-    console.log('[리뷰요청 자동 예약]', { name, carType, phone, doneDate, scheduledDate });
+  popupEl.remove();
 
+  // ── 1단계: 시공완료 알림톡 (체크된 경우만) ──
+  if (sendDone) {
+    showToast('⏳ 시공완료 알림톡 발송 중...');
     try {
-      const r = await apiPost({
-        action: 'scheduleReviewAlimtalk',
-        name, carType, phone, doneDate, scheduledDate
-      });
-      console.log('[리뷰요청 자동 예약 응답]', r);
-
-      if (r === 'ok' || (r && r.success)) {
-        setTimeout(() => showToast('✅ 2시간 뒤 리뷰요청도 예약 완료!'), 1500);
+      const doneResult = await apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate, pdfId });
+      if (doneResult === 'ok') {
+        showToast('✅ 시공완료 알림톡 발송 완료!');
       } else {
-        const msg = (r && r.error) ? r.error : JSON.stringify(r);
-        setTimeout(() => showToast('⚠️ 리뷰요청 예약 실패: ' + msg), 1500);
+        showToast('❌ 시공완료 발송 실패: ' + (doneResult.error || ''));
+        // 실패해도 리뷰요청은 시도
       }
     } catch(e) {
-      setTimeout(() => showToast('⚠️ 리뷰요청 오류: ' + e.message), 1500);
-      console.error('[리뷰요청 자동 예약 예외]', e);
+      showToast('❌ 시공완료 오류: ' + e.message);
     }
   }
 
-  // 3단계: 모든 발송 끝난 뒤 콘텐츠 생성기 열기
-  setTimeout(() => openContentGenerator(name, carType, phone, '', '', doneDate), 3000);
+  // ── 2단계: 리뷰요청 2시간 뒤 예약 (체크된 경우만) ──
+  if (sendReview) {
+    const scheduledDate = new Date(Date.now() + 2*60*60*1000).toISOString();
+    console.log('[리뷰요청 예약]', { name, carType, phone, doneDate, scheduledDate });
+
+    // 시공완료 토스트와 겹치지 않게 약간 지연
+    setTimeout(async () => {
+      try {
+        const r = await apiPost({
+          action: 'scheduleReviewAlimtalk',
+          name, carType, phone, doneDate, scheduledDate
+        });
+        console.log('[리뷰요청 예약 응답]', r);
+
+        if (r === 'ok' || (r && r.success)) {
+          showToast('✅ 2시간 뒤 리뷰요청 예약 완료!');
+        } else {
+          const msg = (r && r.error) ? r.error : JSON.stringify(r);
+          showToast('⚠️ 리뷰요청 예약 실패: ' + msg);
+        }
+      } catch(e) {
+        showToast('⚠️ 리뷰요청 오류: ' + e.message);
+        console.error('[리뷰요청 예약 예외]', e);
+      }
+    }, sendDone ? 1500 : 0);
+  }
+
+  // ── 3단계: 콘텐츠 생성기 열기 ──
+  const delay = (sendDone && sendReview) ? 3500 : (sendReview ? 2000 : 1500);
+  setTimeout(() => openContentGenerator(name, carType, phone, '', '', doneDate), delay);
 }
 
 // ────────────────────────────────────────
@@ -2194,9 +2214,7 @@ async function addCalendarReservation(dateStr) {
 }
 
 async function sendDoneWithWarranty(name, carType, phone, doneDate) {
-  console.log('[DEBUG-1] sendDoneWithWarranty 시작', {name, carType, phone, doneDate});
   if (!confirm(`${name} / ${carType}\n시공완료 처리를 진행할까요?`)) return;
-  console.log('[DEBUG-2] confirm 통과');
 
   // 로컬 데이터 업데이트
   const custLocal = allCustomers.find(x => x.name === name && x.carType === carType);
@@ -2211,7 +2229,6 @@ async function sendDoneWithWarranty(name, carType, phone, doneDate) {
   renderCalendar();
   showCalendarDay(doneDate);
   showToast('⏳ 백그라운드 처리 중...');
-  console.log('[DEBUG-3] 로컬 업데이트 완료, 백그라운드 시작');
 
   // 백그라운드로 보증서 생성
   let pdfId = '';
@@ -2227,20 +2244,16 @@ async function sendDoneWithWarranty(name, carType, phone, doneDate) {
       batch.set(db.collection('aftercare').doc(), { name, phone, carType, doneDate, category: c.category||'', summary: c.summary||'', estPrice: c.estPrice||'', status: '', warranty: '', warrantyPdfId: '', pin: '', addedDate: new Date().toISOString().slice(0,10) });
     }
     await batch.commit();
-    console.log('[DEBUG-4] Firestore batch 완료');
     const sd = await apiPost({ action: 'setDoneDate', timestamp: '', name, carType, phone, category: '', summary: '', estPrice: '', doneDate });
     pdfId = (sd && sd.pdfId) ? sd.pdfId : '';
-    console.log('[DEBUG-5] setDoneDate 응답 받음', {pdfId});
     showToast('✅ 시공완료 + 보증서 완료!');
   } catch(e) {
-    console.error('[DEBUG-ERROR] 백그라운드 실패', e);
+    console.error('[sendDoneWithWarranty] 백그라운드 실패:', e);
     showToast('❌ ' + e.message);
   }
 
-  console.log('[DEBUG-6] 팝업 호출 직전');
-  // 📨 팝업 띄우기 (체크박스 포함) — 여기서 사용자 결정 받음
+  // 📨 팝업 띄우기 (체크박스 포함)
   showDoneAlimtalkPopup(name, carType, phone, doneDate, pdfId);
-  console.log('[DEBUG-7] 팝업 호출 직후');
 }
 
 // ─── 유리막 보증서 ──────────────────────────────────────
