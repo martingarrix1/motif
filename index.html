@@ -74,6 +74,7 @@
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyDjB5b6T5m-xTIyTUbGK0QCe5hEr9kZDR4",
@@ -87,9 +88,114 @@ if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 const db = firebase.firestore();
+const auth = firebase.auth();
+
+// 로그인 가드: 로그인 안 되어 있으면 로그인 화면, 되어 있으면 본문 표시
+auth.onAuthStateChanged(function(user) {
+  const loginScreen = document.getElementById('login-screen');
+  const appBody = document.getElementById('app-body');
+  if (user) {
+    loginScreen.style.display = 'none';
+    appBody.style.display = 'block';
+  } else {
+    loginScreen.style.display = 'flex';
+    appBody.style.display = 'none';
+  }
+});
+
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errorEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+  
+  if (!email || !password) {
+    errorEl.textContent = '이메일과 비밀번호를 입력하세요';
+    return;
+  }
+  
+  errorEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = '로그인 중...';
+  
+  auth.signInWithEmailAndPassword(email, password)
+    .then(function() {
+      // onAuthStateChanged가 알아서 화면 전환
+      document.getElementById('login-password').value = '';
+    })
+    .catch(function(err) {
+      let msg = '로그인 실패';
+      if (err.code === 'auth/invalid-email') msg = '이메일 형식이 올바르지 않습니다';
+      else if (err.code === 'auth/user-not-found') msg = '등록되지 않은 이메일입니다';
+      else if (err.code === 'auth/wrong-password') msg = '비밀번호가 틀렸습니다';
+      else if (err.code === 'auth/invalid-credential') msg = '이메일 또는 비밀번호가 틀렸습니다';
+      else if (err.code === 'auth/too-many-requests') msg = '시도가 너무 많습니다. 잠시 후 다시 시도하세요';
+      else msg = '로그인 실패: ' + (err.message || err.code);
+      errorEl.textContent = msg;
+    })
+    .finally(function() {
+      btn.disabled = false;
+      btn.textContent = '로그인';
+    });
+}
+
+function doLogout() {
+  if (!confirm('로그아웃하시겠습니까?')) return;
+  auth.signOut();
+}
 </script>
+<style>
+  .login-screen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #1a1a2e; display: none; align-items: center; justify-content: center;
+    z-index: 1000; padding: 20px;
+  }
+  .login-box {
+    background: white; border-radius: 18px; padding: 32px 24px;
+    width: 100%; max-width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .login-logo {
+    text-align: center; font-size: 24px; font-weight: 800; color: #1a1a2e;
+    letter-spacing: 6px; margin-bottom: 4px;
+  }
+  .login-subtitle {
+    text-align: center; font-size: 12px; color: #999; margin-bottom: 28px;
+    letter-spacing: 1px;
+  }
+  .login-box input {
+    width: 100%; padding: 14px; border: 1.5px solid #e8e8e8; border-radius: 10px;
+    font-size: 16px; background: #fafafa; outline: none; margin-bottom: 12px;
+    font-family: inherit; -webkit-appearance: none;
+  }
+  .login-box input:focus { border-color: #1a1a2e; background: white; }
+  .login-box button {
+    width: 100%; padding: 14px; border: none; border-radius: 10px;
+    background: #1a1a2e; color: white; font-size: 16px; font-weight: 700;
+    cursor: pointer; font-family: inherit; margin-top: 8px;
+  }
+  .login-box button:disabled { opacity: 0.6; }
+  .login-error {
+    color: #d32f2f; font-size: 13px; text-align: center; min-height: 18px;
+    margin-top: 12px;
+  }
+</style>
 </head>
 <body>
+
+<!-- 로그인 화면 -->
+<div id="login-screen" class="login-screen">
+  <div class="login-box">
+    <div class="login-logo">MOTIF</div>
+    <div class="login-subtitle">상담관리 시스템</div>
+    <input type="email" id="login-email" placeholder="이메일" autocomplete="email" inputmode="email">
+    <input type="password" id="login-password" placeholder="비밀번호" autocomplete="current-password" onkeypress="if(event.key==='Enter') doLogin()">
+    <button id="login-btn" onclick="doLogin()">로그인</button>
+    <div id="login-error" class="login-error"></div>
+  </div>
+</div>
+
+<!-- 본문 (로그인 후 표시) -->
+<div id="app-body" style="display:none;">
 
 <div class="header"><h1>MOTIF</h1></div>
 
@@ -4368,5 +4474,7 @@ function setContentStatusFilter(status) {
   renderContentArchive();
 }
 </script>
+
+</div><!-- /app-body -->
 </body>
 </html>
