@@ -4798,8 +4798,11 @@ async function confirmAIConsult(docId) {
   }
   
   // 신규상담: 알림톡 발송 + customers 등록
-  // 이름이 비어있거나 공백만 있으면 'VIP'로 자동 치환
-  const customerName = (d.customerName && d.customerName.trim()) ? d.customerName.trim() : 'VIP';
+  // 이름이 비어있거나, 공백만 있거나, 전화번호 형태(숫자만)면 'VIP'로 자동 치환
+  let nameRaw = (d.customerName || '').trim();
+  // 숫자와 하이픈만 있으면 전화번호로 간주 → VIP로 치환
+  const isJustPhone = nameRaw && /^[\d\-\s+]+$/.test(nameRaw);
+  const customerName = (!nameRaw || isJustPhone) ? 'VIP' : nameRaw;
   const phone = d.phoneNumber || '';
   const carType = d.carType || '';
   const services = (d.services || []).join(', ');
@@ -4832,7 +4835,7 @@ async function confirmAIConsult(docId) {
         phone: phone,
         carType: carType,
         category: '썬팅',
-        summary: `시공: ${services}`,
+        summary: services,
         estPrice: estPrice,
         status: '상담완료',
         note: d.note || '',
