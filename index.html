@@ -4798,32 +4798,31 @@ async function confirmAIConsult(docId) {
   }
   
   // 신규상담: 알림톡 발송 + customers 등록
-  const customerName = d.customerName || '';
+  // 이름이 비어있거나 공백만 있으면 'VIP'로 자동 치환
+  const customerName = (d.customerName && d.customerName.trim()) ? d.customerName.trim() : 'VIP';
   const phone = d.phoneNumber || '';
   const carType = d.carType || '';
   const services = (d.services || []).join(', ');
-  const estPrice = d.estPrice ? Math.round(Number(d.estPrice)/10000) + '만원' : '';
+  // 견적은 숫자만 보냄 (GAS/알림톡에서 만원 자동 부착)
+  const estPrice = d.estPrice ? String(Math.round(Number(d.estPrice)/10000)) : '';
   
   if (!phone) {
     alert('전화번호가 없어 알림톡을 발송할 수 없습니다. 수정 후 진행하세요.');
     return;
-  }
-  if (!customerName) {
-    if (!confirm('고객명이 비어있습니다. 그래도 발송하시겠습니까?')) return;
   }
   
   const msg = `다음 내용으로 알림톡 발송 + 고객 등록합니다.\n\n` +
               `고객: ${customerName} (${phone})\n` +
               `차종: ${carType}\n` +
               `시공: ${services}\n` +
-              `견적: ${estPrice}\n\n` +
+              `견적: ${estPrice}만원\n\n` +
               `진행할까요?`;
   if (!confirm(msg)) return;
   
   try {
     showToast('처리 중...');
     
-    // 1. 알림톡 발송 (기존 submitFromWebApp 액션 활용)
+    // 알림톡 발송 + customers 등록 (기존 submitFromWebApp 액션)
     const apiResult = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -4832,7 +4831,7 @@ async function confirmAIConsult(docId) {
         name: customerName,
         phone: phone,
         carType: carType,
-        category: '썬팅',  // 기본값, 필요시 수정
+        category: '썬팅',
         summary: `시공: ${services}`,
         estPrice: estPrice,
         status: '상담완료',
@@ -4856,7 +4855,7 @@ async function confirmAIConsult(docId) {
       throw new Error(result.error || '알림톡 발송 실패');
     }
     
-    // 2. consultations status 업데이트
+    // consultations status 업데이트
     await db.collection('consultations').doc(docId).update({
       status: 'sent',
       sentAt: new Date(),
