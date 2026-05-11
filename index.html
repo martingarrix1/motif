@@ -178,6 +178,87 @@ function doLogout() {
     color: #d32f2f; font-size: 13px; text-align: center; min-height: 18px;
     margin-top: 12px;
   }
+  
+  /* AI 추출 상담 섹션 */
+  .ai-consult-section { margin-bottom: 16px; }
+  .ai-consult-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 4px 10px; 
+  }
+  .ai-consult-title {
+    font-size: clamp(13px, 3.5vw, 15px); font-weight: 700; color: #1a1a2e;
+    letter-spacing: 0.3px;
+  }
+  .ai-consult-badge {
+    background: #ff6b6b; color: white; font-size: 11px; font-weight: 700;
+    padding: 3px 9px; border-radius: 12px; min-width: 22px; text-align: center;
+  }
+  .ai-card {
+    background: white; border-radius: 14px; padding: 14px 16px;
+    margin-bottom: 10px; box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+    border-left: 3px solid #1a1a2e;
+  }
+  .ai-card.existing { border-left-color: #2e7d32; }
+  .ai-card-top {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px;
+  }
+  .ai-card-tag {
+    font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 10px;
+    background: #e8f0fe; color: #1a73e8; letter-spacing: 0.3px;
+  }
+  .ai-card-tag.existing { background: #e8f5e9; color: #2e7d32; }
+  .ai-card-confidence {
+    font-size: 10px; color: #aaa; font-weight: 600; text-transform: uppercase;
+  }
+  .ai-card-confidence.low { color: #ff6b6b; }
+  .ai-card-confidence.medium { color: #ff9800; }
+  .ai-card-confidence.high { color: #2e7d32; }
+  .ai-card-customer {
+    font-size: clamp(14px, 3.8vw, 16px); font-weight: 700; color: #1a1a2e;
+    margin-bottom: 2px;
+  }
+  .ai-card-meta {
+    font-size: 12px; color: #888; margin-bottom: 10px;
+  }
+  .ai-card-body { 
+    font-size: clamp(13px, 3.4vw, 14px); color: #444; line-height: 1.6;
+    margin-bottom: 12px; 
+  }
+  .ai-card-row { 
+    display: flex; gap: 8px; padding: 2px 0;
+  }
+  .ai-card-row-label {
+    color: #999; min-width: 44px; font-size: 12px; padding-top: 1px;
+  }
+  .ai-card-row-value { color: #222; font-weight: 500; flex: 1; }
+  .ai-card-actions {
+    display: flex; gap: 6px; padding-top: 10px; border-top: 1px solid #f0f0f0;
+  }
+  .ai-btn {
+    flex: 1; padding: 9px 4px; border: none; border-radius: 8px;
+    font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit;
+    transition: opacity 0.15s;
+  }
+  .ai-btn:active { opacity: 0.7; }
+  .ai-btn-confirm { background: #1a1a2e; color: white; }
+  .ai-btn-edit { background: #f0f0f0; color: #555; }
+  .ai-btn-discard { background: #fff0f0; color: #d32f2f; }
+  .ai-edit-input {
+    width: 100%; padding: 8px 10px; border: 1.5px solid #e0e0e0;
+    border-radius: 8px; font-size: 13px; font-family: inherit;
+    background: #fafafa; outline: none; margin-bottom: 6px;
+  }
+  .ai-edit-input:focus { border-color: #1a1a2e; background: white; }
+  .ai-transcript-toggle {
+    font-size: 11px; color: #999; cursor: pointer; text-decoration: underline;
+    margin-top: 4px;
+  }
+  .ai-transcript-box {
+    background: #fafafa; border-radius: 8px; padding: 10px; font-size: 12px;
+    color: #555; line-height: 1.6; margin-top: 8px; max-height: 200px;
+    overflow-y: auto; white-space: pre-wrap;
+  }
 </style>
 </head>
 <body>
@@ -227,6 +308,16 @@ function doLogout() {
 <div class="content">
 
   <div id="page-consult" class="page active">
+    
+    <!-- AI 추출 상담 섹션 (자동 생성) -->
+    <div class="ai-consult-section" id="ai-consult-section" style="display:none;">
+      <div class="ai-consult-header">
+        <span class="ai-consult-title">🎙️ AI 추출 상담</span>
+        <span class="ai-consult-badge" id="ai-consult-count">0</span>
+      </div>
+      <div id="ai-consult-list"></div>
+    </div>
+    
     <div class="card">
       <div class="card-title">기본정보</div>
       <div class="form-group"><label>차종</label><input type="text" id="carType" placeholder="예) 카니발"></div>
@@ -4472,6 +4563,311 @@ function setContentStatusFilter(status) {
     activeBtn.style.border = 'none';
   }
   renderContentArchive();
+}
+
+// ============================================================
+// AI 추출 상담 (consultations 컬렉션)
+// ============================================================
+let aiConsultUnsubscribe = null;
+let aiConsultData = {};  // docId -> data
+let aiConsultEditState = {};  // docId -> editing state
+
+// 로그인 후 자동 구독 시작
+auth.onAuthStateChanged(function(user) {
+  if (user) {
+    subscribeAIConsults();
+  } else {
+    if (aiConsultUnsubscribe) {
+      aiConsultUnsubscribe();
+      aiConsultUnsubscribe = null;
+    }
+  }
+});
+
+function subscribeAIConsults() {
+  if (aiConsultUnsubscribe) return;
+  
+  aiConsultUnsubscribe = db.collection('consultations')
+    .where('status', '==', 'pending')
+    .onSnapshot(function(snap) {
+      aiConsultData = {};
+      snap.forEach(function(doc) {
+        aiConsultData[doc.id] = doc.data();
+      });
+      renderAIConsults();
+    }, function(err) {
+      console.error('AI 상담 구독 에러:', err);
+    });
+}
+
+function renderAIConsults() {
+  const section = document.getElementById('ai-consult-section');
+  const list = document.getElementById('ai-consult-list');
+  const countEl = document.getElementById('ai-consult-count');
+  
+  const docs = Object.keys(aiConsultData).map(function(id) {
+    return Object.assign({ id: id }, aiConsultData[id]);
+  });
+  
+  // 최신순 정렬
+  docs.sort(function(a, b) {
+    const aTime = a.recordedAt && a.recordedAt.toMillis ? a.recordedAt.toMillis() : 0;
+    const bTime = b.recordedAt && b.recordedAt.toMillis ? b.recordedAt.toMillis() : 0;
+    return bTime - aTime;
+  });
+  
+  if (docs.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+  
+  section.style.display = 'block';
+  countEl.textContent = docs.length;
+  list.innerHTML = docs.map(function(d) { return renderAICard(d); }).join('');
+}
+
+function renderAICard(d) {
+  const isExisting = d.category === '기존고객';
+  const editing = aiConsultEditState[d.id];
+  const confidence = (d.confidence || 'unknown').toLowerCase();
+  
+  if (editing) {
+    return renderAICardEdit(d);
+  }
+  
+  let bodyHtml = '';
+  
+  if (isExisting) {
+    bodyHtml = `
+      <div class="ai-card-row">
+        <span class="ai-card-row-label">문의</span>
+        <span class="ai-card-row-value">${esc(d.inquiry || '')}</span>
+      </div>
+      ${d.urgency ? `<div class="ai-card-row"><span class="ai-card-row-label">긴급</span><span class="ai-card-row-value">${esc(d.urgency)}</span></div>` : ''}
+    `;
+  } else {
+    const services = (d.services || []).map(function(s){return esc(s);}).join(', ');
+    const carInfo = (d.carType || '') + (d.carYear ? ' ' + d.carYear + '년' : '');
+    bodyHtml = `
+      ${carInfo ? `<div class="ai-card-row"><span class="ai-card-row-label">차종</span><span class="ai-card-row-value">${esc(carInfo)}</span></div>` : ''}
+      ${services ? `<div class="ai-card-row"><span class="ai-card-row-label">시공</span><span class="ai-card-row-value">${services}</span></div>` : ''}
+      ${d.estPrice ? `<div class="ai-card-row"><span class="ai-card-row-label">견적</span><span class="ai-card-row-value">${Math.round(Number(d.estPrice)/10000)}만원</span></div>` : ''}
+      ${d.preferredDate ? `<div class="ai-card-row"><span class="ai-card-row-label">입고</span><span class="ai-card-row-value">${esc(d.preferredDate)}</span></div>` : ''}
+      ${d.note ? `<div class="ai-card-row"><span class="ai-card-row-label">메모</span><span class="ai-card-row-value">${esc(d.note)}</span></div>` : ''}
+    `;
+  }
+  
+  return `
+    <div class="ai-card ${isExisting ? 'existing' : ''}">
+      <div class="ai-card-top">
+        <span class="ai-card-tag ${isExisting ? 'existing' : ''}">${isExisting ? '기존고객' : '신규상담'}</span>
+        <span class="ai-card-confidence ${confidence}">${confidence}</span>
+      </div>
+      <div class="ai-card-customer">${esc(d.customerName || '이름미상')} <span style="font-size:12px;color:#888;font-weight:500">${esc(d.phoneNumber || '번호미상')}</span></div>
+      <div class="ai-card-meta">${esc(d.recordedAtFormatted || '')}</div>
+      <div class="ai-card-body">${bodyHtml}</div>
+      <div class="ai-transcript-toggle" onclick="toggleTranscript('${d.id}')">📝 통화 원문 보기</div>
+      <div id="transcript-${d.id}" class="ai-transcript-box" style="display:none;">${esc(d.transcript || '')}</div>
+      <div class="ai-card-actions">
+        <button class="ai-btn ai-btn-confirm" onclick="confirmAIConsult('${d.id}')">✓ 확정·알림톡</button>
+        <button class="ai-btn ai-btn-edit" onclick="editAIConsult('${d.id}')">📝 수정</button>
+        <button class="ai-btn ai-btn-discard" onclick="discardAIConsult('${d.id}')">✗ 폐기</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderAICardEdit(d) {
+  const isExisting = d.category === '기존고객';
+  const services = (d.services || []).join(', ');
+  
+  let editFields = '';
+  if (isExisting) {
+    editFields = `
+      <label style="font-size:11px;color:#888;display:block;margin-bottom:4px">문의내용</label>
+      <input class="ai-edit-input" id="edit-inquiry-${d.id}" value="${esc(d.inquiry || '')}" placeholder="문의내용">
+    `;
+  } else {
+    editFields = `
+      <label style="font-size:11px;color:#888;display:block;margin-bottom:4px">고객명</label>
+      <input class="ai-edit-input" id="edit-name-${d.id}" value="${esc(d.customerName || '')}" placeholder="고객명">
+      <label style="font-size:11px;color:#888;display:block;margin-bottom:4px">차종</label>
+      <input class="ai-edit-input" id="edit-carType-${d.id}" value="${esc(d.carType || '')}" placeholder="차종">
+      <label style="font-size:11px;color:#888;display:block;margin-bottom:4px">시공 (쉼표로 구분)</label>
+      <input class="ai-edit-input" id="edit-services-${d.id}" value="${esc(services)}" placeholder="LX 풀시공, 유리막">
+      <label style="font-size:11px;color:#888;display:block;margin-bottom:4px">예상견적 (만원)</label>
+      <input class="ai-edit-input" id="edit-estPrice-${d.id}" type="number" value="${d.estPrice ? Math.round(Number(d.estPrice)/10000) : ''}" placeholder="270">
+      <label style="font-size:11px;color:#888;display:block;margin-bottom:4px">입고희망일</label>
+      <input class="ai-edit-input" id="edit-preferredDate-${d.id}" value="${esc(d.preferredDate || '')}" placeholder="5/14 오후">
+      <label style="font-size:11px;color:#888;display:block;margin-bottom:4px">메모</label>
+      <input class="ai-edit-input" id="edit-note-${d.id}" value="${esc(d.note || '')}" placeholder="메모">
+    `;
+  }
+  
+  return `
+    <div class="ai-card ${isExisting ? 'existing' : ''}">
+      <div class="ai-card-top">
+        <span class="ai-card-tag ${isExisting ? 'existing' : ''}">${isExisting ? '기존고객' : '신규상담'} · 수정중</span>
+      </div>
+      ${editFields}
+      <div class="ai-card-actions">
+        <button class="ai-btn ai-btn-confirm" onclick="saveAIEdit('${d.id}')">💾 저장</button>
+        <button class="ai-btn ai-btn-edit" onclick="cancelAIEdit('${d.id}')">취소</button>
+      </div>
+    </div>
+  `;
+}
+
+function toggleTranscript(docId) {
+  const el = document.getElementById('transcript-' + docId);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function editAIConsult(docId) {
+  aiConsultEditState[docId] = true;
+  renderAIConsults();
+}
+
+function cancelAIEdit(docId) {
+  delete aiConsultEditState[docId];
+  renderAIConsults();
+}
+
+async function saveAIEdit(docId) {
+  const d = aiConsultData[docId];
+  if (!d) return;
+  
+  const isExisting = d.category === '기존고객';
+  const updates = {};
+  
+  try {
+    if (isExisting) {
+      updates.inquiry = (document.getElementById('edit-inquiry-' + docId).value || '').trim();
+    } else {
+      updates.customerName = (document.getElementById('edit-name-' + docId).value || '').trim();
+      updates.carType = (document.getElementById('edit-carType-' + docId).value || '').trim();
+      const servicesStr = (document.getElementById('edit-services-' + docId).value || '').trim();
+      updates.services = servicesStr ? servicesStr.split(',').map(function(s){return s.trim();}).filter(function(s){return s;}) : [];
+      const priceStr = (document.getElementById('edit-estPrice-' + docId).value || '').trim();
+      updates.estPrice = priceStr ? parseInt(priceStr) * 10000 : null;
+      updates.preferredDate = (document.getElementById('edit-preferredDate-' + docId).value || '').trim();
+      updates.note = (document.getElementById('edit-note-' + docId).value || '').trim();
+    }
+    
+    await db.collection('consultations').doc(docId).update(updates);
+    delete aiConsultEditState[docId];
+    showToast('수정 완료');
+  } catch (err) {
+    console.error(err);
+    showToast('수정 실패: ' + err.message);
+  }
+}
+
+async function discardAIConsult(docId) {
+  if (!confirm('이 상담을 폐기하시겠습니까?')) return;
+  
+  try {
+    await db.collection('consultations').doc(docId).update({
+      status: 'discarded',
+      discardedAt: new Date(),
+    });
+    showToast('폐기 완료');
+  } catch (err) {
+    console.error(err);
+    showToast('폐기 실패: ' + err.message);
+  }
+}
+
+async function confirmAIConsult(docId) {
+  const d = aiConsultData[docId];
+  if (!d) return;
+  
+  if (d.category === '기존고객') {
+    if (!confirm('기존고객 상담을 확정 처리하시겠습니까?\n(알림톡은 발송되지 않습니다)')) return;
+    try {
+      await db.collection('consultations').doc(docId).update({
+        status: 'reviewed',
+        reviewedAt: new Date(),
+      });
+      showToast('확정 처리됨');
+    } catch (err) {
+      showToast('처리 실패: ' + err.message);
+    }
+    return;
+  }
+  
+  // 신규상담: 알림톡 발송 + customers 등록
+  const customerName = d.customerName || '';
+  const phone = d.phoneNumber || '';
+  const carType = d.carType || '';
+  const services = (d.services || []).join(', ');
+  const estPrice = d.estPrice ? Math.round(Number(d.estPrice)/10000) + '만원' : '';
+  
+  if (!phone) {
+    alert('전화번호가 없어 알림톡을 발송할 수 없습니다. 수정 후 진행하세요.');
+    return;
+  }
+  if (!customerName) {
+    if (!confirm('고객명이 비어있습니다. 그래도 발송하시겠습니까?')) return;
+  }
+  
+  const msg = `다음 내용으로 알림톡 발송 + 고객 등록합니다.\n\n` +
+              `고객: ${customerName} (${phone})\n` +
+              `차종: ${carType}\n` +
+              `시공: ${services}\n` +
+              `견적: ${estPrice}\n\n` +
+              `진행할까요?`;
+  if (!confirm(msg)) return;
+  
+  try {
+    showToast('처리 중...');
+    
+    // 1. 알림톡 발송 (기존 submitFromWebApp 액션 활용)
+    const apiResult = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'submitFromWebApp',
+        name: customerName,
+        phone: phone,
+        carType: carType,
+        category: '썬팅',  // 기본값, 필요시 수정
+        summary: `시공: ${services}`,
+        estPrice: estPrice,
+        status: '상담완료',
+        note: d.note || '',
+        deposit: '',
+        ppfText: '',
+        combinedM: '',
+        tintF: '', tintS1: '', tintS2: '', tintR: '', tintSun: '',
+        entryDate: d.preferredDate || '',
+        blackbox: '',
+        battery: '',
+        sendAlimtalk: true,
+      })
+    });
+    
+    const text = await apiResult.text();
+    let result;
+    try { result = JSON.parse(text); } catch(e) { result = { ok: text.includes('"ok":true') }; }
+    
+    if (!result.ok) {
+      throw new Error(result.error || '알림톡 발송 실패');
+    }
+    
+    // 2. consultations status 업데이트
+    await db.collection('consultations').doc(docId).update({
+      status: 'sent',
+      sentAt: new Date(),
+    });
+    
+    showToast('알림톡 발송 + 고객 등록 완료');
+  } catch (err) {
+    console.error(err);
+    showToast('실패: ' + err.message);
+    alert('처리 실패: ' + err.message);
+  }
 }
 </script>
 
