@@ -297,6 +297,7 @@ function doLogout() {
   <button onclick="showPage('invoice',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📑<span>견적서</span></button>
   <button onclick="showPage('tint',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🎫<span>썬팅보증서</span></button>
   <button onclick="showPage('ppf',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🛡️<span>PPF보증서</span></button>
+  <button onclick="showPage('leather',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🧴<span>가죽보증서</span></button>
   <button onclick="showPage('content-gen',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">✨<span>콘텐츠생성</span></button>
   <button onclick="showPage('archive',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📚<span>콘텐츠</span></button>
 </div>
@@ -656,6 +657,34 @@ function doLogout() {
     <div style="height:24px"></div>
   </div>
 
+  <!-- 가죽 보증서 페이지 -->
+  <div id="page-leather" class="page">
+    <div class="card">
+      <div class="card-title">🧴 가죽코팅 전자보증서 발행</div>
+      <div class="form-group"><label>고객명</label><input type="text" id="lw-name" placeholder="홍길동"></div>
+      <div class="form-group"><label>연락처</label><input type="tel" id="lw-phone" placeholder="010-0000-0000"></div>
+      <div class="form-group"><label>차종</label><input type="text" id="lw-cartype" placeholder="예) 팰리세이드"></div>
+      <div class="form-group"><label>차량번호</label><input type="text" id="lw-carnumber" placeholder="예) 123가4567"></div>
+      <div class="form-group"><label>시공일자</label><input type="date" id="lw-date"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">시공 정보</div>
+      <div class="form-group"><label>제품</label>
+        <select id="lw-product" onchange="toggleLeatherEtc(this.value)">
+          <option value="">선택</option>
+          <option>UG가죽코팅</option>
+          <option>야와라가죽코팅</option>
+          <option value="기타">기타 (직접입력)</option>
+        </select>
+        <input type="text" id="lw-product-etc" placeholder="제품명 직접 입력" style="display:none;margin-top:8px">
+      </div>
+      <div class="form-group"><label>시공가격 (원)</label><input type="number" id="lw-price" placeholder="예) 450000" inputmode="numeric"></div>
+    </div>
+    <button class="btn btn-primary" onclick="submitLeatherWarranty()" id="lw-submit-btn">🧴 가죽 보증서 생성 + 시공완료 알림톡 발송</button>
+    <div id="lw-result" style="margin-top:12px"></div>
+    <div style="height:24px"></div>
+  </div>
+
 <!-- 콘텐츠 보관함 페이지 -->
   <div id="page-content-gen" class="page">
     <div style="background:linear-gradient(135deg,#1a1a2e 0%,#2d2d5f 100%);color:white;padding:14px 16px;border-radius:12px;margin-bottom:12px">
@@ -902,6 +931,7 @@ function showPage(page, btn) {
   if (page === 'invoice') { initInvoice(); }
   if (page === 'tint') { initTint(); }
   if (page === 'ppf') { initPpf(); }
+  if (page === 'leather') { initLeather(); }
  if (page === 'archive') { initContentArchive(); }
  if (page === 'content-gen') { initContentGenHub(); }
 }
@@ -3018,6 +3048,7 @@ function openCalendarWarrantyPopup(name, carType, phone, timestamp, dateStr) {
         <button onclick="calWarrantyGo('tint','${name}','${carType}','${phone}','${timestamp}','${dateStr}',this)" style="padding:14px 8px;background:#fce4ec;color:#c62828;border:1px solid #f48fb1;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">🎫 썬팅보증서</button>
         <button onclick="calWarrantyGo('glass','${name}','${carType}','${phone}','${timestamp}','${dateStr}',this)" style="padding:14px 8px;background:#e0f7fa;color:#00695c;border:1px solid #80deea;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">🔵 유리막보증서</button>
         <button onclick="calWarrantyGo('ppf','${name}','${carType}','${phone}','${timestamp}','${dateStr}',this)" style="padding:14px 8px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">🛡️ PPF보증서</button>
+        <button onclick="calWarrantyGo('leather','${name}','${carType}','${phone}','${timestamp}','${dateStr}',this)" style="padding:14px 8px;background:#fff3e0;color:#bf360c;border:1px solid #ffab91;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer">🧴 가죽보증서</button>
       </div>
 
       <button onclick="document.getElementById('cal-warranty-popup').remove()" style="width:100%;padding:12px;background:#f5f5f5;color:#555;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">닫기</button>
@@ -3056,6 +3087,15 @@ function calWarrantyGo(type, name, carType, phone, timestamp, dateStr, btn) {
       document.getElementById('ppfw-phone').value = phone;
       document.getElementById('ppfw-cartype').value = carType;
       document.getElementById('ppfw-date').value = dateStr;
+    }, 100);
+  }
+   else if (type === 'leather') {
+    showPage('leather', null);
+    setTimeout(() => {
+      document.getElementById('lw-name').value = name;
+      document.getElementById('lw-phone').value = phone;
+      document.getElementById('lw-cartype').value = carType;
+      document.getElementById('lw-date').value = dateStr;
     }, 100);
   }
 }
@@ -3115,6 +3155,56 @@ async function submitPpfWarranty() {
     } else { showToast('❌ 실패: ' + (r.error || JSON.stringify(r))); }
   } catch(e) { showToast('❌ ' + e.message); }
   btn.disabled = false; btn.textContent = '🛡️ PPF 보증서 생성 + 시공완료 알림톡 발송';
+}
+
+// ─── 가죽 보증서 ──────────────────────────────────────────
+function initLeather() {
+  const d = document.getElementById('lw-date');
+  if (!d.value) d.value = new Date().toISOString().slice(0,10);
+}
+
+function toggleLeatherEtc(val) {
+  const etcEl = document.getElementById('lw-product-etc');
+  if (val === '기타') {
+    etcEl.style.display = 'block';
+    etcEl.focus();
+  } else {
+    etcEl.style.display = 'none';
+    etcEl.value = '';
+  }
+}
+
+async function submitLeatherWarranty() {
+  const name      = document.getElementById('lw-name').value.trim();
+  const phone     = document.getElementById('lw-phone').value.trim();
+  const carType   = document.getElementById('lw-cartype').value.trim();
+  const carNumber = document.getElementById('lw-carnumber').value.trim();
+  const date      = document.getElementById('lw-date').value;
+  const productSel = document.getElementById('lw-product').value;
+  const product    = productSel === '기타' ? document.getElementById('lw-product-etc').value.trim() : productSel;
+  const price     = document.getElementById('lw-price').value;
+
+  if (!name || !phone || !carType || !date || !product) {
+    showToast('❌ 모든 항목을 입력해주세요'); return;
+  }
+
+  const btn = document.getElementById('lw-submit-btn');
+  btn.disabled = true; btn.textContent = '⏳ 생성 중...';
+
+  try {
+    const r = await apiPost({ action: 'createLeatherWarranty', name, phone, carType, carNumber, date, product, price });
+    if (r && r.fileId) {
+      document.getElementById('lw-result').innerHTML = `
+        <div class="card" style="text-align:center">
+          <div style="font-size:16px;font-weight:700;margin-bottom:12px">✅ 가죽 보증서 생성 완료!</div>
+          ${r.warrantyNo ? `<div style="font-size:13px;color:#888;margin-bottom:12px">보증서번호: ${r.warrantyNo}</div>` : ''}
+          <button class="btn btn-primary" onclick="window.open('https://drive.google.com/file/d/${r.fileId}/view','_blank')">📄 보증서 열기</button>
+        </div>`;
+      showToast('✅ 가죽 보증서 생성 + 알림톡 발송 완료!');
+    } else { showToast('❌ 실패: ' + (r.error || JSON.stringify(r))); }
+  } catch(e) { showToast('❌ ' + e.message); }
+
+  btn.disabled = false; btn.textContent = '🧴 가죽 보증서 생성 + 시공완료 알림톡 발송';
 }
 
 // ★★★ 핵심 수정: 브랜드명 단독 옵션 완전 제거 ★★★
