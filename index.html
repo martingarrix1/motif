@@ -310,15 +310,7 @@ function doLogout() {
 
   <div id="page-consult" class="page active">
     
-    <!-- AI 추출 상담 섹션 (자동 생성) -->
-    <div class="ai-consult-section" id="ai-consult-section" style="display:none;">
-      <div class="ai-consult-header">
-        <span class="ai-consult-title">🎙️ AI 추출 상담</span>
-        <span class="ai-consult-badge" id="ai-consult-count">0</span>
-      </div>
-      <div id="ai-consult-list"></div>
-    </div>
-    
+
     <div class="card">
       <div class="card-title">기본정보</div>
       <div class="form-group"><label>차종</label><input type="text" id="carType" placeholder="예) 카니발"></div>
@@ -436,6 +428,16 @@ function doLogout() {
   </div>
 
   <div id="page-customers" class="page">
+
+    <!-- AI 추출 상담 섹션 (자동 생성) -->
+    <div class="ai-consult-section" id="ai-consult-section" style="display:none;">
+      <div class="ai-consult-header">
+        <span class="ai-consult-title">🎙️ AI 추출 상담</span>
+        <span class="ai-consult-badge" id="ai-consult-count">0</span>
+      </div>
+      <div id="ai-consult-list"></div>
+    </div>
+
     <div class="search-box">
       <span style="color:#bbb">🔍</span>
       <input type="text" id="search-input" placeholder="이름, 차종, 연락처 검색" oninput="filterCustomers()">
@@ -4694,25 +4696,20 @@ function renderAIConsults() {
   const section = document.getElementById('ai-consult-section');
   const list = document.getElementById('ai-consult-list');
   const countEl = document.getElementById('ai-consult-count');
-  
+  if (!section || !list) return;
+
   const docs = Object.keys(aiConsultData).map(function(id) {
     return Object.assign({ id: id }, aiConsultData[id]);
   });
-  
-  // 최신순 정렬
   docs.sort(function(a, b) {
     const aTime = a.recordedAt && a.recordedAt.toMillis ? a.recordedAt.toMillis() : 0;
     const bTime = b.recordedAt && b.recordedAt.toMillis ? b.recordedAt.toMillis() : 0;
     return bTime - aTime;
   });
-  
-  if (docs.length === 0) {
-    section.style.display = 'none';
-    return;
-  }
-  
+
+  if (docs.length === 0) { section.style.display = 'none'; return; }
   section.style.display = 'block';
-  countEl.textContent = docs.length;
+  if (countEl) countEl.textContent = docs.length;
   list.innerHTML = docs.map(function(d) { return renderAICard(d); }).join('');
 }
 
@@ -4869,96 +4866,174 @@ async function discardAIConsult(docId) {
   }
 }
 
-async function confirmAIConsult(docId) {
-  const d = aiConsultData[docId];
-  if (!d) return;
-  
-  if (d.category === '기존고객') {
-    if (!confirm('기존고객 상담을 확정 처리하시겠습니까?\n(알림톡은 발송되지 않습니다)')) return;
-    try {
-      await db.collection('consultations').doc(docId).update({
-        status: 'reviewed',
-        reviewedAt: new Date(),
-      });
-      showToast('확정 처리됨');
-    } catch (err) {
-      showToast('처리 실패: ' + err.message);
+function confirmAIConsult(docId) {
+  openAIConfirmForm(docId);
+}
+
+// ── 확정 폼 헬퍼 ──
+function _aiServicesToSummary(d) {
+  if (Array.isArray(d.services) && d.services.length) return d.services.join(', ');
+  if (d.inquiry) return d.inquiry;
+  return '';
+}
+function _aiEstToManwon(d) {
+  if (d.estPrice === null || d.estPrice === undefined || d.estPrice === '') return '';
+  const n = Number(d.estPrice);
+  if (isNaN(n)) return '';
+  return String(Math.round(n / 10000));
+}
+function _aiGuessDate(raw) {
+  if (!raw) return '';
+  const today = new Date();
+  const s = String(raw).trim();
+  if (/당일|오늘/.test(s)) return today.toISOString().slice(0,10);
+  if (/내일/.test(s)) { const d=new Date(today); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); }
+  let m = s.match(/(\d+)\s*일\s*(후|뒤)/);
+  if (m) { const d=new Date(today); d.setDate(d.getDate()+parseInt(m[1])); return d.toISOString().slice(0,10); }
+  m = s.match(/(\d{1,2})\s*[\/월]\s*(\d{1,2})/);
+  if (m) {
+    const mm = parseInt(m[1]), dd = parseInt(m[2]);
+    if (mm>=1 && mm<=12 && dd>=1 && dd<=31) {
+      let y = today.getFullYear();
+      const cand = new Date(y, mm-1, dd);
+      if (cand < new Date(today.getFullYear(), today.getMonth(), today.getDate())) y++;
+      return y + '-' + String(mm).padStart(2,'0') + '-' + String(dd).padStart(2,'0');
     }
-    return;
   }
-  
-  // 신규상담: 알림톡 발송 + customers 등록
-  // 이름이 비어있거나, 공백만 있거나, 전화번호 형태(숫자만)면 'VIP'로 자동 치환
+  return '';
+}
+
+function openAIConfirmForm(docId) {
+  const d = aiConsultData[docId];
+  if (!d) { showToast('❌ 상담 데이터 없음'); return; }
+  const isExisting = d.category === '기존고객';
+
   let nameRaw = (d.customerName || '').trim();
-  // 숫자와 하이픈만 있으면 전화번호로 간주 → VIP로 치환
   const isJustPhone = nameRaw && /^[\d\-\s+]+$/.test(nameRaw);
-  const customerName = (!nameRaw || isJustPhone) ? 'VIP' : nameRaw;
-  const phone = d.phoneNumber || '';
-  const carType = d.carType || '';
-  const services = (d.services || []).join(', ');
-  // 견적은 숫자만 보냄 (GAS/알림톡에서 만원 자동 부착)
-  const estPrice = d.estPrice ? String(Math.round(Number(d.estPrice)/10000)) : '';
-  
-  if (!phone) {
-    alert('전화번호가 없어 알림톡을 발송할 수 없습니다. 수정 후 진행하세요.');
+  const fName = (!nameRaw || isJustPhone) ? '' : nameRaw;
+  const fPhone = d.phoneNumber || '';
+  const fCar = d.carType || '';
+  const fSummary = _aiServicesToSummary(d);
+  const fEst = _aiEstToManwon(d);
+  const fDate = _aiGuessDate(d.preferredDate);
+  const rawDateHint = d.preferredDate ? '입력원문: "' + esc(d.preferredDate) + '"' : '';
+  const fNote = d.note || '';
+
+  const popup = document.createElement('div');
+  popup.id = 'ai-confirm-popup';
+  popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:white;z-index:10001;display:flex;flex-direction:column;overflow:hidden';
+  popup.innerHTML =
+    '<div style="background:#1a1a2e;color:white;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">' +
+      '<div style="font-size:15px;font-weight:700">✅ 상담 확정 ' + (isExisting ? '(기존고객)' : '(신규)') + '</div>' +
+      '<button onclick="closeAIConfirmForm()" style="background:none;border:none;color:white;font-size:26px;cursor:pointer;line-height:1;padding:0 4px">×</button>' +
+    '</div>' +
+    '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px">' +
+      '<div class="card">' +
+        '<div class="card-title">기본정보 <span style="font-size:11px;color:#2e7d32;font-weight:400">✓ 자동 채움</span></div>' +
+        '<div class="form-group"><label>고객명</label><input type="text" id="aicf-name" value="' + esc(fName) + '" placeholder="비우면 VIP로 저장"></div>' +
+        '<div class="form-group"><label>연락처</label><input type="tel" id="aicf-phone" value="' + esc(fPhone) + '" placeholder="010-0000-0000"></div>' +
+        '<div class="form-group"><label>차종</label><input type="text" id="aicf-carType" value="' + esc(fCar) + '" placeholder="예) 카니발"></div>' +
+      '</div>' +
+      '<div class="card">' +
+        '<div class="card-title">상담 내용</div>' +
+        '<div class="form-group"><label>시공/문의</label><textarea id="aicf-summary" style="height:70px;resize:none">' + esc(fSummary) + '</textarea></div>' +
+        '<div class="form-group"><label>예상견적 (만원)</label><input type="number" id="aicf-est" inputmode="numeric" value="' + esc(fEst) + '" placeholder="0"></div>' +
+        '<div class="form-group"><label>입고희망일 ' + (rawDateHint ? '<span style="font-size:11px;color:#888;font-weight:400">' + rawDateHint + '</span>' : '') + '</label><input type="date" id="aicf-entryDate" value="' + fDate + '"></div>' +
+        '<div class="form-group"><label>특이사항</label><textarea id="aicf-note" style="height:60px;resize:none">' + esc(fNote) + '</textarea></div>' +
+      '</div>' +
+      '<div class="card">' +
+        '<div class="card-title">구분 선택</div>' +
+        '<div class="form-group">' +
+          '<select id="aicf-status" style="font-weight:700">' +
+            '<option value="상담">상담 (알림톡 발송)</option>' +
+            '<option value="기록">기록 (알림톡 없음)</option>' +
+            '<option value="예약">예약금 (알림톡 발송)</option>' +
+            '<option value="예약안내">예약확정 (알림톡 발송)</option>' +
+          '</select>' +
+        '</div>' +
+        '<div style="font-size:11px;color:#888;line-height:1.6">• 기록: 등록만, 알림톡 미발송<br>• 상담/예약금/예약확정: 등록 + 알림톡 발송</div>' +
+      '</div>' +
+      '<div style="height:16px"></div>' +
+    '</div>' +
+    '<div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:10px;flex-shrink:0;background:white">' +
+      '<button onclick="closeAIConfirmForm()" style="flex:1;padding:14px;background:#f5f5f5;color:#555;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">취소</button>' +
+      '<button id="aicf-submit-btn" onclick="submitAIConfirmForm(\'' + esc(docId) + '\')" style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">📤 등록 + 발송</button>' +
+    '</div>';
+  document.body.appendChild(popup);
+}
+
+function closeAIConfirmForm() {
+  const p = document.getElementById('ai-confirm-popup');
+  if (p) p.remove();
+}
+
+async function submitAIConfirmForm(docId) {
+  const d = aiConsultData[docId];
+  if (!d) { showToast('❌ 상담 데이터 없음'); return; }
+
+  const nameRaw = (document.getElementById('aicf-name').value || '').trim();
+  const name = nameRaw || 'VIP';
+  const phone = (document.getElementById('aicf-phone').value || '').trim();
+  const carType = (document.getElementById('aicf-carType').value || '').trim();
+  const summary = (document.getElementById('aicf-summary').value || '').trim();
+  const est = (document.getElementById('aicf-est').value || '').trim();
+  const entryDate = (document.getElementById('aicf-entryDate').value || '').trim();
+  const note = (document.getElementById('aicf-note').value || '').trim();
+  const status = document.getElementById('aicf-status').value;
+
+  const sendAlimtalk = (status !== '기록');
+  if (sendAlimtalk && !phone) {
+    alert('알림톡을 보내려면 연락처가 필요합니다.\n연락처를 입력하거나 구분을 "기록"으로 바꾸세요.');
     return;
   }
-  
-  const msg = `다음 내용으로 알림톡 발송 + 고객 등록합니다.\n\n` +
-              `고객: ${customerName} (${phone})\n` +
-              `차종: ${carType}\n` +
-              `시공: ${services}\n` +
-              `견적: ${estPrice}만원\n\n` +
-              `진행할까요?`;
-  if (!confirm(msg)) return;
-  
+
+  const btn = document.getElementById('aicf-submit-btn');
+  btn.disabled = true; btn.textContent = '⏳ 처리 중...';
+
+  const category = '썬팅';
+
   try {
-    showToast('처리 중...');
-    
-    // 알림톡 발송 + customers 등록 (기존 submitFromWebApp 액션)
-    const apiResult = await fetch(API_URL, {
+    const ts = new Date().toISOString().slice(0, 16).replace('T', ' ');
+    const newCustomer = {
+      timestamp: ts, name, phone, carType,
+      category, summary, estPrice: est, status,
+      note, deposit: '', ppf: '', etc: '',
+      tintF:'', tintS1:'', tintS2:'', tintR:'', tintSun:'',
+      entryDate, blackbox:'', battery:'', doneDate:''
+    };
+    try { await db.collection('customers').doc(ts).set(newCustomer); } catch(fe) {}
+
+    const res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         action: 'submitFromWebApp',
-        name: customerName,
-        phone: phone,
-        carType: carType,
-        category: '썬팅',
-        summary: services,
-        estPrice: estPrice,
-        status: '상담완료',
-        note: d.note || '',
-        deposit: '',
-        ppfText: '',
-        combinedM: '',
-        tintF: '', tintS1: '', tintS2: '', tintR: '', tintSun: '',
-        entryDate: d.preferredDate || '',
-        blackbox: '',
-        battery: '',
-        sendAlimtalk: true,
+        name, phone, carType, category,
+        summary, estPrice: est, status, note,
+        deposit: '', ppfText: '', combinedM: '',
+        tintF:'', tintS1:'', tintS2:'', tintR:'', tintSun:'',
+        entryDate, blackbox:'', battery:'',
+        sendAlimtalk: sendAlimtalk
       })
     });
-    
-    const text = await apiResult.text();
-    let result;
-    try { result = JSON.parse(text); } catch(e) { result = { ok: text.includes('"ok":true') }; }
-    
-    if (!result.ok) {
-      throw new Error(result.error || '알림톡 발송 실패');
-    }
-    
-    // consultations status 업데이트
+    const text = await res.text();
+    let r; try { r = JSON.parse(text); } catch(e) { r = (text.indexOf('ok') !== -1) ? 'ok' : text; }
+    const ok = (r === 'ok') || (r && r.success) || (r && r.ok);
+
+    const newStatus = sendAlimtalk ? 'sent' : 'reviewed';
     await db.collection('consultations').doc(docId).update({
-      status: 'sent',
-      sentAt: new Date(),
+      status: newStatus, reviewedAt: new Date()
     });
-    
-    showToast('알림톡 발송 + 고객 등록 완료');
-  } catch (err) {
-    console.error(err);
-    showToast('실패: ' + err.message);
-    alert('처리 실패: ' + err.message);
+
+    if (sendAlimtalk) showToast(ok ? '✅ 등록 + 📨 알림톡 발송 완료' : '✅ 등록 완료 (⚠️ 알림톡 확인 필요)');
+    else showToast('✅ 기록으로 등록 완료 (알림톡 미발송)');
+
+    closeAIConfirmForm();
+    allCustomers = [];
+    await loadCustomers();
+  } catch(e) {
+    showToast('❌ ' + e.message);
+    btn.disabled = false; btn.textContent = '📤 등록 + 발송';
   }
 }
 </script>
