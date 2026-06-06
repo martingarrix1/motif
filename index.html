@@ -4828,7 +4828,7 @@ function renderAICard(d) {
       <div id="transcript-${d.id}" class="ai-transcript-box" style="display:none;">${esc(d.transcript || '')}</div>
       <div class="ai-card-actions">
         <button class="ai-btn ai-btn-confirm" onclick="confirmAIConsult('${d.id}')">✓ 확정·알림톡</button>
-        <button class="ai-btn ai-btn-edit" onclick="editAIConsult('${d.id}')">📝 수정</button>
+        <button class="ai-btn ai-btn-edit" onclick="editAIConsult('${d.id}')">✏️ 수정·확정</button>
         <button class="ai-btn ai-btn-discard" onclick="discardAIConsult('${d.id}')">✗ 폐기</button>
       </div>
     </div>
@@ -4883,8 +4883,8 @@ function toggleTranscript(docId) {
 }
 
 function editAIConsult(docId) {
-  aiConsultEditState[docId] = true;
-  renderAIConsults();
+  // [수정]과 [확정] 통일: 둘 다 확정 폼을 연다
+  openAIConfirmForm(docId);
 }
 
 function cancelAIEdit(docId) {
@@ -4981,7 +4981,7 @@ function openAIConfirmForm(docId) {
 
   let nameRaw = (d.customerName || '').trim();
   const isJustPhone = nameRaw && /^[\d\-\s+]+$/.test(nameRaw);
-  const fName = (!nameRaw || isJustPhone) ? '' : nameRaw;
+  const fName = (!nameRaw || isJustPhone) ? 'VIP' : nameRaw;  // 빈 이름은 VIP 기본값
   const fPhone = d.phoneNumber || '';
   const fCar = d.carType || '';
   const fSummary = _aiServicesToSummary(d);
@@ -5001,7 +5001,7 @@ function openAIConfirmForm(docId) {
     '<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px">' +
       '<div class="card">' +
         '<div class="card-title">기본정보 <span style="font-size:11px;color:#2e7d32;font-weight:400">✓ 자동 채움</span></div>' +
-        '<div class="form-group"><label>고객명</label><input type="text" id="aicf-name" value="' + esc(fName) + '" placeholder="비우면 VIP로 저장"></div>' +
+        '<div class="form-group"><label>고객명</label><input type="text" id="aicf-name" value="' + esc(fName) + '" placeholder="VIP"></div>' +
         '<div class="form-group"><label>연락처</label><input type="tel" id="aicf-phone" value="' + esc(fPhone) + '" placeholder="010-0000-0000"></div>' +
         '<div class="form-group"><label>차종</label><input type="text" id="aicf-carType" value="' + esc(fCar) + '" placeholder="예) 카니발"></div>' +
       '</div>' +
