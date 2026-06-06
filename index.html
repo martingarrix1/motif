@@ -1174,7 +1174,7 @@ function renderCustomers(data) {
           </div>
           <span class="badge ${(c.category||'').includes('PPF')?'badge-ppf':(c.category||'').includes('썬팅')?'badge-tinting':'badge-coating'}">${esc(c.category||'-')}</span>
         </div>
-        <div class="customer-car">${esc(c.carType)} · <span onclick="copyPhone('${c.phone}')" style="cursor:pointer;text-decoration:underline dotted">${esc(c.phone)}</span></div>
+        <div class="customer-car">${esc(c.carType)} · <span onclick="phoneAction('${c.phone}')" style="cursor:pointer;text-decoration:underline dotted">${esc(c.phone)}</span></div>
         ${c.summary ? `<div style="font-size:clamp(12px,3vw,14px);color:#999;margin-top:4px;line-height:1.5">${esc(c.summary)}</div>` : ''}
         <div class="customer-meta">
           ${c.entryDate ? `<span style="font-size:12px;color:#e65100;font-weight:600">🚗 ${(d=>d.getMonth()+1+'.'+(d.getDate()))(new Date(c.entryDate))}</span>` : ''}
@@ -1481,6 +1481,25 @@ function copyPhone(phone) {
   navigator.clipboard.writeText(phone).then(() => showToast('📋 ' + phone + ' 복사됨!'));
 }
 
+// 전화번호 클릭 시 "걸기 / 복사" 선택 팝업
+function phoneAction(phone) {
+  if (!phone) { showToast('❌ 번호 없음'); return; }
+  const popup = document.createElement('div');
+  popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10002;display:flex;align-items:flex-end;justify-content:center';
+  popup.onclick = function(e){ if(e.target===popup) popup.remove(); };
+  popup.innerHTML =
+    '<div style="background:white;width:100%;max-width:420px;border-radius:18px 18px 0 0;padding:18px 18px 22px">' +
+      '<div style="text-align:center;font-size:18px;font-weight:700;color:#1a1a2e;margin-bottom:4px">' + esc(phone) + '</div>' +
+      '<div style="text-align:center;font-size:12px;color:#999;margin-bottom:16px">원하는 동작을 선택하세요</div>' +
+      '<div style="display:flex;gap:10px">' +
+        '<button onclick="window.location.href=\'tel:' + esc(phone) + '\';this.closest(\'div[style*=fixed]\').remove()" style="flex:1;padding:15px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit">📞 걸기</button>' +
+        '<button onclick="copyPhone(\'' + esc(phone) + '\');this.closest(\'div[style*=fixed]\').remove()" style="flex:1;padding:15px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit">📋 복사</button>' +
+      '</div>' +
+      '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;margin-top:10px;padding:12px;background:#f5f5f5;color:#888;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">취소</button>' +
+    '</div>';
+  document.body.appendChild(popup);
+}
+
 async function changeEntryDate(timestamp, value) {
   try {
     try { await updateCustomerInFirebase(timestamp, { entryDate: value }); } catch(fe) {}
@@ -1545,7 +1564,7 @@ async function showCustomerDetail(idx) {
     </div>` : '';
   document.getElementById('modal-title').textContent = c.name + ' · ' + c.carType;
   document.getElementById('modal-body').innerHTML = `
-    <div class="detail-row"><span class="detail-label">연락처</span><span class="detail-value" onclick="copyPhone('${c.phone}')" style="cursor:pointer;text-decoration:underline dotted">${esc(c.phone)}</span></div>
+    <div class="detail-row"><span class="detail-label">연락처</span><span class="detail-value" onclick="phoneAction('${c.phone}')" style="cursor:pointer;text-decoration:underline dotted">${esc(c.phone)}</span></div>
     <div class="detail-row"><span class="detail-label">시공분류</span><span class="detail-value">${esc(c.category||'-')}</span></div>
     <div class="detail-row"><span class="detail-label">블랙박스</span><span class="detail-value">${esc(c.blackbox||'-')}</span></div>
     <div class="detail-row"><span class="detail-label">보조배터리</span><span class="detail-value">${esc(c.battery||'-')}</span></div>
@@ -1680,7 +1699,7 @@ function renderAftercare(data) {
           </select>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
-          <div class="customer-car" onclick="copyPhone('${c.phone}')" style="cursor:pointer;text-decoration:underline dotted">${esc(c.carType)} · ${esc(c.phone)}</div>
+          <div class="customer-car" onclick="phoneAction('${c.phone}')" style="cursor:pointer;text-decoration:underline dotted">${esc(c.carType)} · ${esc(c.phone)}</div>
           <button onclick="showAftercareEdit('${c.name}','${c.carType}','${c.doneDate}','${c.phone}','${c.category}','${c.summary}','${c.estPrice}')" style="padding:4px 8px;background:#f5f5f5;border:1px solid #ddd;border-radius:6px;font-size:11px;color:#555;cursor:pointer">✏️ 수정</button>
         </div>
         <div style="font-size:clamp(12px,3vw,14px);color:#999;margin-top:3px">${esc(c.category||'')}</div>
