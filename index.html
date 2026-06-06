@@ -5044,8 +5044,9 @@ function openAIConfirmForm(docId) {
       '<div style="height:16px"></div>' +
     '</div>' +
     '<div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:10px;flex-shrink:0;background:white">' +
-      '<button onclick="closeAIConfirmForm()" style="flex:1;padding:14px;background:#f5f5f5;color:#555;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit">취소</button>' +
-      '<button id="aicf-submit-btn" onclick="submitAIConfirmForm(\'' + esc(docId) + '\')" style="flex:2;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">📤 등록 + 발송</button>' +
+      '<button onclick="closeAIConfirmForm()" style="flex:1;padding:14px;background:#f5f5f5;color:#555;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">취소</button>' +
+      '<button id="aicf-save-btn" onclick="saveAIConfirmFormOnly(\'' + esc(docId) + '\')" style="flex:1.2;padding:14px;background:#e3f2fd;color:#1565c0;border:1.5px solid #90caf9;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">💾 저장만</button>' +
+      '<button id="aicf-submit-btn" onclick="submitAIConfirmForm(\'' + esc(docId) + '\')" style="flex:1.6;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">📤 등록+발송</button>' +
     '</div>';
   document.body.appendChild(popup);
 }
@@ -5053,6 +5054,46 @@ function openAIConfirmForm(docId) {
 function closeAIConfirmForm() {
   const p = document.getElementById('ai-confirm-popup');
   if (p) p.remove();
+}
+
+// 확정 폼: 발송 없이 consultations 문서에 수정 내용만 저장 (카드 유지)
+async function saveAIConfirmFormOnly(docId) {
+  const d = aiConsultData[docId];
+  if (!d) { showToast('❌ 상담 데이터 없음'); return; }
+
+  const name = (document.getElementById('aicf-name').value || '').trim();
+  const phone = (document.getElementById('aicf-phone').value || '').trim();
+  const carType = (document.getElementById('aicf-carType').value || '').trim();
+  const summary = (document.getElementById('aicf-summary').value || '').trim();
+  const est = (document.getElementById('aicf-est').value || '').trim();
+  const entryDate = (document.getElementById('aicf-entryDate').value || '').trim();
+  const note = (document.getElementById('aicf-note').value || '').trim();
+
+  const btn = document.getElementById('aicf-save-btn');
+  btn.disabled = true; btn.textContent = '⏳ 저장 중...';
+
+  // 원래 필드명으로 되돌려 저장 (다시 열면 그대로 채워지도록)
+  const updates = {
+    customerName: name,
+    phoneNumber: phone,
+    carType: carType,
+    services: summary ? summary.split(',').map(s => s.trim()).filter(s => s) : [],
+    estPrice: est ? (parseInt(est) * 10000) : null,
+    preferredDate: entryDate || (d.preferredDate || ''),
+    note: note
+  };
+
+  try {
+    await db.collection('consultations').doc(docId).update(updates);
+    // 로컬 캐시도 갱신
+    Object.assign(aiConsultData[docId], updates);
+    showToast('✅ 저장됨 (발송 안 함)');
+    closeAIConfirmForm();
+    renderAIConsults();
+  } catch(e) {
+    showToast('❌ 저장 실패: ' + e.message);
+    btn.disabled = false; btn.textContent = '💾 저장만';
+  }
 }
 
 async function submitAIConfirmForm(docId) {
