@@ -2065,10 +2065,19 @@ function showCalendarDay(dateStr) {
             ${c.estPrice ? `<span style="color:#1a73e8;font-weight:600;font-size:13px">${esc(c.estPrice)}만원</span>` : ''}
           </div>
           ${c.summary ? `<div style="font-size:12px;color:#999;margin-top:4px;line-height:1.5">${esc(c.summary)}</div>` : ''}
+          ${c.deposit ? `<div style="font-size:12px;color:#e65100;margin-top:4px;font-weight:600">계약금 ${esc(c.deposit)}만원</div>` : ''}
           <div style="font-size:12px;color:#aaa;margin-top:4px">${esc(c.phone)}${c.status?` · ${esc(c.status)}`:''}</div>
           <div style="display:flex;gap:6px;margin-top:8px">
             <button onclick="window.location.href='tel:${c.phone}'" style="flex:1;padding:6px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">📞 전화</button>
-            <button onclick="openCalendarCustomerEdit('${c.timestamp}')" style="flex:1;padding:6px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">✏️ 수정</button>
+            <button onclick="window.location.href='sms:${c.phone}'" style="flex:1;padding:6px;background:#fff8e1;color:#f57f17;border:1px solid #ffe082;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer">💬 문자</button>
+            <button onclick="openCalendarCustomerEdit('${c.timestamp}')" style="padding:6px 8px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:6px;font-size:12px;cursor:pointer">✏️수정</button>
+            <button onclick="editCustomerEntryDate('${c.timestamp}','${dateStr}')" style="padding:6px 8px;background:#f3e5f5;color:#6a1b9a;border:1px solid #e1bee7;border-radius:6px;font-size:12px;cursor:pointer">📅날짜</button>
+            <button onclick="sendDoneWithWarranty('${c.name}','${c.carType}','${c.phone}','${c.doneDate||dateStr}')" style="padding:6px 8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:6px;font-size:12px;cursor:pointer">📨완료</button>
+            <button onclick="deleteCustomerFromCalendar('${c.timestamp}','${dateStr}')" style="padding:6px 8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:6px;font-size:12px;cursor:pointer">🗑</button>
+          </div>
+          <div style="margin-top:8px;display:flex;gap:6px">
+            <button onclick="openCalendarWarrantyPopup('${c.name}','${c.carType}','${c.phone}','${c.timestamp}','${dateStr}')" style="flex:1;padding:8px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📜 보증서 발행</button>
+            <button onclick="openReviewScheduleFromCalendar('${c.name}','${c.carType}','${c.phone}','${dateStr}')" style="flex:1;padding:8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">⭐ 리뷰요청</button>
           </div>
         </div>`).join('')}
     </div>` : '';
