@@ -1270,12 +1270,23 @@ async function setDoneDate(timestamp, name, carType, phone, category, summary, e
   })();
 }
 
+// 리뷰요청 예약 시각: "완료한 날의 다음날 오전 10시"
+function _reviewScheduleDate() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);   // 다음날
+  d.setHours(10, 0, 0, 0);      // 오전 10:00
+  return d;
+}
+function _reviewScheduleLabel() {
+  const d = _reviewScheduleDate();
+  const mm = d.getMonth() + 1;
+  const dd = d.getDate();
+  return mm + '월 ' + dd + '일 오전 10시';
+}
+
 function showDoneAlimtalkPopup(name, carType, phone, doneDate, pdfId) {
-  // 2시간 뒤 예약 시각 미리 계산 (UI 표시용)
-  const scheduleTime = new Date(Date.now() + 2*60*60*1000);
-  const hh = scheduleTime.getHours().toString().padStart(2,'0');
-  const mm = scheduleTime.getMinutes().toString().padStart(2,'0');
-  const timeStr = `${hh}:${mm}`;
+  // 리뷰요청 예약 시각 (UI 표시용): 다음날 오전 10시
+  const timeStr = _reviewScheduleLabel();
 
   const popup = document.createElement('div');
   popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
@@ -1301,8 +1312,8 @@ function showDoneAlimtalkPopup(name, carType, phone, doneDate, pdfId) {
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none">
           <input type="checkbox" id="done-review-chk" style="width:18px;height:18px;cursor:pointer;accent-color:#e65100;flex-shrink:0">
           <span style="font-size:13px;color:#333;line-height:1.4">
-            <strong style="color:#e65100">⭐ 2시간 뒤 리뷰요청 예약</strong><br>
-            <span style="font-size:11px;color:#888">오늘 ${timeStr}에 자동 발송됩니다</span>
+            <strong style="color:#e65100">⭐ 다음날 리뷰요청 예약</strong><br>
+            <span style="font-size:11px;color:#888">${timeStr}에 자동 발송됩니다</span>
           </span>
         </label>
       </div>
@@ -1367,9 +1378,9 @@ async function sendDoneAlimtalkWithReview(name, carType, phone, doneDate, pdfId,
     }
   }
 
-  // ── 2단계: 리뷰요청 2시간 뒤 예약 (체크된 경우만) ──
+  // ── 2단계: 리뷰요청 다음날 오전 10시 예약 (체크된 경우만) ──
   if (sendReview) {
-    const scheduledDate = new Date(Date.now() + 2*60*60*1000).toISOString();
+    const scheduledDate = _reviewScheduleDate().toISOString();
     console.log('[리뷰요청 예약]', { name, carType, phone, doneDate, scheduledDate });
 
     // 시공완료 토스트와 겹치지 않게 약간 지연
@@ -1382,7 +1393,7 @@ async function sendDoneAlimtalkWithReview(name, carType, phone, doneDate, pdfId,
         console.log('[리뷰요청 예약 응답]', r);
 
         if (r === 'ok' || (r && r.success)) {
-          showToast('✅ 2시간 뒤 리뷰요청 예약 완료!');
+          showToast('✅ 다음날 오전 10시 리뷰요청 예약 완료!');
         } else {
           const msg = (r && r.error) ? r.error : JSON.stringify(r);
           showToast('⚠️ 리뷰요청 예약 실패: ' + msg);
@@ -1400,16 +1411,13 @@ async function sendDoneAlimtalkWithReview(name, carType, phone, doneDate, pdfId,
 }
 
 // ────────────────────────────────────────
-// 리뷰 요청 알림톡 — 2시간 뒤 예약 발송
+// 리뷰 요청 알림톡 — 다음날 오전 10시 예약 발송
 // ────────────────────────────────────────
 function openReviewScheduleFromCalendar(name, carType, phone, doneDate) {
   if (!phone) { showToast('❌ 연락처가 없는 고객입니다'); return; }
 
-  // 2시간 뒤 예약 시각 계산
-  const scheduleTime = new Date(Date.now() + 2*60*60*1000);
-  const hh = scheduleTime.getHours().toString().padStart(2,'0');
-  const mm = scheduleTime.getMinutes().toString().padStart(2,'0');
-  const timeStr = `${hh}:${mm}`;
+  // 리뷰요청 예약 시각: 다음날 오전 10시
+  const timeStr = _reviewScheduleLabel();
 
   const popup = document.createElement('div');
   popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
@@ -1419,8 +1427,8 @@ function openReviewScheduleFromCalendar(name, carType, phone, doneDate) {
       <div style="font-size:16px;font-weight:700;margin-bottom:8px">${esc(name)} 고객님께</div>
       <div style="font-size:14px;color:#555;margin-bottom:6px">리뷰 요청 알림톡을 예약 발송할까요?</div>
       <div style="background:#fff3e0;color:#e65100;padding:10px;border-radius:8px;font-size:13px;margin-bottom:16px;font-weight:600">
-        📨 오늘 ${timeStr}에 자동 발송<br>
-        <span style="font-size:11px;font-weight:400;color:#999">(지금부터 2시간 뒤)</span>
+        📨 ${timeStr}에 자동 발송<br>
+        <span style="font-size:11px;font-weight:400;color:#999">(시공 다음날 오전)</span>
       </div>
       <div style="font-size:11px;color:#888;margin-bottom:16px;text-align:left;line-height:1.6">
         • 네이버 플레이스 원탭 리뷰 링크 포함<br>
@@ -1439,8 +1447,8 @@ async function scheduleReviewAlimtalk(name, carType, phone, doneDate, popupEl) {
   popupEl.remove();
   showToast('⏳ 리뷰 요청 예약 중...');
 
-  // 2시간 뒤 ISO 8601 형식 (UTC)
-  const scheduledDate = new Date(Date.now() + 2*60*60*1000).toISOString();
+  // 다음날 오전 10시 ISO 8601 형식
+  const scheduledDate = _reviewScheduleDate().toISOString();
 
   console.log('[리뷰 요청 예약]', { name, carType, phone, doneDate, scheduledDate });
 
@@ -1453,7 +1461,7 @@ async function scheduleReviewAlimtalk(name, carType, phone, doneDate, popupEl) {
     console.log('[리뷰 요청 예약 응답]', r);
 
     if (r === 'ok' || (r && r.success)) {
-      showToast('✅ 2시간 뒤 자동 발송 예약됨');
+      showToast('✅ 다음날 오전 10시 자동 발송 예약됨');
     } else {
       const msg = (r && r.error) ? r.error : JSON.stringify(r);
       showToast('❌ 예약 실패: ' + msg);
