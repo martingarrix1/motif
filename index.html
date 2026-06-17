@@ -554,12 +554,22 @@ function doLogout() {
           <button onclick="removeInvoiceItem(this)" style="padding:8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:8px;font-size:14px;cursor:pointer;flex-shrink:0">✕</button>
         </div>
       </div>
-      <div style="margin-top:10px;padding-top:10px;border-top:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:13px;color:#888">합계</span>
-        <div style="text-align:right">
-          <div id="inv-total" style="font-size:18px;font-weight:700;color:#1a73e8">0원</div>
-          <div id="inv-total-korean" style="font-size:12px;color:#999"></div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid #eee">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:13px;color:#888">공급가액</span>
+          <span id="inv-supply" style="font-size:14px;font-weight:600;color:#555">0원</span>
         </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:13px;color:#888">부가세 (10%)</span>
+          <span id="inv-vat" style="font-size:14px;font-weight:600;color:#555">0원</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:8px;border-top:1px dashed #e0e0e0">
+          <span style="font-size:13px;color:#888;flex-shrink:0">합계 (세포함)</span>
+          <input type="number" id="inv-total-input" placeholder="0" inputmode="numeric" oninput="recalcFromTotal()" style="flex:1;max-width:160px;text-align:right;font-size:18px;font-weight:700;color:#1a73e8;border:1.5px solid #e8e8e8;border-radius:10px;padding:8px 10px;font-family:inherit;outline:none">
+        </div>
+        <div id="inv-total-korean" style="font-size:12px;color:#999;text-align:right;margin-top:6px"></div>
+        <!-- 합계 텍스트(생성 시 사용) 호환용 숨김 -->
+        <div id="inv-total" style="display:none">0원</div>
       </div>
     </div>
 
@@ -3016,11 +3026,39 @@ function removeInvoiceItem(btn) {
   updateInvoiceTotal();
 }
 
+// 품목 금액(공급가) 입력 → 부가세·합계 자동 계산 (정방향)
 function updateInvoiceTotal() {
   const prices = [...document.querySelectorAll('.inv-item input[type="number"]')].map(el => parseInt(el.value) || 0);
   const sub = prices.reduce((a, b) => a + b, 0);
   const tax = prices.reduce((a, b) => a + Math.round(b * 0.1), 0);
   const total = sub + tax;
+  renderInvoiceAmounts(sub, tax, total);
+  // 합계 입력칸도 동기화 (사용자가 합계칸을 직접 만지는 중이 아닐 때만)
+  const totalInput = document.getElementById('inv-total-input');
+  if (document.activeElement !== totalInput) {
+    totalInput.value = total > 0 ? total : '';
+  }
+}
+
+// 합계(세포함) 입력 → 공급가·부가세 역산 (역방향)
+function recalcFromTotal() {
+  const total = parseInt(document.getElementById('inv-total-input').value) || 0;
+  const supply = Math.round(total / 1.1);   // 공급가액 = 합계 ÷ 1.1
+  const vat = total - supply;               // 부가세 = 합계 - 공급가
+  renderInvoiceAmounts(supply, vat, total);
+
+  // 품목이 1개면 그 품목 금액(공급가)을 역산값으로 자동 채움
+  // → 견적서 생성 시 서버 계산과 일치하도록
+  const priceInputs = [...document.querySelectorAll('.inv-item input[type="number"]')];
+  if (priceInputs.length === 1) {
+    priceInputs[0].value = supply > 0 ? supply : '';
+  }
+}
+
+// 공급가/부가세/합계 표시 공통
+function renderInvoiceAmounts(supply, vat, total) {
+  document.getElementById('inv-supply').textContent = supply.toLocaleString('ko-KR') + '원';
+  document.getElementById('inv-vat').textContent = vat.toLocaleString('ko-KR') + '원';
   document.getElementById('inv-total').textContent = total.toLocaleString('ko-KR') + '원 (세포함)';
   document.getElementById('inv-total-korean').textContent = total > 0 ? numberToKoreanJS(total).replace(/원$/, '') : '';
 }
