@@ -91,12 +91,21 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 // 로그인 가드: 로그인 안 되어 있으면 로그인 화면, 되어 있으면 본문 표시
+let _pageRestoredAfterAuth = false;
 auth.onAuthStateChanged(function(user) {
   const loginScreen = document.getElementById('login-screen');
   const appBody = document.getElementById('app-body');
   if (user) {
     loginScreen.style.display = 'none';
     appBody.style.display = 'block';
+    // 인증이 확인된 뒤에 마지막 페이지 복원 (Firestore 데이터 접근 가능 시점)
+    // 한 번만 실행, 함수 정의 이후 호출되도록 약간 지연
+    if (!_pageRestoredAfterAuth) {
+      _pageRestoredAfterAuth = true;
+      setTimeout(function() {
+        if (typeof _restoreLastPage === 'function') _restoreLastPage();
+      }, 0);
+    }
   } else {
     loginScreen.style.display = 'flex';
     appBody.style.display = 'none';
@@ -858,6 +867,11 @@ db.collection('customers').onSnapshot(snap => {
     displayCount = displayCount || 30;
     renderCustomers(allCustomers);
   }
+  // 캘린더 탭이 열려 있으면 고객 데이터 갱신 시 캘린더도 다시 그림
+  // (인증 후 데이터가 처음 도착할 때 빈 캘린더로 남는 문제 방지)
+  if (document.getElementById('page-calendar').classList.contains('active')) {
+    renderCalendar();
+  }
 });
 db.collection('aftercare').onSnapshot(snap => {
   let fbData = [];
@@ -948,12 +962,8 @@ function showPage(page, btn) {
  if (page === 'content-gen') { initContentGenHub(); }
 }
 
-// 페이지 로드 완료 후 마지막 페이지 복원 (모든 함수·변수 정의 보장)
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', _restoreLastPage);
-} else {
-  setTimeout(_restoreLastPage, 0);
-}
+// 페이지 복원은 로그인 인증 완료 후(onAuthStateChanged)에 실행됩니다.
+// 인증 전 실행하면 Firestore 데이터가 비어 캘린더 등이 빈 채로 뜨는 문제가 있었습니다.
 function _restoreLastPage() {
   try {
     const last = localStorage.getItem('motif_last_page');
