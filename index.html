@@ -301,6 +301,7 @@ function doLogout() {
 <div id="more-menu" style="display:none;position:fixed;top:84px;right:0;left:0;background:white;z-index:98;border-bottom:2px solid #eee;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
   <div style="display:grid;grid-template-columns:repeat(4,1fr);padding:8px">
   <button onclick="showPage('aftercare',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📋<span>사후관리</span></button>
+  <button onclick="showPage('insurance',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🚗<span>보험건</span></button>
   <button onclick="showPage('glass',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🔵<span>유리막</span></button>
   <button onclick="showPage('memo',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📓<span>메모</span></button>
   <button onclick="showPage('invoice',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📑<span>견적서</span></button>
@@ -510,6 +511,63 @@ function doLogout() {
       <button class="btn btn-primary" onclick="submitGlassWarranty()" id="glass-submit-btn">📄 보증서 생성</button>
     </div>
     <div id="glass-result"></div>
+  </div>
+
+  <div id="page-insurance" class="page">
+    <div class="card">
+      <div class="card-title">🚗 보험건 등록</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div style="flex:1">
+          <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">시공일</label>
+          <input type="date" id="ins-date" style="width:100%;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;font-family:inherit;outline:none;box-sizing:border-box">
+        </div>
+        <div style="flex:1">
+          <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">차량번호</label>
+          <input type="text" id="ins-carnum" placeholder="12가3456" style="width:100%;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;font-family:inherit;outline:none;box-sizing:border-box">
+        </div>
+      </div>
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">시공내역</label>
+      <input type="text" id="ins-work" placeholder="예: 앞범퍼 PPF, 사이드미러 교체" style="width:100%;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;font-family:inherit;outline:none;box-sizing:border-box;margin-bottom:10px">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div style="flex:1">
+          <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">금액 (원)</label>
+          <input type="number" id="ins-amount" inputmode="numeric" placeholder="500000" style="width:100%;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;font-family:inherit;outline:none;box-sizing:border-box">
+        </div>
+        <div style="flex:1">
+          <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">보험사</label>
+          <input type="text" id="ins-company" placeholder="예: 삼성화재" style="width:100%;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;font-family:inherit;outline:none;box-sizing:border-box">
+        </div>
+      </div>
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">보험 담당자 연락처</label>
+      <input type="tel" id="ins-phone" inputmode="numeric" placeholder="010-0000-0000" style="width:100%;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;font-family:inherit;outline:none;box-sizing:border-box;margin-bottom:10px">
+
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:6px">청구 상태</label>
+      <div style="display:flex;gap:6px;margin-bottom:12px">
+        <button type="button" id="ins-st-미청구" onclick="selectInsStatus('미청구')" class="ins-status-btn" style="flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;background:#ffebee;color:#c62828;border:2px solid #c62828">미청구</button>
+        <button type="button" id="ins-st-청구완료" onclick="selectInsStatus('청구완료')" class="ins-status-btn" style="flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;background:#fff3e0;color:#999;border:2px solid #eee">청구완료</button>
+        <button type="button" id="ins-st-입금완료" onclick="selectInsStatus('입금완료')" class="ins-status-btn" style="flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;background:#e8f5e9;color:#999;border:2px solid #eee">입금완료</button>
+      </div>
+
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">메모 (선택)</label>
+      <textarea id="ins-note" placeholder="파손 부위, 특이사항 등" style="width:100%;height:60px;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;font-family:inherit;outline:none;resize:none;box-sizing:border-box;margin-bottom:10px"></textarea>
+
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">사진 첨부 (선택, 최대 3장)</label>
+      <input type="file" id="ins-photo" accept="image/*" multiple onchange="handleInsPhotos(this)" style="width:100%;font-size:13px;margin-bottom:8px">
+      <div id="ins-photo-preview" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+
+      <button class="btn btn-primary" id="ins-submit-btn" onclick="submitInsurance()">🚗 보험건 저장</button>
+    </div>
+
+    <div id="ins-summary" style="margin-bottom:12px"></div>
+
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button onclick="filterInsurance('전체')" id="ins-filter-전체" class="btn btn-small" style="background:#1a1a2e;color:white;border:none">전체</button>
+      <button onclick="filterInsurance('미청구')" id="ins-filter-미청구" class="btn btn-small" style="background:#f5f5f5;color:#555;border:1px solid #ddd">🔴 미청구</button>
+      <button onclick="filterInsurance('청구완료')" id="ins-filter-청구완료" class="btn btn-small" style="background:#f5f5f5;color:#555;border:1px solid #ddd">🟠 청구완료</button>
+      <button onclick="filterInsurance('입금완료')" id="ins-filter-입금완료" class="btn btn-small" style="background:#f5f5f5;color:#555;border:1px solid #ddd">🟢 입금완료</button>
+    </div>
+
+    <div id="insurance-list"></div>
   </div>
 
   <div id="page-memo" class="page">
@@ -951,6 +1009,7 @@ function showPage(page, btn) {
     if (allAftercare.length > 0) renderAftercare(allAftercare);
     else loadAftercare();
   }
+  if (page === 'insurance') { initInsurance(); }
   if (page === 'todo') initTodo();
   if (page === 'calendar') { loadCalendar(); }
   if (page === 'memo') { initMemo(); }
@@ -3260,6 +3319,222 @@ function calWarrantyGo(type, name, carType, phone, timestamp, dateStr, btn) {
       document.getElementById('lw-date').value = dateStr;
     }, 100);
   }
+}
+
+// ═══════════════ 보험건 관리 ═══════════════
+let allInsurance = [];
+let insFilter = '전체';
+let insPhotoData = [];      // 압축된 사진 base64 배열
+let insSelectedStatus = '미청구';
+
+async function initInsurance() {
+  // 시공일 기본값 오늘
+  const d = document.getElementById('ins-date');
+  if (d && !d.value) d.value = new Date().toISOString().slice(0,10);
+  selectInsStatus('미청구');
+  loadInsurance();
+}
+
+async function loadInsurance() {
+  const listEl = document.getElementById('insurance-list');
+  listEl.innerHTML = '<div class="loading">⚡ 불러오는 중...</div>';
+  try {
+    const snap = await db.collection('insurance').get();
+    allInsurance = [];
+    snap.forEach(doc => allInsurance.push({ _id: doc.id, ...doc.data() }));
+    allInsurance.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    renderInsurance();
+  } catch(e) {
+    listEl.innerHTML = '<div class="loading" style="color:red">❌ ' + esc(e.message) + '</div>';
+  }
+}
+
+// 청구 상태 선택 (입력폼)
+function selectInsStatus(status) {
+  insSelectedStatus = status;
+  const map = {
+    '미청구':   { bg:'#ffebee', color:'#c62828', border:'#c62828' },
+    '청구완료': { bg:'#fff3e0', color:'#e65100', border:'#e65100' },
+    '입금완료': { bg:'#e8f5e9', color:'#2e7d32', border:'#2e7d32' }
+  };
+  ['미청구','청구완료','입금완료'].forEach(s => {
+    const btn = document.getElementById('ins-st-' + s);
+    if (!btn) return;
+    if (s === status) {
+      btn.style.background = map[s].bg;
+      btn.style.color = map[s].color;
+      btn.style.border = '2px solid ' + map[s].border;
+    } else {
+      btn.style.background = map[s].bg;
+      btn.style.color = '#999';
+      btn.style.border = '2px solid #eee';
+    }
+  });
+}
+
+// 사진 압축 후 base64 저장 (긴 변 1000px, 최대 3장)
+function handleInsPhotos(input) {
+  const files = [...input.files].slice(0, 3);
+  insPhotoData = [];
+  document.getElementById('ins-photo-preview').innerHTML = '';
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxSide = 1000;
+        let w = img.width, h = img.height;
+        if (w > h && w > maxSide) { h = Math.round(h * maxSide / w); w = maxSide; }
+        else if (h > maxSide) { w = Math.round(w * maxSide / h); h = maxSide; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        insPhotoData.push(dataUrl);
+        const thumb = document.createElement('img');
+        thumb.src = dataUrl;
+        thumb.style.cssText = 'width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #ddd';
+        document.getElementById('ins-photo-preview').appendChild(thumb);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function submitInsurance() {
+  const carnum = document.getElementById('ins-carnum').value.trim();
+  const work = document.getElementById('ins-work').value.trim();
+  if (!carnum || !work) { showToast('차량번호와 시공내역을 입력해주세요'); return; }
+
+  const btn = document.getElementById('ins-submit-btn');
+  btn.disabled = true; btn.textContent = '⏳ 저장 중...';
+
+  const data = {
+    date: document.getElementById('ins-date').value || new Date().toISOString().slice(0,10),
+    carNum: carnum,
+    work: work,
+    amount: parseInt(document.getElementById('ins-amount').value) || 0,
+    company: document.getElementById('ins-company').value.trim(),
+    phone: document.getElementById('ins-phone').value.trim(),
+    status: insSelectedStatus,
+    note: document.getElementById('ins-note').value.trim(),
+    photos: insPhotoData,
+    createdAt: new Date().toISOString()
+  };
+
+  try {
+    const docId = 'ins_' + Date.now();
+    await db.collection('insurance').doc(docId).set(data);
+    showToast('✅ 보험건 저장 완료!');
+    // 폼 초기화
+    ['ins-carnum','ins-work','ins-amount','ins-company','ins-phone','ins-note'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('ins-date').value = new Date().toISOString().slice(0,10);
+    document.getElementById('ins-photo').value = '';
+    document.getElementById('ins-photo-preview').innerHTML = '';
+    insPhotoData = [];
+    selectInsStatus('미청구');
+    loadInsurance();
+  } catch(e) {
+    showToast('❌ 저장 실패: ' + e.message);
+    btn.disabled = false; btn.textContent = '🚗 보험건 저장';
+    return;
+  }
+  btn.disabled = false; btn.textContent = '🚗 보험건 저장';
+}
+
+function filterInsurance(f) {
+  insFilter = f;
+  ['전체','미청구','청구완료','입금완료'].forEach(s => {
+    const btn = document.getElementById('ins-filter-' + s);
+    if (!btn) return;
+    if (s === f) { btn.style.background = '#1a1a2e'; btn.style.color = 'white'; btn.style.border = 'none'; }
+    else { btn.style.background = '#f5f5f5'; btn.style.color = '#555'; btn.style.border = '1px solid #ddd'; }
+  });
+  renderInsurance();
+}
+
+function renderInsurance() {
+  const listEl = document.getElementById('insurance-list');
+  const sumEl = document.getElementById('ins-summary');
+
+  // 상단 요약: 미청구 건수/금액
+  const unclaimed = allInsurance.filter(x => x.status === '미청구');
+  const unclaimedAmt = unclaimed.reduce((a, b) => a + (b.amount || 0), 0);
+  if (allInsurance.length > 0) {
+    sumEl.innerHTML = unclaimed.length > 0
+      ? '<div style="background:#ffebee;border:1px solid #ffcdd2;border-radius:12px;padding:14px;text-align:center"><span style="color:#c62828;font-weight:700;font-size:16px">🔴 미청구 ' + unclaimed.length + '건</span><span style="color:#999;font-size:13px;margin-left:8px">(' + unclaimedAmt.toLocaleString('ko-KR') + '원)</span></div>'
+      : '<div style="background:#e8f5e9;border:1px solid #c8e6c9;border-radius:12px;padding:14px;text-align:center;color:#2e7d32;font-weight:700">✅ 미청구 건 없음</div>';
+  } else {
+    sumEl.innerHTML = '';
+  }
+
+  const items = insFilter === '전체' ? allInsurance : allInsurance.filter(x => x.status === insFilter);
+  if (items.length === 0) {
+    listEl.innerHTML = '<div class="loading">보험건이 없습니다.</div>';
+    return;
+  }
+
+  const stColor = { '미청구':{bg:'#ffebee',c:'#c62828',dot:'🔴'}, '청구완료':{bg:'#fff3e0',c:'#e65100',dot:'🟠'}, '입금완료':{bg:'#e8f5e9',c:'#2e7d32',dot:'🟢'} };
+
+  listEl.innerHTML = items.map(x => {
+    const st = stColor[x.status] || stColor['미청구'];
+    const photosHtml = (x.photos && x.photos.length > 0)
+      ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">' + x.photos.map((p, pi) => '<img src="' + p + '" onclick="showInsPhoto(\'' + x._id + '\',' + pi + ')" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid #ddd;cursor:pointer">').join('') + '</div>'
+      : '';
+    return '<div class="card" style="margin-bottom:10px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">' +
+        '<div><span style="font-size:16px;font-weight:700">' + esc(x.carNum) + '</span>' +
+        '<span style="font-size:12px;color:#999;margin-left:8px">' + esc(x.date) + '</span></div>' +
+        '<span style="background:' + st.bg + ';color:' + st.c + ';font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px">' + st.dot + ' ' + esc(x.status) + '</span>' +
+      '</div>' +
+      '<div style="font-size:14px;color:#333;margin-bottom:4px">' + esc(x.work) + '</div>' +
+      '<div style="font-size:13px;color:#666">' +
+        (x.amount ? '💰 ' + x.amount.toLocaleString('ko-KR') + '원' : '') +
+        (x.company ? '　🏢 ' + esc(x.company) : '') +
+      '</div>' +
+      (x.phone ? '<div style="font-size:13px;color:#1565c0;margin-top:4px;cursor:pointer" onclick="phoneAction(\'' + esc(x.phone) + '\')">📞 담당자 ' + esc(x.phone) + '</div>' : '') +
+      (x.note ? '<div style="font-size:12px;color:#999;margin-top:4px">📝 ' + esc(x.note) + '</div>' : '') +
+      photosHtml +
+      '<div style="display:flex;gap:6px;margin-top:10px">' +
+        (x.status !== '청구완료' ? '<button onclick="changeInsStatus(\'' + x._id + '\',\'청구완료\')" style="flex:1;padding:8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">청구완료로</button>' : '') +
+        (x.status !== '입금완료' ? '<button onclick="changeInsStatus(\'' + x._id + '\',\'입금완료\')" style="flex:1;padding:8px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">입금완료로</button>' : '') +
+        (x.status !== '미청구' ? '<button onclick="changeInsStatus(\'' + x._id + '\',\'미청구\')" style="padding:8px 10px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">미청구로</button>' : '') +
+        '<button onclick="deleteInsurance(\'' + x._id + '\')" style="padding:8px 10px;background:#f5f5f5;color:#999;border:1px solid #ddd;border-radius:8px;font-size:12px;cursor:pointer">🗑</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function changeInsStatus(id, newStatus) {
+  try {
+    await db.collection('insurance').doc(id).update({ status: newStatus });
+    const it = allInsurance.find(x => x._id === id);
+    if (it) it.status = newStatus;
+    showToast('✅ ' + newStatus + '로 변경');
+    renderInsurance();
+  } catch(e) { showToast('❌ 변경 실패: ' + e.message); }
+}
+
+async function deleteInsurance(id) {
+  if (!confirm('삭제할까요?')) return;
+  try {
+    await db.collection('insurance').doc(id).delete();
+    allInsurance = allInsurance.filter(x => x._id !== id);
+    showToast('🗑 삭제됨');
+    renderInsurance();
+  } catch(e) { showToast('❌ 삭제 실패: ' + e.message); }
+}
+
+// 사진 확대 보기 (전체화면 오버레이)
+function showInsPhoto(id, idx) {
+  const it = allInsurance.find(x => x._id === id);
+  if (!it || !it.photos || !it.photos[idx]) return;
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:10005;display:flex;align-items:center;justify-content:center;padding:20px';
+  ov.onclick = () => ov.remove();
+  ov.innerHTML = '<img src="' + it.photos[idx] + '" style="max-width:100%;max-height:100%;border-radius:8px">';
+  document.body.appendChild(ov);
 }
 
 async function initMemo() {
