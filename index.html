@@ -3378,17 +3378,24 @@ let insPhotoFiles = [];  // 업로드 대기 파일들
 
 function handleInsPhotos(input) {
   insPhotoFiles = [...input.files];  // 장수 제한 없음
+  renderInsPhotoPreview();
+}
+
+// 등록 폼 사진 미리보기 (각 사진에 X 삭제 버튼)
+function renderInsPhotoPreview() {
   const preview = document.getElementById('ins-photo-preview');
   preview.innerHTML = '';
-  insPhotoFiles.forEach(file => {
+  insPhotoFiles.forEach((file, idx) => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;display:inline-block';
     const reader = new FileReader();
     reader.onload = e => {
-      const thumb = document.createElement('img');
-      thumb.src = e.target.result;
-      thumb.style.cssText = 'width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #ddd';
-      preview.appendChild(thumb);
+      wrap.innerHTML =
+        '<img src="' + e.target.result + '" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #ddd">' +
+        '<button type="button" onclick="removeInsPhoto(' + idx + ')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#c62828;color:white;border:none;font-size:12px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">×</button>';
     };
     reader.readAsDataURL(file);
+    preview.appendChild(wrap);
   });
   if (insPhotoFiles.length > 0) {
     const cnt = document.createElement('div');
@@ -3396,6 +3403,13 @@ function handleInsPhotos(input) {
     cnt.textContent = insPhotoFiles.length + '장 선택됨 (저장 시 업로드)';
     preview.appendChild(cnt);
   }
+}
+
+// 등록 폼에서 잘못 고른 사진 빼기
+function removeInsPhoto(idx) {
+  insPhotoFiles.splice(idx, 1);
+  document.getElementById('ins-photo').value = '';  // file input 재선택 가능하게 초기화
+  renderInsPhotoPreview();
 }
 
 // 큰 사진만 살짝 리사이즈해서 Blob 반환 (화질 유지: 긴 변 1600px, 품질 0.85)
@@ -3545,6 +3559,7 @@ function renderInsurance() {
         (x.status !== '청구완료' ? '<button onclick="changeInsStatus(\'' + x._id + '\',\'청구완료\')" style="flex:1;padding:8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">청구완료로</button>' : '') +
         (x.status !== '입금완료' ? '<button onclick="changeInsStatus(\'' + x._id + '\',\'입금완료\')" style="flex:1;padding:8px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">입금완료로</button>' : '') +
         (x.status !== '미청구' ? '<button onclick="changeInsStatus(\'' + x._id + '\',\'미청구\')" style="padding:8px 10px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">미청구로</button>' : '') +
+        '<button onclick="openInsEdit(\'' + x._id + '\')" style="padding:8px 10px;background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">✏️수정</button>' +
         '<button onclick="deleteInsurance(\'' + x._id + '\')" style="padding:8px 10px;background:#f5f5f5;color:#999;border:1px solid #ddd;border-radius:8px;font-size:12px;cursor:pointer">🗑</button>' +
       '</div>' +
     '</div>';
@@ -3580,6 +3595,135 @@ function showInsPhoto(id, idx) {
   ov.onclick = () => ov.remove();
   ov.innerHTML = '<img src="' + it.photos[idx] + '" style="max-width:100%;max-height:100%;border-radius:8px">';
   document.body.appendChild(ov);
+}
+
+// ─── 보험건 수정 ───
+let insEditId = null;
+let insEditPhotos = [];      // 기존 사진 URL (유지할 것들)
+let insEditNewFiles = [];    // 새로 추가할 파일
+
+function openInsEdit(id) {
+  const it = allInsurance.find(x => x._id === id);
+  if (!it) return;
+  insEditId = id;
+  insEditPhotos = (it.photos || []).slice();
+  insEditNewFiles = [];
+
+  const modal = document.createElement('div');
+  modal.id = 'ins-edit-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10004;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px';
+  modal.onclick = function(e){ if(e.target===modal) closeInsEdit(); };
+  modal.innerHTML =
+    '<div style="background:white;width:100%;max-width:480px;border-radius:16px;padding:20px;margin-top:20px">' +
+      '<div style="font-size:17px;font-weight:700;margin-bottom:14px">✏️ 보험건 수정</div>' +
+      '<label style="font-size:12px;color:#888;display:block;margin-bottom:4px">시공일</label>' +
+      '<input type="date" id="ie-date" value="' + esc(it.date||'') + '" style="width:100%;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;box-sizing:border-box;margin-bottom:10px;font-family:inherit">' +
+      '<label style="font-size:12px;color:#888;display:block;margin-bottom:4px">차량번호</label>' +
+      '<input type="text" id="ie-carnum" value="' + esc(it.carNum||'') + '" style="width:100%;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;box-sizing:border-box;margin-bottom:10px;font-family:inherit">' +
+      '<label style="font-size:12px;color:#888;display:block;margin-bottom:4px">시공내역</label>' +
+      '<input type="text" id="ie-work" value="' + esc(it.work||'') + '" style="width:100%;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;box-sizing:border-box;margin-bottom:10px;font-family:inherit">' +
+      '<div style="display:flex;gap:8px;margin-bottom:10px">' +
+        '<div style="flex:1"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">금액</label>' +
+        '<input type="number" id="ie-amount" value="' + (it.amount||'') + '" style="width:100%;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;box-sizing:border-box;font-family:inherit"></div>' +
+        '<div style="flex:1"><label style="font-size:12px;color:#888;display:block;margin-bottom:4px">보험사</label>' +
+        '<input type="text" id="ie-company" value="' + esc(it.company||'') + '" style="width:100%;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;box-sizing:border-box;font-family:inherit"></div>' +
+      '</div>' +
+      '<label style="font-size:12px;color:#888;display:block;margin-bottom:4px">담당자 연락처</label>' +
+      '<input type="tel" id="ie-phone" value="' + esc(it.phone||'') + '" style="width:100%;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;box-sizing:border-box;margin-bottom:10px;font-family:inherit">' +
+      '<label style="font-size:12px;color:#888;display:block;margin-bottom:4px">메모</label>' +
+      '<textarea id="ie-note" style="width:100%;height:56px;font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;box-sizing:border-box;margin-bottom:10px;font-family:inherit;resize:none">' + esc(it.note||'') + '</textarea>' +
+      '<label style="font-size:12px;color:#888;display:block;margin-bottom:6px">사진 (X를 눌러 삭제)</label>' +
+      '<div id="ie-photo-preview" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px"></div>' +
+      '<input type="file" id="ie-photo" accept="image/*" multiple onchange="handleInsEditNewPhotos(this)" style="width:100%;font-size:13px;margin-bottom:14px">' +
+      '<div style="display:flex;gap:8px">' +
+        '<button onclick="closeInsEdit()" style="flex:1;padding:13px;background:#f5f5f5;color:#555;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">취소</button>' +
+        '<button id="ie-save-btn" onclick="saveInsEdit()" style="flex:2;padding:13px;background:#1a1a2e;color:white;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">💾 저장</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+  renderInsEditPhotos();
+}
+
+// 수정 모달 사진 미리보기 (기존 사진 + 새 파일, 각각 X 삭제)
+function renderInsEditPhotos() {
+  const box = document.getElementById('ie-photo-preview');
+  if (!box) return;
+  box.innerHTML = '';
+  // 기존 사진 (URL)
+  insEditPhotos.forEach((url, idx) => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;display:inline-block';
+    wrap.innerHTML =
+      '<img src="' + url + '" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #ddd">' +
+      '<button type="button" onclick="removeInsEditPhoto(' + idx + ')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#c62828;color:white;border:none;font-size:12px;line-height:1;cursor:pointer;padding:0">×</button>';
+    box.appendChild(wrap);
+  });
+  // 새 파일
+  insEditNewFiles.forEach((file, idx) => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;display:inline-block';
+    const reader = new FileReader();
+    reader.onload = e => {
+      wrap.innerHTML =
+        '<img src="' + e.target.result + '" style="width:60px;height:60px;object-fit:cover;border-radius:8px;border:2px solid #1565c0">' +
+        '<button type="button" onclick="removeInsEditNewFile(' + idx + ')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#c62828;color:white;border:none;font-size:12px;line-height:1;cursor:pointer;padding:0">×</button>';
+    };
+    reader.readAsDataURL(file);
+    box.appendChild(wrap);
+  });
+}
+
+function handleInsEditNewPhotos(input) {
+  insEditNewFiles = insEditNewFiles.concat([...input.files]);
+  input.value = '';
+  renderInsEditPhotos();
+}
+function removeInsEditPhoto(idx) { insEditPhotos.splice(idx, 1); renderInsEditPhotos(); }
+function removeInsEditNewFile(idx) { insEditNewFiles.splice(idx, 1); renderInsEditPhotos(); }
+
+function closeInsEdit() {
+  const m = document.getElementById('ins-edit-modal');
+  if (m) m.remove();
+  insEditId = null; insEditPhotos = []; insEditNewFiles = [];
+}
+
+async function saveInsEdit() {
+  if (!insEditId) return;
+  const btn = document.getElementById('ie-save-btn');
+  btn.disabled = true; btn.textContent = '⏳ 저장 중...';
+  try {
+    // 새 사진 업로드해서 기존(유지) 사진 뒤에 붙임
+    let photoUrls = insEditPhotos.slice();
+    if (insEditNewFiles.length > 0) {
+      btn.textContent = '⏳ 사진 업로드 중...';
+      for (let i = 0; i < insEditNewFiles.length; i++) {
+        const blob = await resizeForUpload(insEditNewFiles[i]);
+        const path = 'insurance/' + insEditId + '/' + Date.now() + '_' + i + '.jpg';
+        const ref = storage.ref().child(path);
+        await ref.put(blob);
+        photoUrls.push(await ref.getDownloadURL());
+      }
+    }
+    const updates = {
+      date: document.getElementById('ie-date').value || '',
+      carNum: document.getElementById('ie-carnum').value.trim(),
+      work: document.getElementById('ie-work').value.trim(),
+      amount: parseInt(document.getElementById('ie-amount').value) || 0,
+      company: document.getElementById('ie-company').value.trim(),
+      phone: document.getElementById('ie-phone').value.trim(),
+      note: document.getElementById('ie-note').value.trim(),
+      photos: photoUrls
+    };
+    await db.collection('insurance').doc(insEditId).update(updates);
+    const it = allInsurance.find(x => x._id === insEditId);
+    if (it) Object.assign(it, updates);
+    showToast('✅ 수정 완료!');
+    closeInsEdit();
+    renderInsurance();
+  } catch(e) {
+    showToast('❌ 저장 실패: ' + e.message);
+    btn.disabled = false; btn.textContent = '💾 저장';
+  }
 }
 
 async function initMemo() {
