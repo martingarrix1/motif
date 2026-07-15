@@ -89,6 +89,14 @@ if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 const db = firebase.firestore();
+
+// 모바일 네트워크/인앱 브라우저에서 실시간 연결(WebChannel)이 막히는 문제 대응:
+// 연결이 안 되면 자동으로 롱폴링으로 전환 (PC는 그대로 빠른 방식 사용)
+db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
+
+// 오프라인 캐시: 한 번 받은 데이터는 기기에 저장 → 다음 실행 시 즉시 표시
+try { db.enablePersistence({ synchronizeTabs: true }).catch(function(){}); } catch(e) {}
+
 const auth = firebase.auth();
 const storage = firebase.storage();
 
