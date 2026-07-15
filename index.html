@@ -102,6 +102,8 @@ auth.onAuthStateChanged(function(user) {
     appBody.style.display = 'block';
     // 인증이 확인된 뒤에 마지막 페이지 복원 (Firestore 데이터 접근 가능 시점)
     // 한 번만 실행, 함수 정의 이후 호출되도록 약간 지연
+    // 인증 완료 → 실시간 구독 시작 후 페이지 복원
+    if (typeof startFirestoreSubscriptions === 'function') startFirestoreSubscriptions();
     if (!_pageRestoredAfterAuth) {
       _pageRestoredAfterAuth = true;
       setTimeout(function() {
@@ -919,39 +921,52 @@ function isDeleted(c) {
   return _deletedKeys.has((c.name||'') + '_' + (c.carType||'') + '_' + (c.phone||''));
 }
 
-db.collection('customers').onSnapshot(snap => {
-  allCustomers = [];
-  snap.forEach(doc => { const d = doc.data(); if (!isDeleted(d)) allCustomers.push(d); });
-  allCustomers.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
-  if (document.getElementById('page-customers').classList.contains('active')) {
-    displayCount = displayCount || 30;
-    renderCustomers(allCustomers);
-  }
-  // 캘린더 탭이 열려 있으면 고객 데이터 갱신 시 캘린더도 다시 그림
-  // (인증 후 데이터가 처음 도착할 때 빈 캘린더로 남는 문제 방지)
-  if (document.getElementById('page-calendar').classList.contains('active')) {
-    renderCalendar();
-  }
-});
-db.collection('aftercare').onSnapshot(snap => {
-  let fbData = [];
-  snap.forEach(doc => { const d = doc.data(); if (!isDeleted(d)) fbData.push(d); });
-  if (fbData.length > 0) {
-    const seenA = {};
-    [...fbData, ...allAftercare].forEach(c => {
-      if (isDeleted(c)) return;
-      const key = (c.name||'') + '_' + (c.carType||'') + '_' + (c.phone||'');
-      if (!seenA[key] || (c.doneDate||'') > (seenA[key].doneDate||'')) seenA[key] = c;
-    });
-    allAftercare = Object.values(seenA);
-    if (document.getElementById('page-aftercare').classList.contains('active')) renderAftercare(allAftercare);
-  }
-});
-db.collection('reservations').onSnapshot(snap => {
-  allReservations = [];
-  snap.forEach(doc => allReservations.push(doc.data()));
-  if (document.getElementById('page-calendar').classList.contains('active')) renderCalendar();
-});
+// 실시간 구독은 로그인 인증 완료 후 시작 (폰에서 인증 전 등록 시 캘린더가 빈 채로 남던 문제 방지)
+let _subscriptionsStarted = false;
+function startFirestoreSubscriptions() {
+  if (_subscriptionsStarted) return;
+  _subscriptionsStarted = true;
+
+  db.collection('customers').onSnapshot(snap => {
+    allCustomers = [];
+    snap.forEach(doc => { const d = doc.data(); if (!isDeleted(d)) allCustomers.push(d); });
+    allCustomers.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+    if (document.getElementById('page-customers').classList.contains('active')) {
+      displayCount = displayCount || 30;
+      renderCustomers(allCustomers);
+    }
+    // 캘린더 탭이 열려 있으면 고객 데이터 갱신 시 캘린더도 다시 그림
+    if (document.getElementById('page-calendar').classList.contains('active')) {
+      renderCalendar();
+    }
+  }, err => {
+    console.error('customers 구독 에러:', err);
+    // 인증 지연 등으로 실패하면 잠시 후 재구독
+    _subscriptionsStarted = false;
+    setTimeout(startFirestoreSubscriptions, 1500);
+  });
+
+  db.collection('aftercare').onSnapshot(snap => {
+    let fbData = [];
+    snap.forEach(doc => { const d = doc.data(); if (!isDeleted(d)) fbData.push(d); });
+    if (fbData.length > 0) {
+      const seenA = {};
+      [...fbData, ...allAftercare].forEach(c => {
+        if (isDeleted(c)) return;
+        const key = (c.name||'') + '_' + (c.carType||'') + '_' + (c.phone||'');
+        if (!seenA[key] || (c.doneDate||'') > (seenA[key].doneDate||'')) seenA[key] = c;
+      });
+      allAftercare = Object.values(seenA);
+      if (document.getElementById('page-aftercare').classList.contains('active')) renderAftercare(allAftercare);
+    }
+  }, err => console.error('aftercare 구독 에러:', err));
+
+  db.collection('reservations').onSnapshot(snap => {
+    allReservations = [];
+    snap.forEach(doc => allReservations.push(doc.data()));
+    if (document.getElementById('page-calendar').classList.contains('active')) renderCalendar();
+  }, err => console.error('reservations 구독 에러:', err));
+}
 
 const CACHE_TTL = 10 * 60 * 1000;
 function cacheSet(key, data) {
@@ -2244,7 +2259,7 @@ async function loadCalendar(retry) {
       Array(35).fill('<div style="min-height:52px;background:#f5f5f5;border-radius:8px"></div>').join('');
   }
 
-  // customers / reservations 불러오기 (실패 시 재시도 판단용 플래그)
+  // customers / reservations 불러오기
   let loadOk = true;
   const promises = [];
   if (allCustomers.length === 0) {
@@ -2265,9 +2280,12 @@ async function loadCalendar(retry) {
   await Promise.all(promises);
   renderCalendar();
 
-  // Firebase 연결 지연 등으로 데이터가 비어 있으면 한 번 더 시도
-  if (loadOk === false && allCustomers.length === 0 && retry < 5) {
-    setTimeout(() => loadCalendar(retry + 1), 400);
+  // 실시간 구독이 아직이면 시작 (데이터 도착 시 자동으로 다시 그려짐)
+  if (typeof startFirestoreSubscriptions === 'function') startFirestoreSubscriptions();
+
+  // 데이터가 아직 안 왔으면(실패했거나 빈 결과) 재시도 — 폰 네트워크 지연 대응
+  if (allCustomers.length === 0 && retry < 8) {
+    setTimeout(() => loadCalendar(retry + 1), 500);
   }
 }
 
