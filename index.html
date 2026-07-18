@@ -317,6 +317,7 @@ function doLogout() {
   <button onclick="showPage('glass',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🔵<span>유리막</span></button>
   <button onclick="showPage('memo',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📓<span>메모</span></button>
   <button onclick="showPage('invoice',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📑<span>견적서</span></button>
+  <button onclick="showPage('uw',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📜<span>통합보증서</span></button>
   <button onclick="showPage('tint',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🎫<span>썬팅보증서</span></button>
   <button onclick="showPage('ppf',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🛡️<span>PPF보증서</span></button>
   <button onclick="showPage('leather',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🧴<span>가죽보증서</span></button>
@@ -663,6 +664,108 @@ function doLogout() {
   </div>
 
   <!-- ★ 썬팅 보증서: 브랜드명 단독 옵션 제거 -->
+  <!-- 통합 보증서 페이지: 공통정보 1회 입력 + 종류 선택 발행 -->
+  <div id="page-uw" class="page">
+    <div class="card">
+      <div class="card-title">📜 통합 보증서 발행</div>
+      <div style="font-size:12px;color:#888;margin-bottom:12px">고객 정보를 한 번만 입력하고, 발행할 보증서를 골라 한꺼번에 발행합니다.</div>
+      <div class="form-group"><label>고객명</label><input type="text" id="uw-name" placeholder="홍길동"></div>
+      <div class="form-group"><label>연락처</label><input type="tel" id="uw-phone" placeholder="010-0000-0000"></div>
+      <div class="form-group"><label>차종</label><input type="text" id="uw-cartype" placeholder="예) 팰리세이드"></div>
+      <div class="form-group"><label>차량번호</label><input type="text" id="uw-carnumber" placeholder="예) 123가4567"></div>
+      <div class="form-group"><label>시공일자</label><input type="date" id="uw-date"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">발행할 보증서 선택</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px solid #eee;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px" id="uw-lbl-tint"><input type="checkbox" id="uw-chk-tint" onchange="toggleUwSection('tint',this.checked)">🎫 썬팅</label>
+        <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px solid #eee;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px" id="uw-lbl-glass"><input type="checkbox" id="uw-chk-glass" onchange="toggleUwSection('glass',this.checked)">✨ 유리막</label>
+        <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px solid #eee;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px" id="uw-lbl-ppf"><input type="checkbox" id="uw-chk-ppf" onchange="toggleUwSection('ppf',this.checked)">🛡️ PPF</label>
+        <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px solid #eee;border-radius:12px;cursor:pointer;font-weight:700;font-size:14px" id="uw-lbl-leather"><input type="checkbox" id="uw-chk-leather" onchange="toggleUwSection('leather',this.checked)">🧴 가죽코팅</label>
+      </div>
+    </div>
+
+    <!-- 썬팅 세부 -->
+    <div class="card" id="uw-sec-tint" style="display:none">
+      <div class="card-title">🎫 썬팅 정보</div>
+      <div class="form-group"><label>전면</label><select id="uw-tintF" class="tint-select"></select></div>
+      <div class="form-group"><label>측면1열</label><select id="uw-tintS1" class="tint-select"></select></div>
+      <div class="form-group"><label>측면2열</label><select id="uw-tintS2" class="tint-select"></select></div>
+      <div class="form-group"><label>후면</label><select id="uw-tintR" class="tint-select"></select></div>
+      <div class="form-group"><label>썬루프</label><select id="uw-tintSun" class="tint-select"></select></div>
+      <div class="form-group"><label>썬팅 금액 (원)</label><input type="number" id="uw-tint-price" placeholder="예) 300000" inputmode="numeric"></div>
+    </div>
+
+    <!-- 유리막 세부 -->
+    <div class="card" id="uw-sec-glass" style="display:none">
+      <div class="card-title">✨ 유리막 정보</div>
+      <div class="form-group"><label>유리막 금액 (원)</label><input type="number" id="uw-glass-price" placeholder="예) 400000" inputmode="numeric"></div>
+    </div>
+
+    <!-- PPF 세부 -->
+    <div class="card" id="uw-sec-ppf" style="display:none">
+      <div class="card-title">🛡️ PPF 정보</div>
+      <div class="form-group"><label>필름</label>
+        <select id="uw-ppf-film" onchange="toggleUwEtc('ppf-film',this.value)">
+          <option value="">선택</option>
+          <option>울트라핏 XP크리스탈</option>
+          <option>울트라핏 슈프림탑</option>
+          <option>울트라핏 클라루스C</option>
+          <option>XPEL Ultimate Plus</option>
+          <option>XPEL Xtreme</option>
+          <option>XPEL Stealth</option>
+          <option value="기타">기타 (직접입력)</option>
+        </select>
+        <input type="text" id="uw-ppf-film-etc" placeholder="필름명 직접 입력" style="display:none;margin-top:8px">
+      </div>
+      <div class="form-group"><label>시공내용</label>
+        <select id="uw-ppf-work" onchange="toggleUwEtc('ppf-work',this.value)">
+          <option value="">선택</option>
+          <option>프런트 패키지 A</option>
+          <option>프런트 패키지 F</option>
+          <option>본넷</option>
+          <option>문콕 패키지</option>
+          <option>생활보호 4종</option>
+          <option>생활보호 5종</option>
+          <option>생활보호 7종</option>
+          <option>전체</option>
+          <option value="기타">기타 (직접입력)</option>
+        </select>
+        <input type="text" id="uw-ppf-work-etc" placeholder="시공내용 직접 입력" style="display:none;margin-top:8px">
+      </div>
+      <div class="form-group"><label>보증기간</label>
+        <select id="uw-ppf-warranty">
+          <option value="">선택</option>
+          <option>5년</option>
+          <option>7년</option>
+          <option>10년</option>
+          <option>평생보증</option>
+        </select>
+      </div>
+      <div class="form-group"><label>PPF 금액 (원)</label><input type="number" id="uw-ppf-price" placeholder="예) 500000" inputmode="numeric"></div>
+    </div>
+
+    <!-- 가죽 세부 -->
+    <div class="card" id="uw-sec-leather" style="display:none">
+      <div class="card-title">🧴 가죽코팅 정보</div>
+      <div class="form-group"><label>제품</label>
+        <select id="uw-lw-product" onchange="toggleUwEtc('lw-product',this.value)">
+          <option value="">선택</option>
+          <option>UG가죽코팅</option>
+          <option>야와라가죽코팅</option>
+          <option value="기타">기타 (직접입력)</option>
+        </select>
+        <input type="text" id="uw-lw-product-etc" placeholder="제품명 직접 입력" style="display:none;margin-top:8px">
+      </div>
+      <div class="form-group"><label>가죽코팅 금액 (원)</label><input type="number" id="uw-lw-price" placeholder="예) 450000" inputmode="numeric"></div>
+    </div>
+
+    <button class="btn btn-primary" onclick="submitUnifiedWarranty()" id="uw-submit-btn">📜 선택한 보증서 모두 발행</button>
+    <div id="uw-result" style="margin-top:12px"></div>
+    <div style="height:24px"></div>
+  </div>
+
   <div id="page-tint" class="page">
     <div class="card">
       <div class="card-title">🎫 썬팅 전자보증서 발행</div>
@@ -1039,6 +1142,7 @@ function showPage(page, btn) {
   if (page === 'calendar') { loadCalendar(); }
   if (page === 'memo') { initMemo(); }
   if (page === 'invoice') { initInvoice(); }
+  if (page === 'uw') { initUnifiedWarranty(); }
   if (page === 'tint') { initTint(); }
   if (page === 'ppf') { initPpf(); }
   if (page === 'leather') { initLeather(); }
@@ -3244,6 +3348,116 @@ async function sendTintDoneAlimtalk(name, carType, phone, date, pdfId) {
     if (r === 'ok') showToast('✅ 시공완료 알림톡 발송 완료!');
     else showToast('❌ ' + (r.error || '발송 실패'));
   } catch(e) { showToast('❌ ' + e.message); }
+}
+
+// ─── 통합 보증서 발행 ───
+function initUnifiedWarranty() {
+  const d = document.getElementById('uw-date');
+  if (d && !d.value) d.value = new Date().toISOString().slice(0,10);
+}
+
+// 종류 체크 시 세부 섹션 표시/숨김 + 라벨 강조
+function toggleUwSection(type, on) {
+  const sec = document.getElementById('uw-sec-' + type);
+  const lbl = document.getElementById('uw-lbl-' + type);
+  if (sec) sec.style.display = on ? 'block' : 'none';
+  if (lbl) {
+    lbl.style.border = on ? '2px solid #1a1a2e' : '2px solid #eee';
+    lbl.style.background = on ? '#f0f0f8' : 'white';
+  }
+}
+
+// PPF/가죽 "기타" 직접입력 토글
+function toggleUwEtc(key, val) {
+  const etc = document.getElementById('uw-' + key + '-etc');
+  if (etc) etc.style.display = (val === '기타') ? 'block' : 'none';
+}
+
+async function submitUnifiedWarranty() {
+  // 공통 정보
+  const name      = document.getElementById('uw-name').value.trim();
+  const phone     = document.getElementById('uw-phone').value.trim();
+  const carType   = document.getElementById('uw-cartype').value.trim();
+  const carNumber = document.getElementById('uw-carnumber').value.trim();
+  const date      = document.getElementById('uw-date').value;
+
+  if (!name || !phone || !carType || !date) {
+    showToast('❌ 고객명·연락처·차종·시공일을 입력해주세요'); return;
+  }
+
+  // 선택된 종류
+  const picks = [];
+  if (document.getElementById('uw-chk-tint').checked) picks.push('tint');
+  if (document.getElementById('uw-chk-glass').checked) picks.push('glass');
+  if (document.getElementById('uw-chk-ppf').checked) picks.push('ppf');
+  if (document.getElementById('uw-chk-leather').checked) picks.push('leather');
+  if (picks.length === 0) { showToast('❌ 발행할 보증서를 하나 이상 선택해주세요'); return; }
+
+  // 종류별 세부값 검증 + 요청 페이로드 준비
+  const jobs = [];
+  for (const t of picks) {
+    if (t === 'tint') {
+      const tintF = document.getElementById('uw-tintF').value;
+      const tintS1 = document.getElementById('uw-tintS1').value;
+      const tintS2 = document.getElementById('uw-tintS2').value;
+      const tintR = document.getElementById('uw-tintR').value;
+      const tintSun = document.getElementById('uw-tintSun').value;
+      const totalPrice = document.getElementById('uw-tint-price').value.trim();
+      if (!tintF && !tintS1 && !tintS2 && !tintR && !tintSun) { showToast('❌ 썬팅: 필름을 하나 이상 선택해주세요'); return; }
+      if (!totalPrice) { showToast('❌ 썬팅 금액을 입력해주세요'); return; }
+      jobs.push({ label: '🎫 썬팅', payload: { action: 'createTintWarranty', name, phone, carNumber, carType, date, tintF, tintS1, tintS2, tintR, tintSun, totalPrice } });
+    }
+    if (t === 'glass') {
+      const price = document.getElementById('uw-glass-price').value.trim();
+      if (!price) { showToast('❌ 유리막 금액을 입력해주세요'); return; }
+      if (!carNumber) { showToast('❌ 유리막 보증서에는 차량번호가 필요합니다'); return; }
+      jobs.push({ label: '✨ 유리막', payload: { action: 'createGlassWarranty', carType, carNumber, phone, date, price } });
+    }
+    if (t === 'ppf') {
+      let film = document.getElementById('uw-ppf-film').value;
+      if (film === '기타') film = document.getElementById('uw-ppf-film-etc').value.trim();
+      let work = document.getElementById('uw-ppf-work').value;
+      if (work === '기타') work = document.getElementById('uw-ppf-work-etc').value.trim();
+      const warranty = document.getElementById('uw-ppf-warranty').value;
+      const price = document.getElementById('uw-ppf-price').value.trim();
+      if (!film || !work || !warranty || !price) { showToast('❌ PPF: 필름·시공내용·보증기간·금액을 입력해주세요'); return; }
+      jobs.push({ label: '🛡️ PPF', payload: { action: 'createPpfWarranty', name, phone, carType, carNumber, date, film, work, warranty, price } });
+    }
+    if (t === 'leather') {
+      let product = document.getElementById('uw-lw-product').value;
+      if (product === '기타') product = document.getElementById('uw-lw-product-etc').value.trim();
+      const price = document.getElementById('uw-lw-price').value.trim();
+      if (!product || !price) { showToast('❌ 가죽코팅: 제품·금액을 입력해주세요'); return; }
+      jobs.push({ label: '🧴 가죽코팅', payload: { action: 'createLeatherWarranty', name, phone, carType, carNumber, date, product, price } });
+    }
+  }
+
+  const btn = document.getElementById('uw-submit-btn');
+  btn.disabled = true;
+  const resultEl = document.getElementById('uw-result');
+  resultEl.innerHTML = '';
+  const rows = [];
+
+  // 순차 발행 (동시에 쏘면 GAS가 밀릴 수 있어 하나씩)
+  for (let i = 0; i < jobs.length; i++) {
+    const j = jobs[i];
+    btn.textContent = '⏳ ' + j.label + ' 발행 중... (' + (i+1) + '/' + jobs.length + ')';
+    try {
+      const r = await apiPost(j.payload);
+      if (r && r.fileId) {
+        rows.push('<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#e8f5e9;border-radius:10px;margin-bottom:6px"><span style="font-weight:700;color:#2e7d32">' + j.label + ' ✅</span><button onclick="window.open(\'https://drive.google.com/file/d/' + r.fileId + '/view\',\'_blank\')" style="padding:6px 12px;background:#2e7d32;color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">📄 열기</button></div>');
+      } else {
+        rows.push('<div style="padding:10px;background:#ffebee;border-radius:10px;margin-bottom:6px;color:#c62828;font-weight:600">' + j.label + ' ❌ ' + esc((r && r.error) || '실패') + '</div>');
+      }
+    } catch(e) {
+      rows.push('<div style="padding:10px;background:#ffebee;border-radius:10px;margin-bottom:6px;color:#c62828;font-weight:600">' + j.label + ' ❌ ' + esc(e.message) + '</div>');
+    }
+    resultEl.innerHTML = '<div class="card">' + rows.join('') + '</div>';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '📜 선택한 보증서 모두 발행';
+  showToast('✅ 발행 완료 (' + jobs.length + '건 처리)');
 }
 
 function initTint() {
