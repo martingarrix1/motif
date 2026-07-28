@@ -299,7 +299,10 @@ function doLogout() {
 <!-- 본문 (로그인 후 표시) -->
 <div id="app-body" style="display:none;">
 
-<div class="header"><h1>MOTIF</h1></div>
+<div class="header">
+  <h1>MOTIF</h1>
+  <button onclick="doLogout()" style="position:absolute;right:14px;background:none;border:none;color:#8a8aa0;font-size:12px;cursor:pointer;font-family:inherit;padding:4px 6px">로그아웃</button>
+</div>
 
 <div class="nav">
   <button class="active" id="nav-consult" onclick="showPage('consult', this)">📝<span>상담</span></button>
@@ -324,9 +327,7 @@ function doLogout() {
   <button onclick="showPage('content-gen',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">✨<span>콘텐츠생성</span></button>
   <button onclick="showPage('archive',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📚<span>콘텐츠</span></button>
 </div>
-  <div style="padding:8px 12px;border-top:1px solid #eee">
-    <button onclick="migrateDataToFirebase()" style="width:100%;padding:10px;background:#fff3e0;color:#e65100;border:1px solid #ffb74d;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit">🚀 기존 시트 데이터 → Firebase 이사 (최초 1회)</button>
-  </div>
+  <!-- 데이터 이사 버튼 제거 (최초 1회 완료). 필요하면 콘솔에서 migrateDataToFirebase() 직접 실행 -->
 </div>
 
 <div class="content">
@@ -1013,10 +1014,14 @@ async function updateCustomerInFirebase(timestamp, updates) {
   const fullData = { ...c, ...updates, timestamp };
   const docId = timestamp.replace(/[^0-9a-zA-Z]/g, '_');
   const refs = await findCustomerDocs(timestamp);
-  if (c.name && c.carType) {
+  // 이름+차종만으로 묶으면 "VIP / 카니발" 이 여러 명일 때 남의 문서까지 지웁니다.
+  // 전화번호까지 일치할 때만 같은 고객으로 봅니다.
+  if (c.name && c.carType && c.phone) {
     try {
       const snap = await db.collection('customers')
-        .where('name','==',c.name).where('carType','==',c.carType).get();
+        .where('name','==',c.name)
+        .where('carType','==',c.carType)
+        .where('phone','==',c.phone).get();
       snap.forEach(doc => { if (!refs.some(r => r.path === doc.ref.path)) refs.push(doc.ref); });
     } catch(e) {}
   }
@@ -1076,11 +1081,9 @@ function startFirestoreSubscriptions() {
     }
   }, err => console.error('aftercare 구독 에러:', err));
 
-  db.collection('reservations').onSnapshot(snap => {
-    allReservations = [];
-    snap.forEach(doc => allReservations.push(doc.data()));
-    if (document.getElementById('page-calendar').classList.contains('active')) renderCalendar();
-  }, err => console.error('reservations 구독 에러:', err));
+  // 입고예약은 GAS 시트가 단일 출처입니다.
+  // Firestore reservations 컬렉션에 쓰는 코드가 없어, 구독하면 GAS 데이터를 덮어씁니다.
+  // → loadCalendar() 에서 GAS 로만 불러옵니다.
 }
 
 const CACHE_TTL = 10 * 60 * 1000;
@@ -1373,8 +1376,8 @@ function renderCustomers(data) {
     return seenMap[key] === c;
   });
 
-  allCustomers = deduped;
-
+  // renderCustomers 는 화면만 그립니다. 전역 allCustomers 는 건드리지 않습니다.
+  // (검색 결과로 호출될 때 전체 목록이 지워지던 문제)
   const phoneCount = {};
   deduped.forEach(c => { const p = c.phone||''; phoneCount[p] = (phoneCount[p]||0) + 1; });
 
@@ -1688,14 +1691,18 @@ async function scheduleReviewAlimtalk(name, carType, phone, doneDate, popupEl) {
 async function completeCustomer(timestamp) {
   if (!confirm('이 고객을 완료 처리할까요? 목록 맨 아래로 이동합니다.')) return;
   try {
+    const today = new Date().toISOString().slice(0,10);
+    const c = allCustomers.find(x => x.timestamp === timestamp);
+    const newDone = (c && c.doneDate) ? c.doneDate : today;
+
+    // 목록은 Firestore 를 보고 그립니다. 여기 반영이 없으면 새로고침 시 되돌아갑니다.
+    try { await updateCustomerInFirebase(timestamp, { doneDate: newDone }); } catch(fe) {}
+
     const r = await apiPost({ action: 'completeCustomer', timestamp });
-    if (r === 'ok') {
-      showToast('✅ 완료 처리됨');
-      const c = allCustomers.find(x => x.timestamp === timestamp);
-      if (c) { c.doneDate = c.doneDate || new Date().toISOString().slice(0,10); }
-      renderCustomers(allCustomers);
-    }
-    else showToast('❌ 실패');
+    if (c) c.doneDate = newDone;
+    renderCustomers(allCustomers);
+    if (r === 'ok') showToast('✅ 완료 처리됨');
+    else showToast('✅ 완료 처리됨 (시트 반영 확인 필요)');
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
@@ -2388,9 +2395,8 @@ async function loadCalendar(retry) {
     );
   }
   promises.push(
-    db.collection('reservations').get().then(snap => {
-      allReservations = [];
-      snap.forEach(doc => allReservations.push(doc.data()));
+    api({ action: 'getReservations' }).then(list => {
+      allReservations = Array.isArray(list) ? list : [];
     }).catch(() => { loadOk = false; })
   );
   await Promise.all(promises);
@@ -2611,6 +2617,7 @@ async function saveCalendarCustomerEdit() {
     if (ppfText) summaryParts.push('PPF: ' + ppfText);
     if (combinedM) summaryParts.push(combinedM);
     const summary = summaryParts.join(' / ');
+    const c = allCustomers.find(x => x.timestamp === timestamp) || {};
     const updates = {
       name: document.getElementById('ce-name').value.trim(),
       carType: document.getElementById('ce-carType').value.trim(),
@@ -2627,8 +2634,7 @@ async function saveCalendarCustomerEdit() {
       doneDate: c.doneDate || '',
       resend: c.resend || '',
     };
-    const c = allCustomers.find(x => x.timestamp === timestamp);
-    if (c) Object.assign(c, updates);
+    if (c.timestamp) Object.assign(c, updates);
     const popup = document.getElementById('cal-edit-popup');
     if (popup) popup.remove();
     renderCalendar();
