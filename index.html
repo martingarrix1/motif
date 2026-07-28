@@ -299,10 +299,7 @@ function doLogout() {
 <!-- 본문 (로그인 후 표시) -->
 <div id="app-body" style="display:none;">
 
-<div class="header">
-  <h1>MOTIF</h1>
-  <button onclick="doLogout()" style="position:absolute;right:14px;background:none;border:none;color:#8a8aa0;font-size:12px;cursor:pointer;font-family:inherit;padding:4px 6px">로그아웃</button>
-</div>
+<div class="header"><h1>MOTIF</h1></div>
 
 <div class="nav">
   <button class="active" id="nav-consult" onclick="showPage('consult', this)">📝<span>상담</span></button>
@@ -327,7 +324,9 @@ function doLogout() {
   <button onclick="showPage('content-gen',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">✨<span>콘텐츠생성</span></button>
   <button onclick="showPage('archive',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📚<span>콘텐츠</span></button>
 </div>
-  <!-- 데이터 이사 버튼 제거 (최초 1회 완료). 필요하면 콘솔에서 migrateDataToFirebase() 직접 실행 -->
+  <div style="padding:8px 12px;border-top:1px solid #eee">
+    <button onclick="migrateDataToFirebase()" style="width:100%;padding:10px;background:#fff3e0;color:#e65100;border:1px solid #ffb74d;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit">🚀 기존 시트 데이터 → Firebase 이사 (최초 1회)</button>
+  </div>
 </div>
 
 <div class="content">
@@ -1014,14 +1013,10 @@ async function updateCustomerInFirebase(timestamp, updates) {
   const fullData = { ...c, ...updates, timestamp };
   const docId = timestamp.replace(/[^0-9a-zA-Z]/g, '_');
   const refs = await findCustomerDocs(timestamp);
-  // 이름+차종만으로 묶으면 "VIP / 카니발" 이 여러 명일 때 남의 문서까지 지웁니다.
-  // 전화번호까지 일치할 때만 같은 고객으로 봅니다.
-  if (c.name && c.carType && c.phone) {
+  if (c.name && c.carType) {
     try {
       const snap = await db.collection('customers')
-        .where('name','==',c.name)
-        .where('carType','==',c.carType)
-        .where('phone','==',c.phone).get();
+        .where('name','==',c.name).where('carType','==',c.carType).get();
       snap.forEach(doc => { if (!refs.some(r => r.path === doc.ref.path)) refs.push(doc.ref); });
     } catch(e) {}
   }
@@ -1081,9 +1076,11 @@ function startFirestoreSubscriptions() {
     }
   }, err => console.error('aftercare 구독 에러:', err));
 
-  // 입고예약은 GAS 시트가 단일 출처입니다.
-  // Firestore reservations 컬렉션에 쓰는 코드가 없어, 구독하면 GAS 데이터를 덮어씁니다.
-  // → loadCalendar() 에서 GAS 로만 불러옵니다.
+  db.collection('reservations').onSnapshot(snap => {
+    allReservations = [];
+    snap.forEach(doc => allReservations.push(doc.data()));
+    if (document.getElementById('page-calendar').classList.contains('active')) renderCalendar();
+  }, err => console.error('reservations 구독 에러:', err));
 }
 
 const CACHE_TTL = 10 * 60 * 1000;
@@ -1376,8 +1373,8 @@ function renderCustomers(data) {
     return seenMap[key] === c;
   });
 
-  // renderCustomers 는 화면만 그립니다. 전역 allCustomers 는 건드리지 않습니다.
-  // (검색 결과로 호출될 때 전체 목록이 지워지던 문제)
+  allCustomers = deduped;
+
   const phoneCount = {};
   deduped.forEach(c => { const p = c.phone||''; phoneCount[p] = (phoneCount[p]||0) + 1; });
 
@@ -1425,7 +1422,7 @@ function renderCustomers(data) {
       </div>
       <div style="margin-top:8px;display:flex;gap:6px">
         <button onclick="openCalendarWarrantyPopup('${c.name}','${c.carType}','${c.phone}','${c.timestamp}','${c.entryDate||new Date().toISOString().slice(0,10)}')" style="flex:1;padding:8px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📜 보증서 발행</button>
-        <button onclick="openReviewScheduleFromCalendar('${c.name}','${c.carType}','${c.phone}','${c.entryDate||new Date().toISOString().slice(0,10)}')" style="flex:1;padding:8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">⭐ 리뷰요청</button>
+        <button onclick="openReviewScheduleFromCalendar('${c.name}','${c.carType}','${c.phone}','${c.entryDate||new Date().toISOString().slice(0,10)}')" style="flex:1;padding:8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">⭐ 리마인드 보내기</button>
       </div>
       <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
         <span style="font-size:12px;color:#e65100;white-space:nowrap">입고예정일</span>
@@ -1498,6 +1495,18 @@ function _reviewScheduleLabel() {
   const mm = d.getMonth() + 1;
   const dd = d.getDate();
   return mm + '월 ' + dd + '일 오전 10시';
+}
+
+// 사후관리 예약 시각: "2주 뒤 오전 10시"
+function _aftercareScheduleDate() {
+  const d = new Date();
+  d.setDate(d.getDate() + 14);
+  d.setHours(10, 0, 0, 0);
+  return d;
+}
+function _aftercareScheduleLabel() {
+  const d = _aftercareScheduleDate();
+  return (d.getMonth() + 1) + '월 ' + d.getDate() + '일 오전 10시';
 }
 
 function showDoneAlimtalkPopup(name, carType, phone, doneDate, pdfId) {
@@ -1629,38 +1638,53 @@ async function sendDoneAlimtalkWithReview(name, carType, phone, doneDate, pdfId,
 // ────────────────────────────────────────
 // 리뷰 요청 알림톡 — 다음날 오전 10시 예약 발송
 // ────────────────────────────────────────
+// 리마인드 보내기: 다음날 10시 리뷰요청 + 2주 후 사후관리 한 번에 예약
 function openReviewScheduleFromCalendar(name, carType, phone, doneDate) {
   if (!phone) { showToast('❌ 연락처가 없는 고객입니다'); return; }
+  const t1 = _reviewScheduleLabel();
+  const t2 = _aftercareScheduleLabel();
+  const msg = name + ' 고객님\n\n아래 2건을 예약 발송할까요?\n\n'
+    + '⭐ 리뷰요청 — ' + t1 + '\n'
+    + '🧰 사후관리 — ' + t2;
+  if (!confirm(msg)) return;
+  scheduleRemindSet(name, carType, phone, doneDate);
+}
 
-  // 리뷰요청 예약 시각: 다음날 오전 10시
-  const timeStr = _reviewScheduleLabel();
+// 리뷰요청 + 사후관리 순차 예약
+async function scheduleRemindSet(name, carType, phone, doneDate) {
+  showToast('⏳ 리마인드 예약 중...');
+  let okReview = false, okAfter = false;
 
-  const popup = document.createElement('div');
-  popup.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
-  popup.innerHTML = `
-    <div style="background:white;border-radius:16px;padding:24px;max-width:340px;width:100%;text-align:center">
-      <div style="font-size:32px;margin-bottom:12px">⭐</div>
-      <div style="font-size:16px;font-weight:700;margin-bottom:8px">${esc(name)} 고객님께</div>
-      <div style="font-size:14px;color:#555;margin-bottom:6px">리뷰 요청 알림톡을 예약 발송할까요?</div>
-      <div style="background:#fff3e0;color:#e65100;padding:10px;border-radius:8px;font-size:13px;margin-bottom:16px;font-weight:600">
-        📨 ${timeStr}에 자동 발송<br>
-        <span style="font-size:11px;font-weight:400;color:#999">(시공 다음날 오전)</span>
-      </div>
-      <div style="font-size:11px;color:#888;margin-bottom:16px;text-align:left;line-height:1.6">
-        • 네이버 플레이스 원탭 리뷰 링크 포함<br>
-        • 고객이 집에 도착해 있을 타이밍<br>
-        • Solapi 서버에서 자동 발송
-      </div>
-      <div style="display:flex;gap:10px">
-        <button onclick="this.closest('div[style*=fixed]').remove()" style="flex:1;padding:12px;background:#f5f5f5;color:#555;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">취소</button>
-        <button onclick="scheduleReviewAlimtalk('${esc(name)}','${esc(carType)}','${esc(phone)}','${esc(doneDate)}',this.closest('div[style*=fixed]'))" style="flex:1;padding:12px;background:#e65100;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">예약 발송</button>
-      </div>
-    </div>`;
-  document.body.appendChild(popup);
+  // 1) 리뷰요청 (다음날 오전 10시)
+  try {
+    const r1 = await apiPost({
+      action: 'scheduleReviewAlimtalk',
+      name, carType, phone, doneDate,
+      scheduledDate: _reviewScheduleDate().toISOString()
+    });
+    okReview = (r1 === 'ok') || (r1 && (r1.success || r1.ok));
+    if (!okReview) console.warn('[리뷰요청 예약 응답]', r1);
+  } catch(e) { console.error('[리뷰요청 예약 예외]', e); }
+
+  // 2) 사후관리 (2주 뒤 오전 10시)
+  try {
+    const r2 = await apiPost({
+      action: 'scheduleAftercareAlimtalk',
+      name, carType, phone, doneDate,
+      scheduledDate: _aftercareScheduleDate().toISOString()
+    });
+    okAfter = (r2 === 'ok') || (r2 && (r2.success || r2.ok));
+    if (!okAfter) console.warn('[사후관리 예약 응답]', r2);
+  } catch(e) { console.error('[사후관리 예약 예외]', e); }
+
+  if (okReview && okAfter) showToast('✅ 리뷰요청 + 사후관리 예약 완료!');
+  else if (okReview) showToast('⭐ 리뷰요청만 예약됨 (사후관리 실패)');
+  else if (okAfter) showToast('🧰 사후관리만 예약됨 (리뷰요청 실패)');
+  else showToast('❌ 예약 실패 — 로그 확인 필요');
 }
 
 async function scheduleReviewAlimtalk(name, carType, phone, doneDate, popupEl) {
-  popupEl.remove();
+  if (popupEl) popupEl.remove();
   showToast('⏳ 리뷰 요청 예약 중...');
 
   // 다음날 오전 10시 ISO 8601 형식
@@ -1691,18 +1715,14 @@ async function scheduleReviewAlimtalk(name, carType, phone, doneDate, popupEl) {
 async function completeCustomer(timestamp) {
   if (!confirm('이 고객을 완료 처리할까요? 목록 맨 아래로 이동합니다.')) return;
   try {
-    const today = new Date().toISOString().slice(0,10);
-    const c = allCustomers.find(x => x.timestamp === timestamp);
-    const newDone = (c && c.doneDate) ? c.doneDate : today;
-
-    // 목록은 Firestore 를 보고 그립니다. 여기 반영이 없으면 새로고침 시 되돌아갑니다.
-    try { await updateCustomerInFirebase(timestamp, { doneDate: newDone }); } catch(fe) {}
-
     const r = await apiPost({ action: 'completeCustomer', timestamp });
-    if (c) c.doneDate = newDone;
-    renderCustomers(allCustomers);
-    if (r === 'ok') showToast('✅ 완료 처리됨');
-    else showToast('✅ 완료 처리됨 (시트 반영 확인 필요)');
+    if (r === 'ok') {
+      showToast('✅ 완료 처리됨');
+      const c = allCustomers.find(x => x.timestamp === timestamp);
+      if (c) { c.doneDate = c.doneDate || new Date().toISOString().slice(0,10); }
+      renderCustomers(allCustomers);
+    }
+    else showToast('❌ 실패');
   } catch(e) { showToast('❌ ' + e.message); }
 }
 
@@ -2302,7 +2322,7 @@ function showCalendarDay(dateStr) {
           </div>
           <div style="margin-top:8px;display:flex;gap:6px">
             <button onclick="openCalendarWarrantyPopup('${c.name}','${c.carType}','${c.phone}','${c.timestamp}','${dateStr}')" style="flex:1;padding:8px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📜 보증서 발행</button>
-            <button onclick="openReviewScheduleFromCalendar('${c.name}','${c.carType}','${c.phone}','${dateStr}')" style="flex:1;padding:8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">⭐ 리뷰요청</button>
+            <button onclick="openReviewScheduleFromCalendar('${c.name}','${c.carType}','${c.phone}','${dateStr}')" style="flex:1;padding:8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">⭐ 리마인드 보내기</button>
           </div>
         </div>`).join('')}
     </div>` : '';
@@ -2353,7 +2373,7 @@ function showCalendarDay(dateStr) {
         </div>
         <div style="margin-top:8px;display:flex;gap:6px">
           <button onclick="openCalendarWarrantyPopup('${c.name}','${c.carType}','${c.phone}','${c.timestamp}','${dateStr}')" style="flex:1;padding:8px;background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📜 보증서 발행</button>
-          <button onclick="openReviewScheduleFromCalendar('${c.name}','${c.carType}','${c.phone}','${dateStr}')" style="flex:1;padding:8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">⭐ 리뷰요청</button>
+          <button onclick="openReviewScheduleFromCalendar('${c.name}','${c.carType}','${c.phone}','${dateStr}')" style="flex:1;padding:8px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">⭐ 리마인드 보내기</button>
         </div>
       </div>`).join('') : '<div style="color:#999;font-size:13px;margin-bottom:12px">입고 예정 없음</div>'}
     <div style="border-top:1px solid #eee;padding-top:14px;margin-top:4px">
@@ -2395,8 +2415,9 @@ async function loadCalendar(retry) {
     );
   }
   promises.push(
-    api({ action: 'getReservations' }).then(list => {
-      allReservations = Array.isArray(list) ? list : [];
+    db.collection('reservations').get().then(snap => {
+      allReservations = [];
+      snap.forEach(doc => allReservations.push(doc.data()));
     }).catch(() => { loadOk = false; })
   );
   await Promise.all(promises);
@@ -2617,7 +2638,6 @@ async function saveCalendarCustomerEdit() {
     if (ppfText) summaryParts.push('PPF: ' + ppfText);
     if (combinedM) summaryParts.push(combinedM);
     const summary = summaryParts.join(' / ');
-    const c = allCustomers.find(x => x.timestamp === timestamp) || {};
     const updates = {
       name: document.getElementById('ce-name').value.trim(),
       carType: document.getElementById('ce-carType').value.trim(),
@@ -2634,7 +2654,8 @@ async function saveCalendarCustomerEdit() {
       doneDate: c.doneDate || '',
       resend: c.resend || '',
     };
-    if (c.timestamp) Object.assign(c, updates);
+    const c = allCustomers.find(x => x.timestamp === timestamp);
+    if (c) Object.assign(c, updates);
     const popup = document.getElementById('cal-edit-popup');
     if (popup) popup.remove();
     renderCalendar();
