@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MOTIF 상담 승인</title>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    background: #f5f5f7; color: #1a1a2e;
+  }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 16px 14px 40px; }
+  .head {
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d2d5f 100%);
+    color: white; border-radius: 14px; padding: 16px; margin-bottom: 14px;
+  }
+  .head-title { font-size: 17px; font-weight: 700; }
+  .head-sub { font-size: 12px; color: #bbb; margin-top: 4px; }
+  .card { background: white; border-radius: 14px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .lbl { font-size: 12px; color: #888; display: block; margin-bottom: 5px; font-weight: 600; }
+  .fld { margin-bottom: 12px; }
+  input, textarea, select {
+    width: 100%; font-size: 16px; font-family: inherit;
+    border: 1.5px solid #e5e5e8; border-radius: 10px; padding: 12px;
+    outline: none; background: #fafafa; color: #1a1a2e;
+  }
+  input:focus, textarea:focus, select:focus { border-color: #1a1a2e; background: white; }
+  textarea { height: 70px; resize: none; }
+  .row { display: flex; gap: 8px; }
+  .row > div { flex: 1; }
+  .st-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .st-btn {
+    padding: 13px; border-radius: 11px; font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: inherit; border: 2px solid #eee;
+    background: white; color: #999;
+  }
+  .st-btn.on { border-color: #1a1a2e; background: #1a1a2e; color: white; }
+  .btn {
+    width: 100%; padding: 16px; border-radius: 13px; font-size: 16px;
+    font-weight: 700; cursor: pointer; font-family: inherit; border: none;
+    margin-bottom: 8px;
+  }
+  .btn-send { background: #1a1a2e; color: white; }
+  .btn-rec { background: #e3f2fd; color: #1565c0; border: 1.5px solid #bbdefb; }
+  .btn-del { background: #fff0f0; color: #d32f2f; border: 1.5px solid #ffcdd2; }
+  .btn:disabled { opacity: .6; }
+  .loading { text-align: center; padding: 60px 20px; color: #888; font-size: 15px; }
+  .raw {
+    background: #f8f8fa; border-radius: 10px; padding: 12px;
+    font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 12px;
+    max-height: 130px; overflow-y: auto;
+  }
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #1a1a2e; color: white; padding: 13px 22px; border-radius: 30px;
+    font-size: 14px; font-weight: 600; z-index: 999; box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  }
+  .done {
+    text-align: center; padding: 50px 20px;
+  }
+  .done-ico { font-size: 54px; margin-bottom: 14px; }
+  .done-txt { font-size: 19px; font-weight: 700; margin-bottom: 8px; }
+  .done-sub { font-size: 14px; color: #888; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <div class="loading">⚡ 상담 내용 불러오는 중...</div>
+</div>
+
+<script>
+// ─── 설정 ───
+const API_URL = 'https://script.google.com/macros/s/AKfycbzv3xVInSeTmisnUk7X9u2eRNeRbOgrCs--Wuaqh0BtCx4n4BV00Ik4RsoqoMKi071zDw/exec';
+const firebaseConfig = {
+  apiKey: "AIzaSyDjB5b6T5m-xTIyTUbGK0QCe5hEr9kZDR4",
+  authDomain: "motif-crm.firebaseapp.com",
+  projectId: "motif-crm",
+  storageBucket: "motif-crm.firebasestorage.app",
+  messagingSenderId: "339614788624",
+  appId: "1:339614788624:web:2e697521ba5cd133172e95"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+db.settings({ experimentalAutoDetectLongPolling: true, merge: true });
+const auth = firebase.auth();
+
+let docId = null;
+let docData = null;
+let selStatus = '상담';
+
+function esc(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2600);
+}
+
+// URL에서 상담 문서 ID 읽기 (?id=xxx)
+docId = new URLSearchParams(location.search).get('id');
+
+// 익명 로그인 후 데이터 로드 (Firestore 규칙이 인증 요구할 때 대비)
+auth.onAuthStateChanged(function(user) {
+  if (user) { loadDoc(); }
+  else { auth.signInAnonymously().catch(function(){ loadDoc(); }); }
+});
+
+async function loadDoc() {
+  if (!docId) {
+    document.getElementById('app').innerHTML =
+      '<div class="loading">❌ 잘못된 링크입니다 (상담 ID 없음)</div>';
+    return;
+  }
+  try {
+    const snap = await db.collection('consultations').doc(docId).get();
+    if (!snap.exists) {
+      document.getElementById('app').innerHTML =
+        '<div class="loading">❌ 상담 데이터를 찾을 수 없습니다</div>';
+      return;
+    }
+    docData = snap.data();
+    if (docData.status === 'sent' || docData.status === 'reviewed') {
+      renderAlreadyDone();
+      return;
+    }
+    render();
+  } catch(e) {
+    document.getElementById('app').innerHTML =
+      '<div class="loading">❌ 불러오기 실패<br><span style="font-size:13px">' + esc(e.message) + '</span></div>';
+  }
+}
+
+function renderAlreadyDone() {
+  document.getElementById('app').innerHTML =
+    '<div class="card done">' +
+      '<div class="done-ico">✅</div>' +
+      '<div class="done-txt">이미 처리된 상담입니다</div>' +
+      '<div class="done-sub">' + (docData.status === 'sent' ? '알림톡 발송 완료' : '기록 완료') + '</div>' +
+    '</div>';
+}
+
+// 입고희망일 텍스트 → 날짜 추정
+function guessDate(txt) {
+  if (!txt) return '';
+  const t = String(txt).trim();
+  const today = new Date();
+  if (/당일|오늘/.test(t)) return today.toISOString().slice(0,10);
+  if (/내일/.test(t)) { const d = new Date(today); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); }
+  if (/모레/.test(t)) { const d = new Date(today); d.setDate(d.getDate()+2); return d.toISOString().slice(0,10); }
+  let m = t.match(/(\d+)\s*일\s*후/);
+  if (m) { const d = new Date(today); d.setDate(d.getDate()+parseInt(m[1])); return d.toISOString().slice(0,10); }
+  m = t.match(/(\d{1,2})\s*[\/월]\s*(\d{1,2})/);
+  if (m) {
+    const mm = parseInt(m[1]), dd = parseInt(m[2]);
+    let y = today.getFullYear();
+    const cand = new Date(y, mm-1, dd);
+    if (cand < today && (today - cand) > 86400000*30) y++;
+    return y + '-' + String(mm).padStart(2,'0') + '-' + String(dd).padStart(2,'0');
+  }
+  return '';
+}
+
+function render() {
+  const d = docData;
+  const name = (d.customerName && !/^[\d\-\s+]+$/.test(d.customerName)) ? d.customerName : 'VIP';
+  const phone = d.phoneNumber || '';
+  const carType = d.carType || '';
+  const services = Array.isArray(d.services) ? d.services.join(', ') : (d.services || d.inquiry || '');
+  const est = d.estPrice ? Math.round(Number(d.estPrice)/10000) : '';
+  const rawDate = d.preferredDate || '';
+  const guessed = guessDate(rawDate);
+  const note = d.note || '';
+  const when = d.recordedAtFormatted || '';
+
+  document.getElementById('app').innerHTML =
+    '<div class="head">' +
+      '<div class="head-title">📞 상담 알림톡 발송</div>' +
+      '<div class="head-sub">' + esc(when) + (d.category ? ' · ' + esc(d.category) : '') + '</div>' +
+    '</div>' +
+
+    (d.transcript ? '<div class="raw">📝 ' + esc(String(d.transcript).substring(0, 300)) + (String(d.transcript).length > 300 ? '...' : '') + '</div>' : '') +
+
+    '<div class="card">' +
+      '<div class="fld"><label class="lbl">고객명</label><input type="text" id="f-name" value="' + esc(name) + '" placeholder="VIP"></div>' +
+      '<div class="fld"><label class="lbl">연락처</label><input type="tel" id="f-phone" inputmode="numeric" value="' + esc(phone) + '" placeholder="010-0000-0000"></div>' +
+      '<div class="fld"><label class="lbl">차종</label><input type="text" id="f-cartype" value="' + esc(carType) + '" placeholder="예) 팰리세이드"></div>' +
+      '<div class="fld"><label class="lbl">시공 / 문의</label><input type="text" id="f-summary" value="' + esc(services) + '" placeholder="예) LX 풀시공"></div>' +
+      '<div class="row">' +
+        '<div class="fld"><label class="lbl">견적 (만원)</label><input type="number" id="f-est" inputmode="numeric" value="' + esc(est) + '" placeholder="0"></div>' +
+        '<div class="fld"><label class="lbl">계약금 (만원)</label><input type="number" id="f-deposit" inputmode="numeric" placeholder="0"></div>' +
+      '</div>' +
+      '<div class="fld"><label class="lbl">입고일' + (rawDate ? ' <span style="color:#bbb;font-weight:400">(원문: ' + esc(rawDate) + ')</span>' : '') + '</label>' +
+        '<input type="date" id="f-entry" value="' + esc(guessed) + '"></div>' +
+      '<div class="fld"><label class="lbl">특이사항</label><textarea id="f-note" placeholder="메모">' + esc(note) + '</textarea></div>' +
+    '</div>' +
+
+    '<div class="card">' +
+      '<label class="lbl">발송 구분</label>' +
+      '<div class="st-grid">' +
+        '<button class="st-btn on" id="st-상담" onclick="pickStatus(\'상담\')">상담</button>' +
+        '<button class="st-btn" id="st-예약" onclick="pickStatus(\'예약\')">예약금</button>' +
+        '<button class="st-btn" id="st-예약안내" onclick="pickStatus(\'예약안내\')">예약확정</button>' +
+        '<button class="st-btn" id="st-기록" onclick="pickStatus(\'기록\')">기록만</button>' +
+      '</div>' +
+      '<div style="font-size:11px;color:#aaa;margin-top:8px;line-height:1.5">· 상담/예약금/예약확정 → 고객 등록 + 알림톡 발송<br>· 기록만 → 고객 등록만, 알림톡 미발송</div>' +
+    '</div>' +
+
+    '<button class="btn btn-send" id="btn-send" onclick="doSubmit()">📨 등록 + 알림톡 발송</button>' +
+    '<button class="btn btn-del" onclick="doDiscard()">✗ 폐기 (등록 안 함)</button>';
+
+  pickStatus('상담');
+}
+
+function pickStatus(s) {
+  selStatus = s;
+  ['상담','예약','예약안내','기록'].forEach(function(x) {
+    const b = document.getElementById('st-' + x);
+    if (b) b.className = 'st-btn' + (x === s ? ' on' : '');
+  });
+  const btn = document.getElementById('btn-send');
+  if (btn) btn.textContent = (s === '기록') ? '💾 기록만 저장 (발송 안 함)' : '📨 등록 + 알림톡 발송';
+}
+
+async function doSubmit() {
+  const name = (document.getElementById('f-name').value || '').trim() || 'VIP';
+  const phone = (document.getElementById('f-phone').value || '').trim();
+  const carType = (document.getElementById('f-cartype').value || '').trim();
+  const summary = (document.getElementById('f-summary').value || '').trim();
+  const estVal = (document.getElementById('f-est').value || '').trim();
+  const depositVal = (document.getElementById('f-deposit').value || '').trim();
+  const entryDate = (document.getElementById('f-entry').value || '').trim();
+  const note = (document.getElementById('f-note').value || '').trim();
+
+  if (!phone) { toast('❌ 연락처를 입력해주세요'); return; }
+  if (!carType) { toast('❌ 차종을 입력해주세요'); return; }
+
+  const sendAlim = (selStatus !== '기록');
+  const status = (selStatus === '기록') ? '' : selStatus;
+
+  const btn = document.getElementById('btn-send');
+  btn.disabled = true; btn.textContent = '⏳ 처리 중...';
+
+  try {
+    const ts = new Date().toISOString().slice(0, 16).replace('T', ' ');
+    // 1) Firestore 고객 등록
+    try {
+      await db.collection('customers').doc(ts).set({
+        timestamp: ts, name: name, phone: phone, carType: carType,
+        category: '', summary: summary, estPrice: estVal, status: status,
+        note: note, deposit: depositVal, ppf: '', etc: '',
+        tintF:'', tintS1:'', tintS2:'', tintR:'', tintSun:'',
+        entryDate: entryDate, blackbox:'', battery:'', doneDate:''
+      });
+    } catch(fe) {}
+
+    // 2) GAS: 시트 기록 + 알림톡 발송
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'submitFromWebApp',
+        name: name, phone: phone, carType: carType, category: '',
+        summary: summary, estPrice: estVal, status: status, note: note,
+        deposit: depositVal, ppfText: '', combinedM: '',
+        tintF:'', tintS1:'', tintS2:'', tintR:'', tintSun:'',
+        entryDate: entryDate, blackbox:'', battery:'',
+        sendAlimtalk: sendAlim
+      })
+    });
+    await res.text();
+
+    // 3) 상담 카드 처리 완료 표시
+    await db.collection('consultations').doc(docId).update({
+      status: sendAlim ? 'sent' : 'reviewed',
+      reviewedAt: new Date()
+    });
+
+    document.getElementById('app').innerHTML =
+      '<div class="card done">' +
+        '<div class="done-ico">' + (sendAlim ? '📨' : '💾') + '</div>' +
+        '<div class="done-txt">' + (sendAlim ? '알림톡 발송 완료!' : '기록 완료!') + '</div>' +
+        '<div class="done-sub">' + esc(name) + ' · ' + esc(carType) + '</div>' +
+      '</div>';
+  } catch(e) {
+    toast('❌ 실패: ' + e.message);
+    btn.disabled = false;
+    pickStatus(selStatus);
+  }
+}
+
+async function doDiscard() {
+  if (!confirm('이 상담을 폐기할까요? (고객 등록 안 됨)')) return;
+  try {
+    await db.collection('consultations').doc(docId).update({
+      status: 'discarded', reviewedAt: new Date()
+    });
+    document.getElementById('app').innerHTML =
+      '<div class="card done">' +
+        '<div class="done-ico">🗑</div>' +
+        '<div class="done-txt">폐기 완료</div>' +
+      '</div>';
+  } catch(e) { toast('❌ 실패: ' + e.message); }
+}
+</script>
+</body>
+</html>
