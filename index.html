@@ -2696,9 +2696,11 @@ async function saveCalendarCustomerEdit() {
     if (tintParts.length) summaryParts.push('틴팅: ' + tintParts.join(', '));
     if (ppfText) summaryParts.push('PPF: ' + ppfText);
     if (combinedM) summaryParts.push(combinedM);
-    const summary = summaryParts.join(' / ');
-    // 기존 고객 데이터 먼저 조회 (doneDate/resend 유지용)
+    // 기존 고객 데이터 먼저 조회 (doneDate/resend/기존 summary 유지용)
     const c = allCustomers.find(x => x.timestamp === timestamp) || {};
+    // 체크박스로 조립한 값이 비면 기존 시공내용 유지
+    // (신차패키지 폼 등 외부 유입 데이터가 지워지는 문제 방지)
+    const summary = summaryParts.length ? summaryParts.join(' / ') : (c.summary || '');
     const updates = {
       name: document.getElementById('ce-name').value.trim(),
       carType: document.getElementById('ce-carType').value.trim(),
