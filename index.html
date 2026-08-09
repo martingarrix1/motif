@@ -452,6 +452,11 @@ function doLogout() {
 
   <div id="page-customers" class="page">
 
+    <div class="search-box">
+      <span style="color:#bbb">🔍</span>
+      <input type="text" id="search-input" placeholder="이름, 차종, 연락처 검색" oninput="filterCustomers()">
+    </div>
+
     <!-- AI 추출 상담 섹션 (자동 생성) -->
     <div class="ai-consult-section" id="ai-consult-section" style="display:none;">
       <div class="ai-consult-header">
@@ -461,10 +466,6 @@ function doLogout() {
       <div id="ai-consult-list"></div>
     </div>
 
-    <div class="search-box">
-      <span style="color:#bbb">🔍</span>
-      <input type="text" id="search-input" placeholder="이름, 차종, 연락처 검색" oninput="filterCustomers()">
-    </div>
     <div id="customer-list"><div class="loading">불러오는 중...</div></div>
   </div>
 
