@@ -2706,7 +2706,28 @@ async function saveCalendarCustomerEdit() {
     else allCustomers.unshift({ timestamp, ...updates });
     const popup = document.getElementById('cal-edit-popup');
     if (popup) popup.remove();
-    renderCalendar();
+
+    // 현재 화면에 맞게 갱신 (고객탭이면 검색어 유지)
+    if (document.getElementById('page-customers').classList.contains('active')) {
+      const si = document.getElementById('search-input');
+      const q = si ? si.value.trim() : '';
+      if (q) {
+        // 검색 결과 즉시 재렌더 (지연 없이)
+        const ql = q.toLowerCase(), qn = q.replace(/-/g, '');
+        const results = allCustomers.filter(x =>
+          (x.name || '').toLowerCase().includes(ql) ||
+          (x.carType || '').toLowerCase().includes(ql) ||
+          (x.phone || '').replace(/-/g, '').includes(qn)
+        );
+        renderCustomers(results);
+        renderAIConsults();
+      } else {
+        renderCustomers(allCustomers);
+      }
+    } else {
+      renderCalendar();
+    }
+
     try {
       await updateCustomerInFirebase(timestamp, updates);
       showToast('✅ 저장 완료!');
