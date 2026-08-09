@@ -1049,7 +1049,7 @@ function startFirestoreSubscriptions() {
     allCustomers.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
     if (document.getElementById('page-customers').classList.contains('active')) {
       displayCount = displayCount || 30;
-      renderCustomers(allCustomers);
+      renderCustomersRespectingSearch();   // 검색 중이면 검색 결과 유지
     }
     // 캘린더 탭이 열려 있으면 고객 데이터 갱신 시 캘린더도 다시 그림
     if (document.getElementById('page-calendar').classList.contains('active')) {
@@ -1778,6 +1778,21 @@ async function clearEntryDate(timestamp) {
 }
 
 let searchTimer = null;
+// 현재 검색어를 반영해 고객 목록을 그림 (검색 중이면 결과 유지)
+function renderCustomersRespectingSearch() {
+  const si = document.getElementById('search-input');
+  const q = si ? si.value.trim() : '';
+  if (!q) { renderCustomers(allCustomers); return; }
+  const ql = q.toLowerCase(), qn = q.replace(/-/g, '');
+  const results = allCustomers.filter(x =>
+    (x.name || '').toLowerCase().includes(ql) ||
+    (x.carType || '').toLowerCase().includes(ql) ||
+    (x.phone || '').replace(/-/g, '').includes(qn)
+  );
+  renderCustomers(results);
+  renderAIConsults();
+}
+
 function filterCustomers() {
   const q = document.getElementById('search-input').value.trim();
   const aiSec = document.getElementById('ai-consult-section');
@@ -2709,21 +2724,7 @@ async function saveCalendarCustomerEdit() {
 
     // 현재 화면에 맞게 갱신 (고객탭이면 검색어 유지)
     if (document.getElementById('page-customers').classList.contains('active')) {
-      const si = document.getElementById('search-input');
-      const q = si ? si.value.trim() : '';
-      if (q) {
-        // 검색 결과 즉시 재렌더 (지연 없이)
-        const ql = q.toLowerCase(), qn = q.replace(/-/g, '');
-        const results = allCustomers.filter(x =>
-          (x.name || '').toLowerCase().includes(ql) ||
-          (x.carType || '').toLowerCase().includes(ql) ||
-          (x.phone || '').replace(/-/g, '').includes(qn)
-        );
-        renderCustomers(results);
-        renderAIConsults();
-      } else {
-        renderCustomers(allCustomers);
-      }
+      renderCustomersRespectingSearch();
     } else {
       renderCalendar();
     }
