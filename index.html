@@ -1784,17 +1784,14 @@ function filterCustomers() {
 
   if (!q) {
     // 검색어 없으면 AI 섹션 원래대로 (카드가 있을 때만 표시)
-    if (aiSec) {
-      const hasCards = (document.getElementById('ai-consult-list') || {}).children;
-      aiSec.style.display = (hasCards && hasCards.length > 0) ? 'block' : 'none';
-    }
+    renderAIConsults();  // 전체 다시 표시
     if (allCustomers.length) { displayCount = 30; renderCustomers(allCustomers); }
     else loadCustomers();
     return;
   }
 
-  // 검색 중엔 AI 섹션 숨김 → 검색 결과가 바로 보이도록
-  if (aiSec) aiSec.style.display = 'none';
+  // 검색어에 맞는 AI 상담 카드도 함께 표시
+  renderAIConsults();
 
   clearTimeout(searchTimer);
   searchTimer = setTimeout(async () => {
@@ -5670,9 +5667,28 @@ function renderAIConsults() {
   const countEl = document.getElementById('ai-consult-count');
   if (!section || !list) return;
 
-  const docs = Object.keys(aiConsultData).map(function(id) {
+  let docs = Object.keys(aiConsultData).map(function(id) {
     return Object.assign({ id: id }, aiConsultData[id]);
   });
+
+  // 고객탭 검색어가 있으면 AI 상담도 같이 필터링
+  const _si = document.getElementById('search-input');
+  const _q = (_si && document.getElementById('page-customers').classList.contains('active'))
+    ? _si.value.trim() : '';
+  if (_q) {
+    const ql = _q.toLowerCase();
+    const qNum = _q.replace(/-/g, '');
+    docs = docs.filter(function(d) {
+      const svc = Array.isArray(d.services) ? d.services.join(' ') : (d.services || '');
+      return (d.customerName || '').toLowerCase().includes(ql)
+          || (d.carType || '').toLowerCase().includes(ql)
+          || (d.phoneNumber || '').replace(/-/g, '').includes(qNum)
+          || svc.toLowerCase().includes(ql)
+          || (d.note || '').toLowerCase().includes(ql)
+          || (d.inquiry || '').toLowerCase().includes(ql);
+    });
+  }
+
   docs.sort(function(a, b) {
     const aTime = a.recordedAt && a.recordedAt.toMillis ? a.recordedAt.toMillis() : 0;
     const bTime = b.recordedAt && b.recordedAt.toMillis ? b.recordedAt.toMillis() : 0;
@@ -5681,7 +5697,7 @@ function renderAIConsults() {
 
   if (docs.length === 0) { section.style.display = 'none'; return; }
   section.style.display = 'block';
-  if (countEl) countEl.textContent = docs.length;
+  if (countEl) countEl.textContent = docs.length + (_q ? ' 건 검색됨' : '');
   list.innerHTML = docs.map(function(d) { return renderAICard(d); }).join('');
 }
 
