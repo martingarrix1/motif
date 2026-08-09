@@ -1780,11 +1780,22 @@ async function clearEntryDate(timestamp) {
 let searchTimer = null;
 function filterCustomers() {
   const q = document.getElementById('search-input').value.trim();
+  const aiSec = document.getElementById('ai-consult-section');
+
   if (!q) {
+    // 검색어 없으면 AI 섹션 원래대로 (카드가 있을 때만 표시)
+    if (aiSec) {
+      const hasCards = (document.getElementById('ai-consult-list') || {}).children;
+      aiSec.style.display = (hasCards && hasCards.length > 0) ? 'block' : 'none';
+    }
     if (allCustomers.length) { displayCount = 30; renderCustomers(allCustomers); }
     else loadCustomers();
     return;
   }
+
+  // 검색 중엔 AI 섹션 숨김 → 검색 결과가 바로 보이도록
+  if (aiSec) aiSec.style.display = 'none';
+
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => {
     const qLower = q.toLowerCase();
