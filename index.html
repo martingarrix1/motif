@@ -2650,6 +2650,8 @@ async function saveCalendarCustomerEdit() {
     if (ppfText) summaryParts.push('PPF: ' + ppfText);
     if (combinedM) summaryParts.push(combinedM);
     const summary = summaryParts.join(' / ');
+    // 기존 고객 데이터 먼저 조회 (doneDate/resend 유지용)
+    const c = allCustomers.find(x => x.timestamp === timestamp) || {};
     const updates = {
       name: document.getElementById('ce-name').value.trim(),
       carType: document.getElementById('ce-carType').value.trim(),
@@ -2666,8 +2668,7 @@ async function saveCalendarCustomerEdit() {
       doneDate: c.doneDate || '',
       resend: c.resend || '',
     };
-    const c = allCustomers.find(x => x.timestamp === timestamp);
-    if (c) Object.assign(c, updates);
+    if (c && c.timestamp) Object.assign(c, updates);
     const popup = document.getElementById('cal-edit-popup');
     if (popup) popup.remove();
     renderCalendar();
