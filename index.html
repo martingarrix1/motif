@@ -1797,7 +1797,20 @@ function filterCustomers() {
   if (aiSec) aiSec.style.display = 'none';
 
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => {
+  searchTimer = setTimeout(async () => {
+    // 고객 데이터가 아직 안 불러와졌으면 먼저 로드 (빈 배열 검색 = 0건 방지)
+    if (!allCustomers || allCustomers.length === 0) {
+      document.getElementById('customer-list').innerHTML = '<div class="loading">⚡ 고객 데이터 불러오는 중...</div>';
+      try {
+        const snap = await db.collection('customers').get();
+        allCustomers = [];
+        snap.forEach(doc => { const d = doc.data(); if (!isDeleted(d)) allCustomers.push(d); });
+        allCustomers.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+      } catch(e) {
+        document.getElementById('customer-list').innerHTML = '<div class="loading" style="color:red">❌ 불러오기 실패: ' + esc(e.message) + '</div>';
+        return;
+      }
+    }
     const qLower = q.toLowerCase();
     const results = allCustomers.filter(c =>
       (c.name || '').toLowerCase().includes(qLower) ||
