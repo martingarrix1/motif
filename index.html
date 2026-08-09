@@ -2162,8 +2162,30 @@ async function updateCustomerField(timestamp, field, value) {
     showToast('✅ 업데이트!');
     apiPost({ action: 'updateCustomerField', timestamp, field, value }).catch(() => {});
     if (field === 'resend' && value) {
-      const c = allCustomers.find(x => x.timestamp === timestamp);
+      // 메모리 대신 Firebase에서 최신 값을 다시 읽어 발송
+      // (수정 직후 메모리가 갱신 안 된 경우 옛 내용이 나가는 문제 방지)
+      let c = null;
+      try {
+        const docId = timestamp.replace(/[^0-9a-zA-Z]/g, '_');
+        const snap = await db.collection('customers').doc(docId).get();
+        if (snap.exists) c = snap.data();
+      } catch(fe) {}
+      if (!c) {
+        try {
+          const refs = await findCustomerDocs(timestamp);
+          if (refs && refs.length) {
+            const s2 = await refs[0].get();
+            if (s2.exists) c = s2.data();
+          }
+        } catch(fe2) {}
+      }
+      if (!c) c = allCustomers.find(x => x.timestamp === timestamp);
+
       if (c && c.phone) {
+        // 메모리도 최신값으로 동기화
+        const mem = allCustomers.find(x => x.timestamp === timestamp);
+        if (mem) Object.assign(mem, c);
+
         showToast('⏳ 알림톡 재전송 중...');
         const status = c.status || '상담';
         const r = await apiPost({ action: 'sendConsultAlimtalk', name: c.name, phone: c.phone, carType: c.carType, summary: c.summary || '', estPrice: c.estPrice || '', deposit: c.deposit || '', entryDate: c.entryDate || '', status, pdfId: '' });
@@ -2681,7 +2703,10 @@ async function saveCalendarCustomerEdit() {
       doneDate: c.doneDate || '',
       resend: c.resend || '',
     };
-    if (c && c.timestamp) Object.assign(c, updates);
+    // 메모리 갱신 (검색 결과에서 열어 find 실패한 경우도 대비)
+    const memIdx = allCustomers.findIndex(x => x.timestamp === timestamp);
+    if (memIdx >= 0) Object.assign(allCustomers[memIdx], updates);
+    else allCustomers.unshift({ timestamp, ...updates });
     const popup = document.getElementById('cal-edit-popup');
     if (popup) popup.remove();
     renderCalendar();
