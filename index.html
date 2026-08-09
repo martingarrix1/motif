@@ -2172,7 +2172,12 @@ async function updateCustomerField(timestamp, field, value) {
   try {
     await updateCustomerInFirebase(timestamp, { [field]: value });
     showToast('✅ 업데이트!');
-    apiPost({ action: 'updateCustomerField', timestamp, field, value }).catch(() => {});
+    // resend는 GAS로 보내지 않음 — GAS의 updateCustomerField가 시트의 옛 값으로
+    // 알림톡을 한 통 더 보내서 내용이 다른 2통이 발송되는 문제 방지.
+    // 알림톡은 아래에서 CRM이 최신 값으로 직접 발송함.
+    if (field !== 'resend') {
+      apiPost({ action: 'updateCustomerField', timestamp, field, value }).catch(() => {});
+    }
     if (field === 'resend' && value) {
       // 메모리 대신 Firebase에서 최신 값을 다시 읽어 발송
       // (수정 직후 메모리가 갱신 안 된 경우 옛 내용이 나가는 문제 방지)
