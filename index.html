@@ -1652,9 +1652,23 @@ function openReviewScheduleFromCalendar(name, carType, phone, doneDate) {
 }
 
 // 리뷰요청 + 사후관리 순차 예약
+// GAS 응답이 성공인지 판정 (문자열 'ok', {success:true}, {ok:true} 등 모두 허용)
+function _isOkResponse(r) {
+  if (!r) return false;
+  if (r === 'ok' || r === 'OK') return true;
+  if (typeof r === 'string') return r.trim().toLowerCase().indexOf('ok') === 0;
+  if (typeof r === 'object') {
+    if (r.error) return false;              // 에러가 있으면 실패
+    if (r.success === true || r.ok === true) return true;
+    if (r.result === 'ok') return true;
+  }
+  return false;
+}
+
 async function scheduleRemindSet(name, carType, phone, doneDate) {
   showToast('⏳ 리마인드 예약 중...');
   let okReview = false, okAfter = false;
+  let errReview = '', errAfter = '';
 
   // 1) 리뷰요청 (다음날 오전 10시)
   try {
@@ -1663,9 +1677,10 @@ async function scheduleRemindSet(name, carType, phone, doneDate) {
       name, carType, phone, doneDate,
       scheduledDate: _reviewScheduleDate().toISOString()
     });
-    okReview = (r1 === 'ok') || (r1 && (r1.success || r1.ok));
-    if (!okReview) console.warn('[리뷰요청 예약 응답]', r1);
-  } catch(e) { console.error('[리뷰요청 예약 예외]', e); }
+    console.log('[리뷰요청 응답]', r1);
+    okReview = _isOkResponse(r1);
+    if (!okReview) errReview = (r1 && r1.error) ? r1.error : JSON.stringify(r1);
+  } catch(e) { errReview = e.message; console.error('[리뷰요청 예외]', e); }
 
   // 2) 사후관리 (2주 뒤 오전 10시)
   try {
@@ -1674,14 +1689,15 @@ async function scheduleRemindSet(name, carType, phone, doneDate) {
       name, carType, phone, doneDate,
       scheduledDate: _aftercareScheduleDate().toISOString()
     });
-    okAfter = (r2 === 'ok') || (r2 && (r2.success || r2.ok));
-    if (!okAfter) console.warn('[사후관리 예약 응답]', r2);
-  } catch(e) { console.error('[사후관리 예약 예외]', e); }
+    console.log('[사후관리 응답]', r2);
+    okAfter = _isOkResponse(r2);
+    if (!okAfter) errAfter = (r2 && r2.error) ? r2.error : JSON.stringify(r2);
+  } catch(e) { errAfter = e.message; console.error('[사후관리 예외]', e); }
 
   if (okReview && okAfter) showToast('✅ 리뷰요청 + 사후관리 예약 완료!');
-  else if (okReview) showToast('⭐ 리뷰요청만 예약됨 (사후관리 실패)');
-  else if (okAfter) showToast('🧰 사후관리만 예약됨 (리뷰요청 실패)');
-  else showToast('❌ 예약 실패 — 로그 확인 필요');
+  else if (okReview) showToast('⭐ 리뷰요청만 예약됨 — 사후관리: ' + (errAfter || '실패'));
+  else if (okAfter) showToast('🧰 사후관리만 예약됨 — 리뷰요청: ' + (errReview || '실패'));
+  else showToast('❌ 실패 — ' + (errReview || errAfter || '응답 확인 필요'));
 }
 
 async function scheduleReviewAlimtalk(name, carType, phone, doneDate, popupEl) {
