@@ -1485,17 +1485,18 @@ async function setDoneDate(timestamp, name, carType, phone, category, summary, e
 }
 
 // 리뷰요청 예약 시각: "완료한 날의 다음날 오전 10시"
+// 리뷰요청 예약 시각: 시공 2시간 뒤
+// (템플릿 문구가 "집에 잘 도착하셨는지요" 라 2시간 뒤가 자연스러움)
 function _reviewScheduleDate() {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);   // 다음날
-  d.setHours(10, 0, 0, 0);      // 오전 10:00
-  return d;
+  return new Date(Date.now() + 2 * 60 * 60 * 1000);
 }
 function _reviewScheduleLabel() {
   const d = _reviewScheduleDate();
-  const mm = d.getMonth() + 1;
-  const dd = d.getDate();
-  return mm + '월 ' + dd + '일 오전 10시';
+  const hh = d.getHours();
+  const mi = String(d.getMinutes()).padStart(2, '0');
+  const ampm = hh < 12 ? '오전' : '오후';
+  const h12 = hh % 12 === 0 ? 12 : hh % 12;
+  return '오늘 ' + ampm + ' ' + h12 + ':' + mi + ' (2시간 뒤)';
 }
 
 // 사후관리 예약 시각: "2주 뒤 오전 10시"
