@@ -84,6 +84,10 @@ var displayCount = 30;          // 고객 목록 표시 개수
 var scanKind = '썬팅';           // 보증서 스캔 시공 종류
 var aiConsultData = {};         // AI 추출 상담 (docId -> data)
 var aiConsultEditState = {};    // AI 카드 편집 상태
+var aiConsultUnsubscribe = null; // AI 상담 구독 해제 함수
+var allCustomers = [];          // 고객 목록
+var allAftercare = [];          // 사후관리 목록
+var allReservations = [];       // 입고예약 목록
 
 const firebaseConfig = {
   apiKey: "AIzaSyDjB5b6T5m-xTIyTUbGK0QCe5hEr9kZDR4",
@@ -1053,9 +1057,7 @@ async function updateCustomerInFirebase(timestamp, updates) {
   await db.collection('customers').doc(docId).set(fullData);
 }
 
-let allCustomers = [];
-let allAftercare = [];
-let allReservations = [];
+// allCustomers / allAftercare / allReservations 는 최상단에서 var로 선언됨
 
 const _deletedKeys = new Set();
 function markDeleted(c) {
@@ -5991,7 +5993,7 @@ function setContentStatusFilter(status) {
 // ============================================================
 // AI 추출 상담 (consultations 컬렉션)
 // ============================================================
-let aiConsultUnsubscribe = null;
+// aiConsultUnsubscribe 는 최상단에서 var로 선언됨
 // aiConsultData / aiConsultEditState 는 최상단에서 var로 선언됨
 
 // 로그인 후 자동 구독 시작
