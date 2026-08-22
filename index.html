@@ -1509,18 +1509,16 @@ async function setDoneDate(timestamp, name, carType, phone, category, summary, e
 }
 
 // 리뷰요청 예약 시각: "완료한 날의 다음날 오전 10시"
-// 리뷰요청 예약 시각: 시공 2시간 뒤
-// (템플릿 문구가 "집에 잘 도착하셨는지요" 라 2시간 뒤가 자연스러움)
+// 리뷰요청 예약 시각: 시공 2일 뒤 오전 10시
 function _reviewScheduleDate() {
-  return new Date(Date.now() + 2 * 60 * 60 * 1000);
+  const d = new Date();
+  d.setDate(d.getDate() + 2);
+  d.setHours(10, 0, 0, 0);
+  return d;
 }
 function _reviewScheduleLabel() {
   const d = _reviewScheduleDate();
-  const hh = d.getHours();
-  const mi = String(d.getMinutes()).padStart(2, '0');
-  const ampm = hh < 12 ? '오전' : '오후';
-  const h12 = hh % 12 === 0 ? 12 : hh % 12;
-  return '오늘 ' + ampm + ' ' + h12 + ':' + mi + ' (2시간 뒤)';
+  return (d.getMonth() + 1) + '월 ' + d.getDate() + '일 오전 10시 (2일 뒤)';
 }
 
 // 사후관리 예약 시각: "2주 뒤 오전 10시"
@@ -3932,6 +3930,24 @@ async function submitScanDone() {
       } catch(ue) { console.warn('[스캔] 입고일 갱신 경고', ue); }
     } else {
       // 신규: 고객 등록 + 시공완료
+      const ts = new Date().toISOString().slice(0, 16).replace('T', ' ');
+
+      // Firebase에도 저장 (캘린더는 Firebase 데이터를 읽음)
+      try {
+        await db.collection('customers').doc(ts.replace(/[^0-9a-zA-Z]/g, '_')).set({
+          timestamp: ts, name: name, phone: phone, carType: carType,
+          category: '썬팅', summary: film, estPrice: price, status: '',
+          note: '보증서 스캔 등록 / 차량번호 ' + carNum, deposit: '',
+          ppf: '', etc: '', tintF: '', tintS1: '', tintS2: '', tintR: '', tintSun: '',
+          entryDate: date, blackbox: '', battery: '', doneDate: date
+        });
+        allCustomers.unshift({
+          timestamp: ts, name: name, phone: phone, carType: carType,
+          category: '썬팅', summary: film, estPrice: price, status: '',
+          note: '', deposit: '', entryDate: date, doneDate: date
+        });
+      } catch(fe) { console.warn('[스캔] Firebase 저장 경고', fe); }
+
       await apiPost({
         action: 'submitFromWebApp',
         name, phone, carType, category: '썬팅', summary: film,
@@ -3951,12 +3967,31 @@ async function submitScanDone() {
     btn.textContent = '⏳ 알림톡 발송 중...';
     const r = await apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate: date, pdfId: '' });
 
+    // 4) 리마인드 예약 (2일 뒤 리뷰요청 + 2주 뒤 사후관리)
+    btn.textContent = '⏳ 리마인드 예약 중...';
+    try {
+      await apiPost({
+        action: 'scheduleReviewAlimtalk',
+        name, carType, phone, doneDate: date,
+        scheduledDate: _reviewScheduleDate().toISOString()
+      });
+      await apiPost({
+        action: 'scheduleAftercareAlimtalk',
+        name, carType, phone, doneDate: date,
+        scheduledDate: _aftercareScheduleDate().toISOString()
+      });
+    } catch(re2) { console.warn('[스캔] 리마인드 예약 경고', re2); }
+
     if (r === 'ok' || (r && (r.success || r.ok))) {
       document.getElementById('scan-result').innerHTML =
         '<div class="card" style="text-align:center;padding:40px 20px">' +
           '<div style="font-size:50px;margin-bottom:12px">📨</div>' +
           '<div style="font-size:18px;font-weight:700;margin-bottom:6px">시공완료 알림톡 발송!</div>' +
-          '<div style="font-size:14px;color:#888">' + esc(name) + ' · ' + esc(carType) + '</div>' +
+          '<div style="font-size:14px;color:#888;margin-bottom:10px">' + esc(name) + ' · ' + esc(carType) + '</div>' +
+          '<div style="font-size:12px;color:#999;line-height:1.7;background:#f8f8fa;border-radius:10px;padding:10px">' +
+            '⭐ 리뷰요청 — ' + esc(_reviewScheduleLabel()) + '<br>' +
+            '🧰 사후관리 — ' + esc(_aftercareScheduleLabel()) +
+          '</div>' +
         '</div>' +
         '<button class="btn btn-primary" onclick="initScan()" style="margin-top:12px">📸 다음 보증서 스캔</button>';
       showToast('✅ 발송 완료!');
