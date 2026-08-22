@@ -77,6 +77,10 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
 <script>
+// 보증서 스캔용 전역 (var: 어디서 호출해도 안전)
+var scanImageData = null;
+var scanImageMime = 'image/png';
+
 const firebaseConfig = {
   apiKey: "AIzaSyDjB5b6T5m-xTIyTUbGK0QCe5hEr9kZDR4",
   authDomain: "motif-crm.firebaseapp.com",
@@ -3740,8 +3744,6 @@ let insFilter = '전체';
 let insSelectedStatus = '미청구';
 
 async // ═══════════════ 보증서 스캔 (솔라가드 화면 → 시공완료 알림톡) ═══════════════
-let scanImageData = null;   // base64 (헤더 제외)
-let scanImageMime = 'image/jpeg';
 
 function initScan() {
   scanImageData = null;
