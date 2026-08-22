@@ -81,6 +81,7 @@
 var scanImageData = null;
 var scanImageMime = 'image/png';
 var displayCount = 30;          // 고객 목록 표시 개수
+var scanKind = '썬팅';           // 보증서 스캔 시공 종류
 
 const firebaseConfig = {
   apiKey: "AIzaSyDjB5b6T5m-xTIyTUbGK0QCe5hEr9kZDR4",
@@ -538,8 +539,9 @@ function doLogout() {
     <div class="card">
       <div class="card-title">📸 보증서 스캔</div>
       <div style="font-size:12px;color:#888;margin-bottom:12px;line-height:1.6">
-        솔라가드 보증서 화면을 캡처해서 올리면<br>
-        고객 정보를 자동으로 읽어 시공완료 알림톡을 보냅니다.
+        솔라가드(썬팅) 또는 XPEL(PPF) 보증서 화면을 캡처해서 올리면<br>
+        고객 정보를 자동으로 읽어 시공완료 알림톡을 보냅니다.<br>
+        <span style="color:#aaa">＊리뷰요청(2일 뒤)·사후관리(2주 뒤)도 함께 예약됩니다</span>
       </div>
       <input type="file" id="scan-file" accept="image/*" onchange="handleScanImage(this)"
         style="width:100%;font-size:14px;padding:10px;border:1.5px dashed #ccc;border-radius:10px;background:#fafafa">
@@ -3809,16 +3811,21 @@ async function runScanExtract() {
   const btn = document.getElementById('scan-btn');
   btn.disabled = true; btn.textContent = '⏳ 읽는 중... (10초 정도)';
 
-  const systemPrompt = '너는 자동차 썬팅 보증서 화면에서 정보를 추출하는 보조다. '
+  const systemPrompt = '너는 자동차 시공 보증서 화면에서 정보를 추출하는 보조다. '
+    + '보증서는 두 종류가 있다: 솔라가드(썬팅 필름) 또는 XPEL(PPF 보호필름).\n'
     + '이미지에서 아래 항목을 찾아 JSON만 출력해라. 코드블록이나 설명 없이 JSON만.\n'
-    + '{"고객명":string|null,"연락처":string|null,"차종":string|null,"차량번호":string|null,'
-    + '"시공일자":string|null,"시공가격":number|null,"필름":string|null,"보증번호":string|null}\n'
+    + '{"종류":"썬팅"|"PPF","고객명":string|null,"연락처":string|null,"차종":string|null,'
+    + '"차량번호":string|null,"시공일자":string|null,"시공가격":number|null,'
+    + '"시공내용":string|null,"보증번호":string|null}\n'
+    + '- 종류: 솔라가드/THE LX/틴팅/필름 등급(LX,퀀텀,제니스IR,G라인,S라인)이 보이면 "썬팅", '
+    + 'XPEL/PPF/워런티/FINALFIT 등이 보이면 "PPF"\n'
     + '- 연락처는 하이픈 포함 그대로 (예: 010-1234-5678)\n'
-    + '- 차종은 브랜드+모델 (예: 테슬라 주니퍼YL)\n'
-    + '- 시공일자는 YYYY-MM-DD\n'
-    + '- 시공가격은 숫자만 (원 단위, 콤마 제거)\n'
-    + '- 필름은 전면/측후면 제품명 요약 (예: LX 전면25 측후면15)\n'
-    + '- 없으면 null';
+    + '- 차종은 제조사+모델을 합쳐서 (예: BMW M5, 테슬라 주니퍼YL)\n'
+    + '- 시공일자는 YYYY-MM-DD (2026. 08. 21. 형태도 변환)\n'
+    + '- 시공가격은 숫자만 (원 단위, 콤마 제거). 화면에 없으면 null\n'
+    + '- 시공내용: 썬팅이면 전면/측후면 제품명 요약(예: LX 전면25 측후면15), '
+    + 'PPF면 시공 범위나 제품명(예: XPEL FINALFIT Full)\n'
+    + '- 없는 항목은 null';
 
   try {
     const r = await apiPost({
@@ -3867,6 +3874,16 @@ async function runScanExtract() {
 }
 
 // 추출 결과 확인 폼
+function pickScanKind(k) {
+  scanKind = k;
+  ['썬팅','PPF'].forEach(function(x) {
+    const b = document.getElementById('sk-' + x);
+    if (!b) return;
+    if (x === k) { b.style.background = '#1a1a2e'; b.style.color = 'white'; b.style.border = '2px solid #1a1a2e'; }
+    else { b.style.background = 'white'; b.style.color = '#999'; b.style.border = '2px solid #eee'; }
+  });
+}
+
 function renderScanForm(d) {
   const name = (d.고객명 && d.고객명 !== 'VIP') ? d.고객명 : 'VIP';
   const phone = d.연락처 || '';
@@ -3874,11 +3891,19 @@ function renderScanForm(d) {
   const carNum = d.차량번호 || '';
   const date = d.시공일자 || new Date().toISOString().slice(0,10);
   const price = d.시공가격 ? Math.round(Number(d.시공가격)/10000) : '';
-  const film = d.필름 || '';
+  const film = d.시공내용 || d.필름 || '';
+  const kind = (d.종류 === 'PPF') ? 'PPF' : '썬팅';
+  scanKind = kind;
 
   document.getElementById('scan-result').innerHTML =
     '<div class="card">' +
       '<div class="card-title">✅ 읽은 내용 <span style="font-size:12px;color:#888;font-weight:400">— 틀린 곳은 고쳐주세요</span></div>' +
+      '<div class="form-group"><label>시공 종류</label>' +
+        '<div style="display:flex;gap:8px">' +
+          '<button type="button" id="sk-썬팅" onclick="pickScanKind(\'썬팅\')" style="flex:1;padding:11px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;' + (kind==='썬팅'?'background:#1a1a2e;color:white;border:2px solid #1a1a2e':'background:white;color:#999;border:2px solid #eee') + '">🎫 썬팅</button>' +
+          '<button type="button" id="sk-PPF" onclick="pickScanKind(\'PPF\')" style="flex:1;padding:11px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;' + (kind==='PPF'?'background:#1a1a2e;color:white;border:2px solid #1a1a2e':'background:white;color:#999;border:2px solid #eee') + '">🛡️ PPF</button>' +
+        '</div>' +
+      '</div>' +
       '<div class="form-group"><label>고객명</label><input type="text" id="sc-name" value="' + esc(name) + '"></div>' +
       '<div class="form-group"><label>연락처</label><input type="tel" id="sc-phone" inputmode="numeric" value="' + esc(phone) + '"></div>' +
       '<div class="form-group"><label>차종</label><input type="text" id="sc-cartype" value="' + esc(carType) + '"></div>' +
@@ -3917,7 +3942,7 @@ async function submitScanDone() {
       await apiPost({
         action: 'setDoneDate',
         timestamp: matched.timestamp, name: matched.name || name, carType: matched.carType || carType,
-        phone: phone, category: matched.category || '썬팅',
+        phone: phone, category: matched.category || scanKind,
         summary: matched.summary || film, estPrice: matched.estPrice || price,
         doneDate: date
       });
@@ -3937,21 +3962,21 @@ async function submitScanDone() {
       try {
         await db.collection('customers').doc(ts.replace(/[^0-9a-zA-Z]/g, '_')).set({
           timestamp: ts, name: name, phone: phone, carType: carType,
-          category: '썬팅', summary: film, estPrice: price, status: '',
+          category: scanKind, summary: film, estPrice: price, status: '',
           note: '보증서 스캔 등록 / 차량번호 ' + carNum, deposit: '',
           ppf: '', etc: '', tintF: '', tintS1: '', tintS2: '', tintR: '', tintSun: '',
           entryDate: date, blackbox: '', battery: '', doneDate: date
         });
         allCustomers.unshift({
           timestamp: ts, name: name, phone: phone, carType: carType,
-          category: '썬팅', summary: film, estPrice: price, status: '',
+          category: scanKind, summary: film, estPrice: price, status: '',
           note: '', deposit: '', entryDate: date, doneDate: date
         });
       } catch(fe) { console.warn('[스캔] Firebase 저장 경고', fe); }
 
       await apiPost({
         action: 'submitFromWebApp',
-        name, phone, carType, category: '썬팅', summary: film,
+        name, phone, carType, category: scanKind, summary: film,
         estPrice: price, status: '', note: '보증서 스캔 등록 / 차량번호 ' + carNum,
         deposit: '', ppfText: '', combinedM: '',
         tintF: '', tintS1: '', tintS2: '', tintR: '', tintSun: '',
@@ -3959,7 +3984,7 @@ async function submitScanDone() {
       });
       await apiPost({
         action: 'setDoneDate',
-        timestamp: '', name, carType, phone, category: '썬팅',
+        timestamp: '', name, carType, phone, category: scanKind,
         summary: film, estPrice: price, doneDate: date
       });
     }
