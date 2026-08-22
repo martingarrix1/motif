@@ -3922,6 +3922,14 @@ async function submitScanDone() {
         summary: matched.summary || film, estPrice: matched.estPrice || price,
         doneDate: date
       });
+
+      // 캘린더에 뜨도록 입고예정일도 시공일자로 갱신
+      try {
+        await apiPost({ action: 'updateCustomerField', timestamp: matched.timestamp, field: 'entryDate', value: date });
+        await updateCustomerInFirebase(matched.timestamp, { entryDate: date, doneDate: date });
+        matched.entryDate = date;
+        matched.doneDate = date;
+      } catch(ue) { console.warn('[스캔] 입고일 갱신 경고', ue); }
     } else {
       // 신규: 고객 등록 + 시공완료
       await apiPost({
@@ -3953,6 +3961,7 @@ async function submitScanDone() {
         '<button class="btn btn-primary" onclick="initScan()" style="margin-top:12px">📸 다음 보증서 스캔</button>';
       showToast('✅ 발송 완료!');
       loadCustomers();
+      try { renderCalendar(); } catch(ce) {}
     } else {
       showToast('❌ 발송 실패: ' + ((r && r.error) ? r.error : JSON.stringify(r)));
       btn.disabled = false; btn.textContent = '📨 시공완료 알림톡 발송';
