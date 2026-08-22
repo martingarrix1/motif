@@ -314,6 +314,7 @@ function doLogout() {
   <div style="display:grid;grid-template-columns:repeat(4,1fr);padding:8px">
   <button onclick="showPage('aftercare',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📋<span>사후관리</span></button>
   <button onclick="showPage('insurance',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🚗<span>보험건</span></button>
+  <button onclick="showPage('scan',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📸<span>보증서스캔</span></button>
   <button onclick="showPage('glass',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🔵<span>유리막</span></button>
   <button onclick="showPage('memo',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📓<span>메모</span></button>
   <button onclick="showPage('invoice',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📑<span>견적서</span></button>
@@ -525,6 +526,24 @@ function doLogout() {
       <button class="btn btn-primary" onclick="submitGlassWarranty()" id="glass-submit-btn">📄 보증서 생성</button>
     </div>
     <div id="glass-result"></div>
+  </div>
+
+  <!-- 보증서 스캔: 솔라가드 보증서 스크린샷 → AI 추출 → 시공완료 알림톡 -->
+  <div id="page-scan" class="page">
+    <div class="card">
+      <div class="card-title">📸 보증서 스캔</div>
+      <div style="font-size:12px;color:#888;margin-bottom:12px;line-height:1.6">
+        솔라가드 보증서 화면을 캡처해서 올리면<br>
+        고객 정보를 자동으로 읽어 시공완료 알림톡을 보냅니다.
+      </div>
+      <input type="file" id="scan-file" accept="image/*" onchange="handleScanImage(this)"
+        style="width:100%;font-size:14px;padding:10px;border:1.5px dashed #ccc;border-radius:10px;background:#fafafa">
+      <div id="scan-preview" style="margin-top:10px"></div>
+      <button class="btn btn-primary" id="scan-btn" onclick="runScanExtract()" style="margin-top:12px;display:none">🔍 정보 읽기</button>
+    </div>
+
+    <div id="scan-result"></div>
+    <div style="height:24px"></div>
   </div>
 
   <div id="page-insurance" class="page">
@@ -1143,6 +1162,7 @@ function showPage(page, btn) {
     else loadAftercare();
   }
   if (page === 'insurance') { initInsurance(); }
+  if (page === 'scan') { initScan(); }
   if (page === 'todo') initTodo();
   if (page === 'calendar') { loadCalendar(); }
   if (page === 'memo') { initMemo(); }
@@ -3719,7 +3739,209 @@ let allInsurance = [];
 let insFilter = '전체';
 let insSelectedStatus = '미청구';
 
-async function initInsurance() {
+async // ═══════════════ 보증서 스캔 (솔라가드 화면 → 시공완료 알림톡) ═══════════════
+let scanImageData = null;   // base64 (헤더 제외)
+let scanImageMime = 'image/jpeg';
+
+function initScan() {
+  scanImageData = null;
+  const f = document.getElementById('scan-file');
+  if (f) f.value = '';
+  document.getElementById('scan-preview').innerHTML = '';
+  document.getElementById('scan-result').innerHTML = '';
+  document.getElementById('scan-btn').style.display = 'none';
+}
+
+// 이미지 선택 → 미리보기 + 압축(긴 변 1600px)
+function handleScanImage(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const maxSide = 1600;
+      let w = img.width, h = img.height;
+      if (Math.max(w, h) > maxSide) {
+        if (w > h) { h = Math.round(h * maxSide / w); w = maxSide; }
+        else { w = Math.round(w * maxSide / h); h = maxSide; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      scanImageData = dataUrl.split(',')[1];
+      scanImageMime = 'image/jpeg';
+
+      document.getElementById('scan-preview').innerHTML =
+        '<img src="' + dataUrl + '" style="width:100%;border-radius:10px;border:1px solid #ddd">';
+      document.getElementById('scan-btn').style.display = 'block';
+      document.getElementById('scan-result').innerHTML = '';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function runScanExtract() {
+  if (!scanImageData) { showToast('❌ 이미지를 먼저 선택해주세요'); return; }
+  const btn = document.getElementById('scan-btn');
+  btn.disabled = true; btn.textContent = '⏳ 읽는 중... (10초 정도)';
+
+  const systemPrompt = '너는 자동차 썬팅 보증서 화면에서 정보를 추출하는 보조다. '
+    + '이미지에서 아래 항목을 찾아 JSON만 출력해라. 코드블록이나 설명 없이 JSON만.\n'
+    + '{"고객명":string|null,"연락처":string|null,"차종":string|null,"차량번호":string|null,'
+    + '"시공일자":string|null,"시공가격":number|null,"필름":string|null,"보증번호":string|null}\n'
+    + '- 연락처는 하이픈 포함 그대로 (예: 010-1234-5678)\n'
+    + '- 차종은 브랜드+모델 (예: 테슬라 주니퍼YL)\n'
+    + '- 시공일자는 YYYY-MM-DD\n'
+    + '- 시공가격은 숫자만 (원 단위, 콤마 제거)\n'
+    + '- 필름은 전면/측후면 제품명 요약 (예: LX 전면25 측후면15)\n'
+    + '- 없으면 null';
+
+  try {
+    const r = await apiPost({
+      action: 'aiChat',
+      system: systemPrompt,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: scanImageMime, data: scanImageData } },
+          { type: 'text', text: '이 보증서 화면에서 정보를 JSON으로 추출해줘.' }
+        ]
+      }]
+    });
+
+    console.log('[보증서 스캔 응답]', r);
+
+    if (!r || r.error) {
+      showToast('❌ 읽기 실패: ' + ((r && r.error) ? (r.error.message || r.error) : '응답 없음'));
+      btn.disabled = false; btn.textContent = '🔍 정보 읽기';
+      return;
+    }
+
+    // Claude 응답에서 텍스트 추출
+    let text = '';
+    if (r.content && r.content.length) {
+      r.content.forEach(c => { if (c.type === 'text') text += c.text; });
+    }
+    const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+
+    let data;
+    try { data = JSON.parse(cleaned); }
+    catch(pe) {
+      showToast('❌ 결과 해석 실패 — 다시 시도해주세요');
+      console.error('파싱 실패:', cleaned);
+      btn.disabled = false; btn.textContent = '🔍 정보 읽기';
+      return;
+    }
+
+    renderScanForm(data);
+    showToast('✅ 읽기 완료! 내용 확인 후 발송하세요');
+
+  } catch(e) {
+    showToast('❌ 오류: ' + e.message);
+  }
+  btn.disabled = false; btn.textContent = '🔍 다시 읽기';
+}
+
+// 추출 결과 확인 폼
+function renderScanForm(d) {
+  const name = (d.고객명 && d.고객명 !== 'VIP') ? d.고객명 : 'VIP';
+  const phone = d.연락처 || '';
+  const carType = d.차종 || '';
+  const carNum = d.차량번호 || '';
+  const date = d.시공일자 || new Date().toISOString().slice(0,10);
+  const price = d.시공가격 ? Math.round(Number(d.시공가격)/10000) : '';
+  const film = d.필름 || '';
+
+  document.getElementById('scan-result').innerHTML =
+    '<div class="card">' +
+      '<div class="card-title">✅ 읽은 내용 <span style="font-size:12px;color:#888;font-weight:400">— 틀린 곳은 고쳐주세요</span></div>' +
+      '<div class="form-group"><label>고객명</label><input type="text" id="sc-name" value="' + esc(name) + '"></div>' +
+      '<div class="form-group"><label>연락처</label><input type="tel" id="sc-phone" inputmode="numeric" value="' + esc(phone) + '"></div>' +
+      '<div class="form-group"><label>차종</label><input type="text" id="sc-cartype" value="' + esc(carType) + '"></div>' +
+      '<div class="form-group"><label>차량번호</label><input type="text" id="sc-carnum" value="' + esc(carNum) + '"></div>' +
+      '<div class="form-group"><label>시공일자</label><input type="date" id="sc-date" value="' + esc(date) + '"></div>' +
+      '<div class="form-group"><label>시공내용</label><input type="text" id="sc-film" value="' + esc(film) + '"></div>' +
+      '<div class="form-group"><label>시공가격 (만원)</label><input type="number" id="sc-price" inputmode="numeric" value="' + esc(price) + '"></div>' +
+    '</div>' +
+    '<button class="btn btn-primary" id="sc-send-btn" onclick="submitScanDone()">📨 시공완료 알림톡 발송</button>';
+}
+
+async function submitScanDone() {
+  const name = (document.getElementById('sc-name').value || '').trim() || 'VIP';
+  const phone = (document.getElementById('sc-phone').value || '').trim();
+  const carType = (document.getElementById('sc-cartype').value || '').trim();
+  const carNum = (document.getElementById('sc-carnum').value || '').trim();
+  const date = (document.getElementById('sc-date').value || '').trim();
+  const film = (document.getElementById('sc-film').value || '').trim();
+  const price = (document.getElementById('sc-price').value || '').trim();
+
+  if (!phone) { showToast('❌ 연락처를 입력해주세요'); return; }
+  if (!carType) { showToast('❌ 차종을 입력해주세요'); return; }
+
+  const btn = document.getElementById('sc-send-btn');
+  btn.disabled = true; btn.textContent = '⏳ 처리 중...';
+
+  try {
+    // 1) 기존 고객 찾기 (번호 뒷자리로)
+    const digits = phone.replace(/-/g, '');
+    let matched = allCustomers.find(c =>
+      (c.phone || '').replace(/-/g, '').slice(-8) === digits.slice(-8)
+    );
+
+    // 2) 시공완료일 저장 (기존 고객이면 그 고객에, 없으면 새로 등록)
+    if (matched) {
+      await apiPost({
+        action: 'setDoneDate',
+        timestamp: matched.timestamp, name: matched.name || name, carType: matched.carType || carType,
+        phone: phone, category: matched.category || '썬팅',
+        summary: matched.summary || film, estPrice: matched.estPrice || price,
+        doneDate: date
+      });
+    } else {
+      // 신규: 고객 등록 + 시공완료
+      await apiPost({
+        action: 'submitFromWebApp',
+        name, phone, carType, category: '썬팅', summary: film,
+        estPrice: price, status: '', note: '보증서 스캔 등록 / 차량번호 ' + carNum,
+        deposit: '', ppfText: '', combinedM: '',
+        tintF: '', tintS1: '', tintS2: '', tintR: '', tintSun: '',
+        entryDate: date, blackbox: '', battery: '', sendAlimtalk: false
+      });
+      await apiPost({
+        action: 'setDoneDate',
+        timestamp: '', name, carType, phone, category: '썬팅',
+        summary: film, estPrice: price, doneDate: date
+      });
+    }
+
+    // 3) 시공완료 알림톡 발송
+    btn.textContent = '⏳ 알림톡 발송 중...';
+    const r = await apiPost({ action: 'sendDoneAlimtalk', name, carType, phone, doneDate: date, pdfId: '' });
+
+    if (r === 'ok' || (r && (r.success || r.ok))) {
+      document.getElementById('scan-result').innerHTML =
+        '<div class="card" style="text-align:center;padding:40px 20px">' +
+          '<div style="font-size:50px;margin-bottom:12px">📨</div>' +
+          '<div style="font-size:18px;font-weight:700;margin-bottom:6px">시공완료 알림톡 발송!</div>' +
+          '<div style="font-size:14px;color:#888">' + esc(name) + ' · ' + esc(carType) + '</div>' +
+        '</div>' +
+        '<button class="btn btn-primary" onclick="initScan()" style="margin-top:12px">📸 다음 보증서 스캔</button>';
+      showToast('✅ 발송 완료!');
+      loadCustomers();
+    } else {
+      showToast('❌ 발송 실패: ' + ((r && r.error) ? r.error : JSON.stringify(r)));
+      btn.disabled = false; btn.textContent = '📨 시공완료 알림톡 발송';
+    }
+  } catch(e) {
+    showToast('❌ 오류: ' + e.message);
+    btn.disabled = false; btn.textContent = '📨 시공완료 알림톡 발송';
+  }
+}
+
+function initInsurance() {
   // 시공일 기본값 오늘
   const d = document.getElementById('ins-date');
   if (d && !d.value) d.value = new Date().toISOString().slice(0,10);
