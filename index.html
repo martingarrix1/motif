@@ -3754,11 +3754,24 @@ function initScan() {
 
 // 이미지 선택 → 미리보기 + 압축(긴 변 1600px)
 function handleScanImage(input) {
+  const prev = document.getElementById('scan-preview');
   const file = input.files && input.files[0];
-  if (!file) return;
+  if (!file) { prev.innerHTML = '<div style="color:#c62828;font-size:13px">파일이 선택되지 않았습니다</div>'; return; }
+
+  prev.innerHTML = '<div style="color:#888;font-size:13px">⏳ 이미지 불러오는 중... (' + esc(file.name) + ', ' + Math.round(file.size/1024) + 'KB)</div>';
+  showToast('📷 ' + file.name);
+
   const reader = new FileReader();
+  reader.onerror = () => {
+    prev.innerHTML = '<div style="color:#c62828;font-size:13px">❌ 파일을 읽을 수 없습니다</div>';
+    showToast('❌ 파일 읽기 실패');
+  };
   reader.onload = e => {
     const img = new Image();
+    img.onerror = () => {
+      prev.innerHTML = '<div style="color:#c62828;font-size:13px">❌ 이미지 형식을 지원하지 않습니다<br>PNG 또는 JPG로 다시 시도해주세요 (HEIC 불가)</div>';
+      showToast('❌ 지원하지 않는 이미지 형식');
+    };
     img.onload = () => {
       const maxSide = 1600;
       let w = img.width, h = img.height;
