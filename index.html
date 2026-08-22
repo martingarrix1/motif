@@ -77,9 +77,10 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
 <script>
-// 보증서 스캔용 전역 (var: 어디서 호출해도 안전)
+// 전역 변수 (var: 선언 순서와 무관하게 안전)
 var scanImageData = null;
 var scanImageMime = 'image/png';
+var displayCount = 30;          // 고객 목록 표시 개수
 
 const firebaseConfig = {
   apiKey: "AIzaSyDjB5b6T5m-xTIyTUbGK0QCe5hEr9kZDR4",
@@ -4588,7 +4589,7 @@ function getFuzzyDateValue() {
   return { entryDate: '', fuzzyNote: parseInt(m) + '월 ' + (partMap[part] || part) };
 }
 
-let displayCount = 30;
+displayCount = 30;   // 최상단에서 var로 선언됨
 
 // ============================================
 // 콘텐츠 생성 GAS 프록시 URL
