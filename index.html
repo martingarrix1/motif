@@ -6010,7 +6010,7 @@ auth.onAuthStateChanged(function(user) {
 
 function subscribeAIConsults() {
   if (aiConsultUnsubscribe) return;
-  
+
   aiConsultUnsubscribe = db.collection('consultations')
     .where('status', '==', 'pending')
     .onSnapshot(function(snap) {
@@ -6018,10 +6018,58 @@ function subscribeAIConsults() {
       snap.forEach(function(doc) {
         aiConsultData[doc.id] = doc.data();
       });
+      console.log('[AI상담] ' + snap.size + '건 수신');
       renderAIConsults();
     }, function(err) {
       console.error('AI 상담 구독 에러:', err);
+      _showAIConsultError(err);
+      // 색인/권한 문제일 수 있으므로 조건 없이 전체 조회로 재시도
+      aiConsultUnsubscribe = null;
+      _fallbackLoadAIConsults();
     });
+}
+
+// 구독 실패 시: 조건 없이 전체를 가져와 클라이언트에서 pending만 거름
+async function _fallbackLoadAIConsults() {
+  try {
+    const snap = await db.collection('consultations').get();
+    aiConsultData = {};
+    let cnt = 0;
+    snap.forEach(function(doc) {
+      const d = doc.data();
+      if (!d.status || d.status === 'pending') { aiConsultData[doc.id] = d; cnt++; }
+    });
+    console.log('[AI상담 fallback] ' + cnt + '건');
+    renderAIConsults();
+    if (cnt > 0) {
+      const sec = document.getElementById('ai-consult-section');
+      const err = document.getElementById('ai-consult-error');
+      if (err) err.remove();
+      if (sec) sec.style.display = 'block';
+    }
+  } catch(e) {
+    console.error('[AI상담 fallback 실패]', e);
+    _showAIConsultError(e);
+  }
+}
+
+// 에러를 고객탭 화면에 직접 표시
+function _showAIConsultError(err) {
+  const sec = document.getElementById('ai-consult-section');
+  if (!sec) return;
+  let box = document.getElementById('ai-consult-error');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'ai-consult-error';
+    box.style.cssText = 'background:#fff3f3;border:1px solid #ffcdd2;border-radius:12px;padding:14px;margin-bottom:12px;font-size:13px;color:#c62828;line-height:1.6;word-break:break-all';
+    sec.parentNode.insertBefore(box, sec);
+  }
+  const code = (err && err.code) ? err.code : '';
+  const msg = (err && err.message) ? err.message : String(err);
+  box.innerHTML = '<strong>⚠️ AI 상담 불러오기 실패</strong><br>'
+    + (code ? '코드: ' + esc(code) + '<br>' : '')
+    + esc(msg.substring(0, 400));
+  sec.style.display = 'block';
 }
 
 function renderAIConsults() {
