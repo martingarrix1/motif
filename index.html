@@ -3758,40 +3758,47 @@ function handleScanImage(input) {
   const file = input.files && input.files[0];
   if (!file) { prev.innerHTML = '<div style="color:#c62828;font-size:13px">파일이 선택되지 않았습니다</div>'; return; }
 
-  prev.innerHTML = '<div style="color:#888;font-size:13px">⏳ 이미지 불러오는 중... (' + esc(file.name) + ', ' + Math.round(file.size/1024) + 'KB)</div>';
-  showToast('📷 ' + file.name);
+  prev.innerHTML = '<div style="color:#888;font-size:13px">⏳ 읽는 중... (' + esc(file.name) + ', ' + Math.round(file.size/1024) + 'KB)</div>';
 
   const reader = new FileReader();
   reader.onerror = () => {
     prev.innerHTML = '<div style="color:#c62828;font-size:13px">❌ 파일을 읽을 수 없습니다</div>';
-    showToast('❌ 파일 읽기 실패');
   };
   reader.onload = e => {
-    const img = new Image();
-    img.onerror = () => {
-      prev.innerHTML = '<div style="color:#c62828;font-size:13px">❌ 이미지 형식을 지원하지 않습니다<br>PNG 또는 JPG로 다시 시도해주세요 (HEIC 불가)</div>';
-      showToast('❌ 지원하지 않는 이미지 형식');
-    };
-    img.onload = () => {
-      const maxSide = 1600;
-      let w = img.width, h = img.height;
-      if (Math.max(w, h) > maxSide) {
-        if (w > h) { h = Math.round(h * maxSide / w); w = maxSide; }
-        else { w = Math.round(w * maxSide / h); h = maxSide; }
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-      scanImageData = dataUrl.split(',')[1];
-      scanImageMime = 'image/jpeg';
+    try {
+      const dataUrl = String(e.target.result || '');
+      const comma = dataUrl.indexOf(',');
+      if (comma < 0) throw new Error('형식 오류');
 
-      document.getElementById('scan-preview').innerHTML =
-        '<img src="' + dataUrl + '" style="width:100%;border-radius:10px;border:1px solid #ddd">';
+      // MIME 추출 (image/png, image/jpeg 등)
+      const head = dataUrl.substring(0, comma);
+      const mm = head.match(/data:([^;]+)/);
+      scanImageMime = mm ? mm[1] : 'image/png';
+      scanImageData = dataUrl.substring(comma + 1);
+
+      // 지원 형식 확인
+      if (scanImageMime !== 'image/png' && scanImageMime !== 'image/jpeg'
+          && scanImageMime !== 'image/jpg' && scanImageMime !== 'image/webp' && scanImageMime !== 'image/gif') {
+        prev.innerHTML = '<div style="color:#c62828;font-size:13px">❌ 지원하지 않는 형식(' + esc(scanImageMime) + ')<br>PNG 또는 JPG로 올려주세요</div>';
+        return;
+      }
+
+      // 용량이 너무 크면(4MB 초과) 경고
+      const sizeKB = Math.round(scanImageData.length * 3 / 4 / 1024);
+      if (sizeKB > 4000) {
+        prev.innerHTML = '<div style="color:#c62828;font-size:13px">❌ 이미지가 너무 큽니다 (' + sizeKB + 'KB)<br>캡처 범위를 줄이거나 이미지를 압축해서 올려주세요</div>';
+        return;
+      }
+
+      prev.innerHTML =
+        '<img src="' + dataUrl + '" style="width:100%;border-radius:10px;border:1px solid #ddd">' +
+        '<div style="font-size:12px;color:#888;margin-top:6px">✅ 준비 완료 (' + sizeKB + 'KB)</div>';
       document.getElementById('scan-btn').style.display = 'block';
       document.getElementById('scan-result').innerHTML = '';
-    };
-    img.src = e.target.result;
+
+    } catch(err) {
+      prev.innerHTML = '<div style="color:#c62828;font-size:13px">❌ 처리 실패: ' + esc(err.message) + '</div>';
+    }
   };
   reader.readAsDataURL(file);
 }
