@@ -82,6 +82,8 @@ var scanImageData = null;
 var scanImageMime = 'image/png';
 var displayCount = 30;          // 고객 목록 표시 개수
 var scanKind = '썬팅';           // 보증서 스캔 시공 종류
+var aiConsultData = {};         // AI 추출 상담 (docId -> data)
+var aiConsultEditState = {};    // AI 카드 편집 상태
 
 const firebaseConfig = {
   apiKey: "AIzaSyDjB5b6T5m-xTIyTUbGK0QCe5hEr9kZDR4",
@@ -5990,8 +5992,7 @@ function setContentStatusFilter(status) {
 // AI 추출 상담 (consultations 컬렉션)
 // ============================================================
 let aiConsultUnsubscribe = null;
-let aiConsultData = {};  // docId -> data
-let aiConsultEditState = {};  // docId -> editing state
+// aiConsultData / aiConsultEditState 는 최상단에서 var로 선언됨
 
 // 로그인 후 자동 구독 시작
 auth.onAuthStateChanged(function(user) {
