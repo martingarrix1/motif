@@ -124,6 +124,9 @@ auth.onAuthStateChanged(function(user) {
     // 한 번만 실행, 함수 정의 이후 호출되도록 약간 지연
     // 인증 완료 → 실시간 구독 시작 후 페이지 복원
     if (typeof startFirestoreSubscriptions === 'function') startFirestoreSubscriptions();
+    setTimeout(function() {
+      try { if (typeof subscribeAIConsults === 'function') subscribeAIConsults(); } catch(e) { console.error('[AI상담 구독]', e); }
+    }, 300);
     if (!_pageRestoredAfterAuth) {
       _pageRestoredAfterAuth = true;
       setTimeout(function() {
@@ -1167,6 +1170,13 @@ function showPage(page, btn) {
   if (page === 'customers') {
     if (allCustomers.length > 0) { displayCount = displayCount || 30; renderCustomers(allCustomers); }
     else loadCustomers();
+    // AI 추출 상담도 확실히 불러오기 (인증 리스너 타이밍 문제 대비)
+    try {
+      if (typeof subscribeAIConsults === 'function') subscribeAIConsults();
+      if (Object.keys(aiConsultData).length === 0 && typeof _fallbackLoadAIConsults === 'function') {
+        _fallbackLoadAIConsults();
+      }
+    } catch(ae) { console.error('[AI상담 초기화]', ae); }
   }
   if (page === 'aftercare') {
     if (allAftercare.length > 0) renderAftercare(allAftercare);
