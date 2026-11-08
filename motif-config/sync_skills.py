@@ -36,9 +36,24 @@ for key, (name, s, e) in MAP.items():
     txt = section(body(p), s, e)
     if key in ('tistory', 'wordpress'):
         cp = find(COMMON[0]); txt = section(body(cp), COMMON[1], COMMON[2]) + '\n\n' + txt
+    if key == 'reels':  # 대본에 필요한 것: 0~3장 + 피드백 이력(반복 금지) + 후킹 점검 스킬 (2026-11-08)
+        full = body(p)
+        fb = section(full, r'^## .*피드백 이력', r'^## (?!.*피드백)')
+        if fb and fb != full: txt += '\n\n' + fb
+        hp = find('motif-hook-check')
+        if hp: txt += '\n\n# 후킹 점검 (motif-hook-check)\n' + body(hp); src['reels_hook'] = 'motif-hook-check'
     res[key] = txt[:24000]; src[key] = name
+# 스킬별 마지막 수정 시각(앱 '규칙' 화면 표시용)
+ver = {}
+for root in ['/root/.claude/skills', os.path.expanduser('~/.claude/skills')]:
+    for mf in glob.glob(f'{root}/**/manifest.json', recursive=True):
+        try:
+            for s in json.load(open(mf, encoding='utf-8')).get('skills', []):
+                if str(s.get('name', '')).startswith('motif') or s.get('name') == 'tistory-chrome-publish': ver[s['name']] = s.get('updatedAt', '')
+        except Exception: pass
+res['versions'] = ver
 res['sources'] = src
-res['hash'] = hashlib.md5(json.dumps({k: res[k] for k in src}, ensure_ascii=False).encode()).hexdigest()
-res['updatedAt'] = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')
+res['hash'] = hashlib.md5(json.dumps({k: res[k] for k in src if k in res}, ensure_ascii=False).encode()).hexdigest()
+res['checkedAt'] = res['updatedAt'] = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')
 json.dump(res, open(sys.argv[1] if len(sys.argv) > 1 else 'skills.json', 'w', encoding='utf-8'), ensure_ascii=False)
-print({k: len(v) for k, v in res.items() if k in src}, res['hash'])
+print({k: len(v) for k, v in res.items() if k in src and k in res}, res['hash'])
