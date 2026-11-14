@@ -1,0 +1,9 @@
+{
+  "note": "네이버 새 글 → 티스토리·워드프레스 자동 발행 기록. baseline_logNo 이하(이전) 글은 대상이 아니다.",
+  "baseline_logNo": "224475873103",
+  "running": null,
+  "done": {
+    "224475873103": {"title": "전주 썬팅. 솔라가드 S라인은 왜 역대급 엔트리일까?", "tistory": "https://motif-jeonju.tistory.com/192", "wordpress": "https://motif-jeonju.com/jeonju-solargard-s-line/", "at": "2026-11-13"}
+  },
+  "skipped": {}
+}
