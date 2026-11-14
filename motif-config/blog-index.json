@@ -11328,6 +11328,55 @@
 "tistory": [
 {
 "ch": "tistory",
+"url": "https://motif-jeonju.tistory.com/193",
+"id": "193",
+"date": "2026-11-14",
+"title": "전주 솔라가드 LX. 시공 후 건조가 오래 걸리는 이유는 무엇일까",
+"category": "",
+"heads": [
+"전주 솔라가드 LX. 시공 후 건조가 오래 걸리는 이유는 무엇일까",
+"시공에 사용한 수분은 어디로 빠져나갈까?",
+"열을 흡수하는 필름은 왜 빨리 건조될까?",
+"LX는 왜 뜨거워지지 않을까?",
+"필름의 두께와 금속박막은 어떤 영향을 줄까?",
+"건조까지 얼마나 걸리고 그동안 어떻게 보일까?",
+"그럼 모티프는 무엇을 할까?",
+"느린 건조는 단점일까?"
+],
+"summary": "전주 솔라가드 LX.",
+"chars": 3374,
+"links": [
+"jeonju-lx-drying-time"
+],
+"hashtags": [
+"더엘엑스",
+"솔라가드lx",
+"썬팅건조기간",
+"썬팅물방울",
+"열반사필름",
+"익산썬팅",
+"전주LX썬팅",
+"전주모티프",
+"전주썬팅",
+"풀메탈스퍼터링"
+],
+"section": "썬팅-재시공·관리·내구성",
+"work": [
+"썬팅"
+],
+"product": [
+"솔라가드 LX"
+],
+"car": [],
+"brand": [],
+"topic": [
+"시공 후 관리",
+"가격·비용",
+"구조·기술"
+]
+},
+{
+"ch": "tistory",
 "url": "https://motif-jeonju.tistory.com/192",
 "id": "192",
 "date": "2026-11-13",
@@ -20715,6 +20764,30 @@
 }
 ],
 "wordpress": [
+{
+"ch": "wordpress",
+"url": "https://motif-jeonju.com/jeonju-lx-drying-time/",
+"id": "1779",
+"slug": "jeonju-lx-drying-time",
+"date": "2026-11-14",
+"title": "솔라가드 LX 건조 기간 Q&A — 물 맺힘이 오래가는 이유와 기다리는 동안 주의할 점",
+"category": "",
+"heads": [],
+"summary": "솔라가드 LX 썬팅 시공 후 물방울이 오래 보이는 것은 하자가 아닙니다. 반사 방식이라 필름이 덜 뜨거워지고 금속박막이 수증기 투과를 늦추기 때문입니다. 건조 기간과 그동안의 주의점을 정리했습니다.",
+"chars": 0,
+"links": [],
+"hashtags": [],
+"section": "썬팅-재시공·관리·내구성",
+"work": [],
+"product": [
+"솔라가드 LX"
+],
+"car": [],
+"brand": [],
+"topic": [
+"시공 후 관리"
+]
+},
 {
 "ch": "wordpress",
 "url": "https://motif-jeonju.com/jeonju-solargard-s-line/",
