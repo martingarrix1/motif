@@ -1,10 +1,7 @@
 {
   "note": "네이버 새 글 → 티스토리·워드프레스 자동 발행 기록. baseline_logNo 이하(이전) 글은 대상이 아니다.",
   "baseline_logNo": "224475873103",
-  "running": {
-    "logNo": "224477866831",
-    "at": "2026-11-15T05:54:49Z"
-  },
+  "running": null,
   "done": {
     "224475873103": {
       "title": "전주 썬팅. 솔라가드 S라인은 왜 역대급 엔트리일까?",
@@ -24,7 +21,9 @@
       "title": "솔라가드 LX와 브이쿨 VK. 120만 원의 차액은 무엇으로 설명될까?",
       "tistory": "https://motif-jeonju.tistory.com/195",
       "wordpress": "https://motif-jeonju.com/jeonju-lx-vkool-price-gap/",
-      "at": "2026-11-15"
+      "at": "2026-11-15",
+      "bing": true,
+      "google": "requested"
     }
   },
   "skipped": {}
