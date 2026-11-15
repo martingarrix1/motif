@@ -1,12 +1,13 @@
 # 모티프 티스토리 · 워드프레스 내부 링크 인덱스
 
-티스토리 192편 · 워드프레스 130편 · 마지막 갱신 2026-11-15 (매일 아침 자동 갱신)
+티스토리 194편 · 워드프레스 132편 · 마지막 갱신 2026-11-16 (매일 아침 자동 갱신)
 링크는 같은 블로그 글끼리만 넣습니다 (티스토리↔티스토리 · 워드프레스↔워드프레스). 짝 글끼리는 서로 링크합니다.
 형식: 날짜 | 제목 | URL | 차종 · 제품 · 주제
 
 ## 티스토리 (motif-jeonju.tistory.com)
 
-### 썬팅-솔라가드 LX (16편)
+### 썬팅-솔라가드 LX (17편)
+- 26-11-15 | 솔라가드 LX와 브이쿨 VK. 120만 원의 차액은 무엇으로 설명될까 | https://motif-jeonju.tistory.com/195 | 솔라가드 LX · 브이쿨 · 가격·비용 · 열차단·TSER
 - 26-11-11 | 전주 솔라가드 LX 썬팅. 블랙 색상인데 열반사 필름이 맞을까요? | https://motif-jeonju.tistory.com/187 | 솔라가드 LX · 제니스 IR · 반사 · 가격·비용
 - 26-11-05 | 전주 썬팅 — 스퍼터링이란 무엇일까, 솔라가드 LX가 이 기술을 쓰는 이유 | https://motif-jeonju.tistory.com/168 | 솔라가드 LX · 구조·기술 · 가격·비용
 - 26-11-04 | 전주 전기차 썬팅 — 솔라가드 THE LX가 여름과 겨울 모두 유리한 이유 | https://motif-jeonju.tistory.com/163 | 솔라가드 LX · 전기차 · 가격·비용
@@ -83,7 +84,8 @@
 - 26-04-18 | 전주 LX 썬팅 — 열차단 수치보다 먼저 확인해야 할 것들 | https://motif-jeonju.tistory.com/14 | 솔라가드 LX · 열차단·TSER · 내구성·보증
 - 26-03-29 | 전주썬팅 제니스 IR, 홈페이지 스펙이 말하지 않는 것 | https://motif-jeonju.tistory.com/2 | 제니스 IR · 농도 선택 · 열차단·TSER
 
-### 썬팅-농도·시야·법규 (13편)
+### 썬팅-농도·시야·법규 (14편)
+- 26-11-15 | 전주 솔라가드 LX 썬팅. 포드 레인저 랩터에 밝은 농도를 권한 이유 | https://motif-jeonju.tistory.com/194 | 솔라가드 LX · 농도 선택 · 가격·비용
 - 26-11-09 | 전주 썬팅, 블랙박스 화질이 걱정된다면 — 농도보다 먼저 볼 세 가지 | https://motif-jeonju.tistory.com/180 | 솔라가드 LX · 농도 선택 · 가격·비용
 - 26-11-07 | 전주 썬팅 농도 선택 기준. 밤 운전이 많다면 무엇부터 살펴봐야 할까 | https://motif-jeonju.tistory.com/175 | 농도 선택 · 야간 시야
 - 26-11-03 | 솔라가드 LX 투과율 그래프 읽는 법 — 농도가 달라도 적외선 곡선이 겹치는 이유 | https://motif-jeonju.tistory.com/161 | 솔라가드 LX · 제니스 IR · 농도 선택 · 열차단·TSER
@@ -228,7 +230,8 @@
 
 ## 워드프레스 (motif-jeonju.com)
 
-### 썬팅-솔라가드 LX (9편)
+### 썬팅-솔라가드 LX (10편)
+- 26-11-15 | 솔라가드 LX vs 브이쿨 VK Q&A — 120만 원 차액 · 실차 테스트 · 색감 차이 | https://motif-jeonju.com/jeonju-lx-vkool-price-gap/ | 솔라가드 LX · 브이쿨 · 가격·비용 · 비교
 - 26-11-09 | 스퍼터링이란 무엇일까? 솔라가드 LX가 이 기술을 사용하는 이유 | https://motif-jeonju.com/sputtering-solargard-lx-why/ | 솔라가드 LX · 구조·기술
 - 26-11-05 | 마그네트론 스퍼터링 Q&A — 솔라가드 THE LX 금속 박막은 어떻게 만들어지나 | https://motif-jeonju.com/jeonju-magnetron-sputtering/ | 솔라가드 LX · 구조·기술
 - 26-11-04 | 전기차 썬팅 Q&A — 솔라가드 THE LX, 여름 태양열과 겨울 열손실(방사율)까지 | https://motif-jeonju.com/jeonju-ev-lx-winter/ | 솔라가드 LX · 전기차
@@ -272,7 +275,8 @@
 - 26-06-20 | 솔라가드 퀀텀 Q&A | 풀메탈 반사필름의 원리·TSER 맹점·전파 간섭까지 | https://motif-jeonju.com/solargard-quantum-reflection/ | 퀀텀 · 열차단·TSER · 전파·하이패스
 - 26-06-10 | 전주썬팅 고를 때 열차단율만 보면 안 되는 이유 | 점검할 4가지 기준 | https://motif-jeonju.com/%ec%a0%84%ec%a3%bc%ec%8d%ac%ed%8c%85-%ea%b3%a0%eb%a5%bc-%eb%95%8c-%ec%97%b4%ec%b0%a8%eb%8b%a8%ec%9c%a8%eb%a7%8c-%eb%b3%b4%eb%a9%b4-%ec%95%88-%eb%90%98%eb%8a%94-%ec%9d%b4%ec%9c%a0-%ec%a0%90%ea%b2%80/ | 열차단·TSER
 
-### 썬팅-농도·시야·법규 (12편)
+### 썬팅-농도·시야·법규 (13편)
+- 26-11-15 | 포드 레인저 랩터 솔라가드 LX 썬팅 Q&A — 밝은 농도 · 틴티드 글래스 · 측면 유리 열차단 | https://motif-jeonju.com/jeonju-ranger-raptor-lx-tinting/ | 솔라가드 LX · 농도 선택 · 열차단·TSER
 - 26-11-09 | 썬팅과 블랙박스 화질 Q&A — 앞·뒤 카메라 차이, 야간 번호판, 내부 반사율 | https://motif-jeonju.com/jeonju-tinting-dashcam/ | 야간 시야 · 비교
 - 26-11-05 | 스퍼터링 Q&A — 솔라가드 LX가 금속 증착을 고른 이유·밝은 농도 열차단·시공 기준 | https://motif-jeonju.com/jeonju-sputtering-lx-reason/ | 솔라가드 LX · 농도 선택 · 열차단·TSER
 - 26-11-03 | 솔라가드 LX 파장별 투과율 그래프 Q&A — 농도·열차단·제니스 IR 비교 (ISO 9050) | https://motif-jeonju.com/jeonju-lx-spectrum-graph/ | 솔라가드 LX · 제니스 IR · 농도 선택 · 열차단·TSER
