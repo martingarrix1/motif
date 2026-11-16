@@ -1,6 +1,6 @@
 # 모티프 티스토리 · 워드프레스 내부 링크 인덱스
 
-티스토리 194편 · 워드프레스 132편 · 마지막 갱신 2026-11-16 (매일 아침 자동 갱신)
+티스토리 196편 · 워드프레스 134편 · 마지막 갱신 2026-11-17 (매일 아침 자동 갱신)
 링크는 같은 블로그 글끼리만 넣습니다 (티스토리↔티스토리 · 워드프레스↔워드프레스). 짝 글끼리는 서로 링크합니다.
 형식: 날짜 | 제목 | URL | 차종 · 제품 · 주제
 
@@ -136,7 +136,8 @@
 - 26-05-07 | 전주 썬팅 재시공, 예산 안에서 전면에 비중을 더 둔 베뉴 케이스 | 제니스 IR + 티타늄 위치별 매칭 | https://motif-jeonju.tistory.com/34 | 제니스 IR · 티타늄 · 중고차·재시공 · 가격·비용
 - 26-05-03 | 가족을 위한 배려는 멀리 있지 않습니다 | BMW X7 솔라가드 LX 전체 재시공 사례 | https://motif-jeonju.tistory.com/30 | 카니발 · 팰리세이드 · 솔라가드 LX · 중고차·재시공 · 가격·비용
 
-### 신차패키지·신차검수 (19편)
+### 신차패키지·신차검수 (20편)
+- 26-11-16 | 익산 썬팅. GV80 신차 검수와 제니스 IR. 필름의 광학 특성은 왜 운전석에서 드러날까 | https://motif-jeonju.tistory.com/196 | GV80 · 제니스 IR · 가격·비용 · 농도 선택
 - 26-11-11 | 전주 신차패키지 샵 고르는 법. 품목은 많이 받았는데 작업도 그만큼 달랐을까 | https://motif-jeonju.tistory.com/189 | 가격·비용 · 비교
 - 26-10-29 | 전주 테슬라 모델Y 주니퍼 신차패키지 — 11월 출고 전 생각할 시공 기준 | https://motif-jeonju.tistory.com/148 | 모델Y · 주니퍼 · 솔라가드 LX · 가격·비용 · 시공 후 관리
 - 26-10-28 | 전주 신차패키지 — 예약 시점부터 검수·시공까지 | https://motif-jeonju.tistory.com/144 | 솔라가드 LX
@@ -208,7 +209,8 @@
 - 26-05-18 | 전주 유리막 코팅, 모두에게 적합할까 | 단점 3가지와 적재적소의 소비 분별 | https://motif-jeonju.tistory.com/45 | 솔라가드 LX · 가격·비용 · 내구성·보증
 - 26-05-10 | 1년 만에 다시 만난 가죽 | 야와라 전주 가죽코팅의 진짜 이야기 | https://motif-jeonju.tistory.com/37 | 야와라 · 솔라가드 LX · 가격·비용 · 내구성·보증
 
-### 시공사례-테슬라 (4편)
+### 시공사례-테슬라 (5편)
+- 26-11-16 | 전주 테슬라 모델Y 주니퍼 썬팅. 인도 날짜가 잡혔다면 무엇부터 정해야 할까 | https://motif-jeonju.tistory.com/197 | 모델Y · 주니퍼 · 솔라가드 LX · 제니스 IR · 가격·비용 · 농도 선택
 - 26-11-07 | 전주 테슬라 썬팅 — 모델Y 주니퍼 솔라가드 티타늄 패키지, 98만 원에 무엇이 들어 있을까 | https://motif-jeonju.tistory.com/173 | 모델Y · 주니퍼 · 티타늄 · 솔라가드 LX · 가격·비용 · 농도 선택
 - 26-08-08 | 전주 테슬라 썬팅 — 모델Y 주니퍼, 전면 LX에 측후면 제니스IR을 붙이는 이유 | https://motif-jeonju.tistory.com/135 | 모델Y · 주니퍼 · 솔라가드 LX · 제니스 IR · 가격·비용 · 전기차
 - 26-07-01 | 전주 테슬라 썬팅, 글라스루프 열 차단은 썬팅만으로 충분할까? (ft. 전동 썬쉐이드 & 제니스 IR) | https://motif-jeonju.tistory.com/91 | 테슬라 · 제니스 IR · 솔라가드 LX · 가격·비용 · 전파·하이패스
@@ -275,7 +277,8 @@
 - 26-06-20 | 솔라가드 퀀텀 Q&A | 풀메탈 반사필름의 원리·TSER 맹점·전파 간섭까지 | https://motif-jeonju.com/solargard-quantum-reflection/ | 퀀텀 · 열차단·TSER · 전파·하이패스
 - 26-06-10 | 전주썬팅 고를 때 열차단율만 보면 안 되는 이유 | 점검할 4가지 기준 | https://motif-jeonju.com/%ec%a0%84%ec%a3%bc%ec%8d%ac%ed%8c%85-%ea%b3%a0%eb%a5%bc-%eb%95%8c-%ec%97%b4%ec%b0%a8%eb%8b%a8%ec%9c%a8%eb%a7%8c-%eb%b3%b4%eb%a9%b4-%ec%95%88-%eb%90%98%eb%8a%94-%ec%9d%b4%ec%9c%a0-%ec%a0%90%ea%b2%80/ | 열차단·TSER
 
-### 썬팅-농도·시야·법규 (13편)
+### 썬팅-농도·시야·법규 (14편)
+- 26-11-16 | 모델Y 주니퍼 인도 전 썬팅 Q&A — 필름 · 농도 · 130만 원 구성 · 예약 시점 | https://motif-jeonju.com/jeonju-modely-juniper-delivery-tinting/ | 모델Y · 주니퍼 · 가격·비용 · 농도 선택
 - 26-11-15 | 포드 레인저 랩터 솔라가드 LX 썬팅 Q&A — 밝은 농도 · 틴티드 글래스 · 측면 유리 열차단 | https://motif-jeonju.com/jeonju-ranger-raptor-lx-tinting/ | 솔라가드 LX · 농도 선택 · 열차단·TSER
 - 26-11-09 | 썬팅과 블랙박스 화질 Q&A — 앞·뒤 카메라 차이, 야간 번호판, 내부 반사율 | https://motif-jeonju.com/jeonju-tinting-dashcam/ | 야간 시야 · 비교
 - 26-11-05 | 스퍼터링 Q&A — 솔라가드 LX가 금속 증착을 고른 이유·밝은 농도 열차단·시공 기준 | https://motif-jeonju.com/jeonju-sputtering-lx-reason/ | 솔라가드 LX · 농도 선택 · 열차단·TSER
@@ -314,7 +317,8 @@
 - 26-06-13 | 익산 골프 썬팅 재시공, 왕복 택시비 들여 전주까지 온 이유 | https://motif-jeonju.com/155-2/ | 중고차·재시공
 - 26-06-05 | 전주 썬팅 재시공 | 짙은 농도에도 야간 시야 지키는 비대칭 광학 | https://motif-jeonju.com/%ed%94%84%eb%9d%bc%ec%9d%b4%eb%b2%84%ec%8b%9c%eb%8a%94-%ec%b1%99%ea%b8%b0%ea%b3%a0-%ec%95%bc%ea%b0%84-%ec%8b%9c%ec%95%bc%eb%8a%94-%ec%a7%80%ed%82%a4%eb%8a%94-%eb%b2%95-%ec%a7%99%ec%9d%80-%ec%8d%ac/ | 농도 선택 · 야간 시야
 
-### 신차패키지·신차검수 (13편)
+### 신차패키지·신차검수 (14편)
+- 26-11-16 | GV80 신차 검수와 제니스 IR Q&A — 검수 순서 · 내부 반사율 6% · TSER 61% | https://motif-jeonju.com/jeonju-gv80-zenith-ir-inspection/ | GV80 · 제니스 IR · 열차단·TSER · 반사
 - 26-10-28 | 신차패키지 진행 절차 — 예약·입고·검수·소요기간 | https://motif-jeonju.com/jeonju-newcar-package-schedule-2/
 - 26-10-24 | 테슬라 모델 Y 신차패키지 — 제니스 IR 164만과 130만 구성 비교 | https://motif-jeonju.com/jeonju-tesla-modely-package/ | 모델Y · 제니스 IR · 비교
 - 26-08-10 | 신차패키지 소요 일정과 큐어 타임 — 전주 · 전북 출고 일정 설계 | https://motif-jeonju.com/jeonju-newcar-package-schedule/
