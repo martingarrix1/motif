@@ -43,6 +43,14 @@
       "at": "2026-11-16",
       "bing": true,
       "google": "requested"
+    },
+    "224480162550": {
+      "title": "전주 PPF. 폴스타4 엑스펠 익스트림 매트와 솔라가드 제니스 IR",
+      "tistory": "https://motif-jeonju.tistory.com/198",
+      "wordpress": "https://motif-jeonju.com/jeonju-polestar4-xpel-extreme-matte/",
+      "at": "2026-11-17",
+      "bing": false,
+      "google": "skipped"
     }
   },
   "skipped": {}
