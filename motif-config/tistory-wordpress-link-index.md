@@ -1,12 +1,13 @@
 # 모티프 티스토리 · 워드프레스 내부 링크 인덱스
 
-티스토리 196편 · 워드프레스 134편 · 마지막 갱신 2026-11-17 (매일 아침 자동 갱신)
+티스토리 199편 · 워드프레스 137편 · 마지막 갱신 2026-11-18 (매일 아침 자동 갱신)
 링크는 같은 블로그 글끼리만 넣습니다 (티스토리↔티스토리 · 워드프레스↔워드프레스). 짝 글끼리는 서로 링크합니다.
 형식: 날짜 | 제목 | URL | 차종 · 제품 · 주제
 
 ## 티스토리 (motif-jeonju.tistory.com)
 
-### 썬팅-솔라가드 LX (17편)
+### 썬팅-솔라가드 LX (18편)
+- 26-11-17 | 솔라가드 LX의 역체감. 내 차에서는 몰랐던 차이를 왜 다른 차에서 알게 될까 | https://motif-jeonju.tistory.com/199 | 솔라가드 LX · 비교 · 가격·비용
 - 26-11-15 | 솔라가드 LX와 브이쿨 VK. 120만 원의 차액은 무엇으로 설명될까 | https://motif-jeonju.tistory.com/195 | 솔라가드 LX · 브이쿨 · 가격·비용 · 열차단·TSER
 - 26-11-11 | 전주 솔라가드 LX 썬팅. 블랙 색상인데 열반사 필름이 맞을까요? | https://motif-jeonju.tistory.com/187 | 솔라가드 LX · 제니스 IR · 반사 · 가격·비용
 - 26-11-05 | 전주 썬팅 — 스퍼터링이란 무엇일까, 솔라가드 LX가 이 기술을 쓰는 이유 | https://motif-jeonju.tistory.com/168 | 솔라가드 LX · 구조·기술 · 가격·비용
@@ -136,7 +137,8 @@
 - 26-05-07 | 전주 썬팅 재시공, 예산 안에서 전면에 비중을 더 둔 베뉴 케이스 | 제니스 IR + 티타늄 위치별 매칭 | https://motif-jeonju.tistory.com/34 | 제니스 IR · 티타늄 · 중고차·재시공 · 가격·비용
 - 26-05-03 | 가족을 위한 배려는 멀리 있지 않습니다 | BMW X7 솔라가드 LX 전체 재시공 사례 | https://motif-jeonju.tistory.com/30 | 카니발 · 팰리세이드 · 솔라가드 LX · 중고차·재시공 · 가격·비용
 
-### 신차패키지·신차검수 (20편)
+### 신차패키지·신차검수 (21편)
+- 26-11-17 | 테슬라 전라지역 신차 패키지 3종, 한시적으로 99만 원부터 시작하는 이유 | https://motif-jeonju.tistory.com/200 | 모델Y · 제니스 IR · S라인 · 가격·비용 · 전파·하이패스
 - 26-11-16 | 익산 썬팅. GV80 신차 검수와 제니스 IR. 필름의 광학 특성은 왜 운전석에서 드러날까 | https://motif-jeonju.tistory.com/196 | GV80 · 제니스 IR · 가격·비용 · 농도 선택
 - 26-11-11 | 전주 신차패키지 샵 고르는 법. 품목은 많이 받았는데 작업도 그만큼 달랐을까 | https://motif-jeonju.tistory.com/189 | 가격·비용 · 비교
 - 26-10-29 | 전주 테슬라 모델Y 주니퍼 신차패키지 — 11월 출고 전 생각할 시공 기준 | https://motif-jeonju.tistory.com/148 | 모델Y · 주니퍼 · 솔라가드 LX · 가격·비용 · 시공 후 관리
@@ -158,7 +160,8 @@
 - 26-04-24 | 전주·익산 신차패키지 완벽 가이드 | 에센셜 99만원부터 프레스티지 250만원까지 3종 비교 | https://motif-jeonju.tistory.com/20 | 솔라가드 LX · 제니스 IR · 가격·비용 · 비교
 - 26-04-04 | 테슬라 주니퍼 신차패키지, 전주 모티프가 제안하는 기준 | https://motif-jeonju.tistory.com/8 | 주니퍼 · 솔라가드 LX · 제니스 IR · 가격·비용 · 농도 선택
 
-### PPF·랩핑 (37편)
+### PPF·랩핑 (38편)
+- 26-11-17 | 전주 PPF. 폴스타4 엑스펠 익스트림 매트와 솔라가드 제니스 IR | https://motif-jeonju.tistory.com/198 | 제니스 IR · 엑스펠 · 가격·비용 · 시공 후 관리
 - 26-11-11 | 전주 PPF 도어 전체에 시공하면 문콕도 막을 수 있을까 | https://motif-jeonju.tistory.com/188 | 엑스펠 · 가격·비용 · 시공 후 관리
 - 26-11-08 | 전주 엑스펠 PPF. 얼티메이트 플러스와 익스트림 무엇이 다를까 | https://motif-jeonju.tistory.com/177 | 엑스펠 · 얼티메이트 플러스 · 가격·비용 · 내구성·보증
 - 26-11-06 | 전주 PPF·랩핑 사고수리. 보험 견적이 높게 나오면 차주에게 유리할까요? | https://motif-jeonju.tistory.com/171 | 가격·비용 · 시공 후 관리
@@ -263,7 +266,8 @@
 - 26-06-05 | 틴팅 필름 단점 vs 특성, 어떻게 구분하나? | https://motif-jeonju.com/%ed%8b%b4%ed%8c%85-%ed%95%84%eb%a6%84-%eb%8b%a8%ec%a0%90-vs-%ed%8a%b9%ec%84%b1-%ec%96%b4%eb%96%bb%ea%b2%8c-%ea%b5%ac%eb%b6%84%ed%95%98%eb%82%98/ | 비교
 - 26-06-02 | 썬팅 필름, 고르기 전에 알아야 할 것들 — 전주 오너 틴터가 정리한 선택의 기준 | https://motif-jeonju.com/%ec%8d%ac%ed%8c%85-%ed%95%84%eb%a6%84-%ea%b3%a0%eb%a5%b4%ea%b8%b0-%ec%a0%84%ec%97%90-%ec%95%8c%ec%95%84%ec%95%bc-%ed%95%a0-%ea%b2%83%eb%93%a4-%ec%a0%84%ec%a3%bc-%ec%98%a4%eb%84%88-%ed%8b%b4/
 
-### 썬팅-수치·측정 (12편)
+### 썬팅-수치·측정 (13편)
+- 26-11-17 | 솔라가드 LX 역체감 Q&A — 감각 순응 · 유리 복사열 · 수치로 안 보이는 차이 | https://motif-jeonju.com/jeonju-lx-reverse-experience/ | 솔라가드 LX · 비교
 - 26-11-13 | 솔라가드 S라인 Q&A — 무기질 나노 세라믹 · TSER 55% · 제니스 IR과의 차이 | https://motif-jeonju.com/jeonju-solargard-s-line/ | 제니스 IR · S라인 · 열차단·TSER · 비교
 - 26-11-07 | 모델Y 주니퍼 솔라가드 티타늄 패키지 Q&A — 98만 원 구성·수치·맞는 운전자 | https://motif-jeonju.com/jeonju-modely-juniper-titanium/ | 모델Y · 주니퍼 · 티타늄 · 가격·비용
 - 26-10-21 | 버텍스 1100 vs 솔라가드 LX 비교 — 구조·TSER·선택 기준 | https://motif-jeonju.com/jeonju-vertex-lx/ | 솔라가드 LX · 버텍스 1100 · 열차단·TSER · 비교
@@ -317,7 +321,8 @@
 - 26-06-13 | 익산 골프 썬팅 재시공, 왕복 택시비 들여 전주까지 온 이유 | https://motif-jeonju.com/155-2/ | 중고차·재시공
 - 26-06-05 | 전주 썬팅 재시공 | 짙은 농도에도 야간 시야 지키는 비대칭 광학 | https://motif-jeonju.com/%ed%94%84%eb%9d%bc%ec%9d%b4%eb%b2%84%ec%8b%9c%eb%8a%94-%ec%b1%99%ea%b8%b0%ea%b3%a0-%ec%95%bc%ea%b0%84-%ec%8b%9c%ec%95%bc%eb%8a%94-%ec%a7%80%ed%82%a4%eb%8a%94-%eb%b2%95-%ec%a7%99%ec%9d%80-%ec%8d%ac/ | 농도 선택 · 야간 시야
 
-### 신차패키지·신차검수 (14편)
+### 신차패키지·신차검수 (15편)
+- 26-11-17 | 테슬라 전라지역 신차 패키지 Q&A — 99 · 129 · 169만 원 구성 · 공통 품목 · 필름 등급 차이 | https://motif-jeonju.com/jeonju-tesla-jeolla-newcar-package/ | 테슬라 · 가격·비용 · 비교
 - 26-11-16 | GV80 신차 검수와 제니스 IR Q&A — 검수 순서 · 내부 반사율 6% · TSER 61% | https://motif-jeonju.com/jeonju-gv80-zenith-ir-inspection/ | GV80 · 제니스 IR · 열차단·TSER · 반사
 - 26-10-28 | 신차패키지 진행 절차 — 예약·입고·검수·소요기간 | https://motif-jeonju.com/jeonju-newcar-package-schedule-2/
 - 26-10-24 | 테슬라 모델 Y 신차패키지 — 제니스 IR 164만과 130만 구성 비교 | https://motif-jeonju.com/jeonju-tesla-modely-package/ | 모델Y · 제니스 IR · 비교
@@ -333,7 +338,8 @@
 - 26-06-15 | 전주 신차패키지 출고 절차 Q&A | 검수·번호판·시공 순서 총정리 | https://motif-jeonju.com/jeonju-newcar-package-process/
 - 26-06-03 | 전주 신차패키지 3종 비교 가이드 | 에센셜 vs 시그니처 vs 프레스티지 — 어떤 게 나에게 맞을까? | https://motif-jeonju.com/22-2/ | 비교
 
-### PPF·랩핑 (29편)
+### PPF·랩핑 (30편)
+- 26-11-17 | 폴스타4 엑스펠 익스트림 매트 PPF Q&A — 무광 도색과 차이 · 시공 난점 · 제니스 IR 내부 반사율 6% | https://motif-jeonju.com/jeonju-polestar4-xpel-extreme-matte/ | 제니스 IR · 엑스펠 · 비교 · 반사
 - 26-11-11 | 전주 PPF 도어 전체에 시공하면 문콕도 막을 수 있을까 | https://motif-jeonju.com/jeonju-door-ppf-door-ding/
 - 26-11-09 | 무광 PPF Q&A — 유광·순정 무광·랩핑 차이, 시공 난이도, 관리 기준 | https://motif-jeonju.com/jeonju-matte-ppf/ | 스텔스·무광 · 시공 후 관리 · 비교
 - 26-11-08 | 전주 엑스펠 PPF. 얼티메이트 플러스와 익스트림 무엇이 다를까 | https://motif-jeonju.com/jeonju-xpel-ultimate-plus-vs-extreme/ | 엑스펠 · 얼티메이트 플러스
