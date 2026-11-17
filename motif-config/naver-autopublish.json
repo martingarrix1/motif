@@ -1,10 +1,7 @@
 {
   "note": "네이버 새 글 → 티스토리·워드프레스 자동 발행 기록. baseline_logNo 이하(이전) 글은 대상이 아니다.",
   "baseline_logNo": "224475873103",
-  "running": {
-    "logNo": "224481142935",
-    "at": "2026-11-17T13:55:03Z"
-  },
+  "running": null,
   "done": {
     "224475873103": {
       "title": "전주 썬팅. 솔라가드 S라인은 왜 역대급 엔트리일까?",
@@ -56,6 +53,14 @@
       "title": "솔라가드 LX의 역체감. 내 차에서는 몰랐던 차이를 왜 다른 차에서 알게 될까?",
       "tistory": "https://motif-jeonju.tistory.com/199",
       "wordpress": "https://motif-jeonju.com/jeonju-lx-reverse-experience/",
+      "at": "2026-11-17",
+      "bing": true,
+      "google": "requested"
+    },
+    "224481142935": {
+      "title": "테슬라 전라지역 신차 패키지 3종, 한시적으로 99만 원부터 시작하는 이유",
+      "tistory": "https://motif-jeonju.tistory.com/200",
+      "wordpress": "https://motif-jeonju.com/jeonju-tesla-jeolla-newcar-package/",
       "at": "2026-11-17",
       "bing": true,
       "google": "requested"
