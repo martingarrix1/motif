@@ -1,10 +1,7 @@
 {
   "note": "네이버 새 글 → 티스토리·워드프레스 자동 발행 기록. baseline_logNo 이하(이전) 글은 대상이 아니다.",
   "baseline_logNo": "224475873103",
-  "running": {
-    "logNo": "224481723116",
-    "at": "2026-11-18T02:54:46Z"
-  },
+  "running": null,
   "done": {
     "224475873103": {
       "title": "전주 썬팅. 솔라가드 S라인은 왜 역대급 엔트리일까?",
@@ -65,6 +62,14 @@
       "tistory": "https://motif-jeonju.tistory.com/200",
       "wordpress": "https://motif-jeonju.com/jeonju-tesla-jeolla-newcar-package/",
       "at": "2026-11-17",
+      "bing": true,
+      "google": "requested"
+    },
+    "224481723116": {
+      "title": "제니스 IR과 볼텍스 IR, 같은 솔라가드인데 무엇이 다를까?",
+      "tistory": "https://motif-jeonju.tistory.com/201",
+      "wordpress": "https://motif-jeonju.com/jeonju-zenith-ir-vs-vortex-ir/",
+      "at": "2026-11-18",
       "bing": true,
       "google": "requested"
     }
