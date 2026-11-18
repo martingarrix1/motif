@@ -3618,13 +3618,18 @@ function initInvoice() {
 const RC_SUPPLIER_DEFAULT = {
   bizno: '337-21-00154', name: '모티프 (MOTIF)', ceo: '김광현',
   addr: '전북 전주시 덕진구 정여립로 1104 효현빌딩동 1층',
-  type: '서비스', item: '자동차 썬팅 · PPF · 코팅', tel: '010-4814-4506', seal: '김광현'
+  type: '도소매', item: '자동차 용품', tel: '010-4814-4506', seal: '김광현'
 };
 let rcVatMode = 'vat';
 let rcLastBlob = null, rcLastDataUrl = '', rcLastFileName = '';
 
 function rcSupplier() {
-  try { return Object.assign({}, RC_SUPPLIER_DEFAULT, JSON.parse(localStorage.getItem('motif_receipt_supplier') || '{}')); }
+  try {
+    const saved = JSON.parse(localStorage.getItem('motif_receipt_supplier') || '{}');
+    if (saved.type === '서비스') delete saved.type;
+    if (saved.item === '자동차 썬팅 · PPF · 코팅') delete saved.item;
+    return Object.assign({}, RC_SUPPLIER_DEFAULT, saved);
+  }
   catch(e) { return Object.assign({}, RC_SUPPLIER_DEFAULT); }
 }
 function rcLoadSupplierForm() {
