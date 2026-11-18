@@ -333,6 +333,7 @@ function doLogout() {
   <button onclick="showPage('glass',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🔵<span>유리막</span></button>
   <button onclick="showPage('memo',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📓<span>메모</span></button>
   <button onclick="showPage('invoice',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📑<span>견적서</span></button>
+  <button onclick="showPage('receipt',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🧾<span>영수증</span></button>
   <button onclick="showPage('uw',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">📜<span>통합보증서</span></button>
   <button onclick="showPage('tint',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🎫<span>썬팅보증서</span></button>
   <button onclick="showPage('ppf',null)" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border:none;background:none;cursor:pointer;font-family:inherit;color:#555;font-size:12px">🛡️<span>PPF보증서</span></button>
@@ -700,6 +701,90 @@ function doLogout() {
 
     <button class="btn btn-primary" onclick="submitInvoice()" id="inv-submit-btn">📑 견적서 생성</button>
     <div id="inv-result" style="margin-top:12px"></div>
+    <div style="height:24px"></div>
+  </div>
+
+
+  <!-- 간이영수증 -->
+  <div id="page-receipt" class="page">
+    <div class="card">
+      <div class="card-title">🧾 간이영수증 발행</div>
+      <div class="form-group"><label>공급받는자 (귀하)</label>
+        <input type="text" id="rc-buyer" list="rc-customer-list" placeholder="고객명 또는 차량번호 · 고객 검색 가능" autocomplete="off" oninput="rcPickCustomer(this.value)">
+        <datalist id="rc-customer-list"></datalist>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div class="form-group" style="flex:1"><label>차종</label><input type="text" id="rc-cartype" placeholder="예) 모델 Y"></div>
+        <div class="form-group" style="flex:1"><label>차량번호</label><input type="text" id="rc-carnumber" placeholder="예) 123가4567"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div class="form-group" style="flex:1"><label>작성일</label><input type="date" id="rc-date"></div>
+        <div class="form-group" style="flex:1"><label>영수증 번호</label><input type="text" id="rc-no" placeholder="자동"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>품목</span>
+        <button onclick="rcAddItem()" style="padding:5px 12px;background:#1a1a2e;color:white;border:none;border-radius:8px;font-size:13px;cursor:pointer">+ 추가</button>
+      </div>
+      <div id="rc-items"></div>
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid #eee">
+        <div style="display:flex;gap:6px;margin-bottom:10px">
+          <button type="button" id="rc-vat-on" onclick="rcSetVat('vat')" style="flex:1;padding:9px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;background:#1a1a2e;color:white;border:2px solid #1a1a2e">부가세 포함 (10%)</button>
+          <button type="button" id="rc-vat-off" onclick="rcSetVat('none')" style="flex:1;padding:9px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;background:white;color:#999;border:2px solid #eee">부가세 없음</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;color:#888">공급가액</span><span id="rc-supply" style="font-size:14px;font-weight:600;color:#555">0원</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:13px;color:#888" id="rc-vat-label">부가세 (10%)</span><span id="rc-vat" style="font-size:14px;font-weight:600;color:#555">0원</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:8px;border-top:1px dashed #e0e0e0">
+          <span style="font-size:13px;color:#888;flex-shrink:0">합계 (영수 금액)</span>
+          <input type="number" id="rc-total-input" placeholder="0" inputmode="numeric" oninput="rcRecalcFromTotal()" style="flex:1;max-width:160px;text-align:right;font-size:18px;font-weight:700;color:#1a73e8;border:1.5px solid #e8e8e8;border-radius:10px;padding:8px 10px;font-family:inherit;outline:none">
+        </div>
+        <div id="rc-total-korean" style="font-size:12px;color:#999;text-align:right;margin-top:6px"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">비고</div>
+      <div class="form-group"><textarea id="rc-note" placeholder="예) 2026-11-18 시공 완료 · 보증서 별도 발행" style="height:64px;resize:none"></textarea></div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#555"><input type="checkbox" id="rc-paid" checked> 영수함 (체크 해제 시 "청구함")</label>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="rcGenerate()" id="rc-gen-btn">🧾 영수증 만들기</button>
+    <div id="rc-result" style="margin-top:12px;display:none">
+      <div class="card" style="padding:10px">
+        <img id="rc-preview" alt="영수증 미리보기" style="width:100%;display:block;border:1px solid #e5e5e5;border-radius:8px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+          <button class="btn btn-primary" style="padding:12px" onclick="rcShare()">📤 공유 (카톡)</button>
+          <button class="btn" style="padding:12px;background:#f0f2f5;color:#222" onclick="rcDownload()">⬇ 이미지 저장</button>
+          <button class="btn" style="padding:12px;background:#f0f2f5;color:#222" onclick="rcPrint()">🖨 인쇄 / PDF</button>
+          <button class="btn" style="padding:12px;background:#f0f2f5;color:#222" onclick="rcNew()">↩ 새 영수증</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="document.getElementById('rc-supplier-body').style.display=document.getElementById('rc-supplier-body').style.display==='none'?'block':'none'">
+        <span>공급자 정보 (영수증 상단에 인쇄)</span><span style="font-size:12px;color:#888">펼치기</span>
+      </div>
+      <div id="rc-supplier-body" style="display:none">
+        <div class="form-group"><label>사업자등록번호</label><input type="text" id="rc-s-bizno"></div>
+        <div style="display:flex;gap:8px">
+          <div class="form-group" style="flex:1"><label>상호</label><input type="text" id="rc-s-name"></div>
+          <div class="form-group" style="flex:1"><label>성명 (대표)</label><input type="text" id="rc-s-ceo"></div>
+        </div>
+        <div class="form-group"><label>사업장 소재지</label><input type="text" id="rc-s-addr"></div>
+        <div style="display:flex;gap:8px">
+          <div class="form-group" style="flex:1"><label>업태</label><input type="text" id="rc-s-type"></div>
+          <div class="form-group" style="flex:1"><label>종목</label><input type="text" id="rc-s-item"></div>
+        </div>
+        <div class="form-group"><label>연락처</label><input type="text" id="rc-s-tel"></div>
+        <div class="form-group"><label>도장 글자 (원형 인감에 들어갈 이름)</label><input type="text" id="rc-s-seal" placeholder="예) 김광현"></div>
+        <button class="btn" style="background:#1a1a2e;color:white;padding:12px" onclick="rcSaveSupplier()">공급자 정보 저장</button>
+      </div>
+    </div>
     <div style="height:24px"></div>
   </div>
 
@@ -1188,6 +1273,7 @@ function showPage(page, btn) {
   if (page === 'calendar') { loadCalendar(); }
   if (page === 'memo') { initMemo(); }
   if (page === 'invoice') { initInvoice(); }
+  if (page === 'receipt') { initReceipt(); }
   if (page === 'uw') { initUnifiedWarranty(); }
   if (page === 'tint') { initTint(); }
   if (page === 'ppf') { initPpf(); }
@@ -3527,6 +3613,383 @@ function initInvoice() {
   const d = document.getElementById('inv-date');
   if (!d.value) d.value = new Date().toISOString().slice(0,10);
 }
+
+// ─── 간이영수증 ───────────────────────────────────────────────
+const RC_SUPPLIER_DEFAULT = {
+  bizno: '337-21-00154', name: '모티프 (MOTIF)', ceo: '김광현',
+  addr: '전북 전주시 덕진구 정여립로 1104 효현빌딩동 1층',
+  type: '서비스', item: '자동차 썬팅 · PPF · 코팅', tel: '010-4814-4506', seal: '김광현'
+};
+let rcVatMode = 'vat';
+let rcLastBlob = null, rcLastDataUrl = '', rcLastFileName = '';
+
+function rcSupplier() {
+  try { return Object.assign({}, RC_SUPPLIER_DEFAULT, JSON.parse(localStorage.getItem('motif_receipt_supplier') || '{}')); }
+  catch(e) { return Object.assign({}, RC_SUPPLIER_DEFAULT); }
+}
+function rcLoadSupplierForm() {
+  const sp = rcSupplier();
+  ['bizno','name','ceo','addr','type','item','tel','seal'].forEach(k => { const el = document.getElementById('rc-s-' + k); if (el) el.value = sp[k] || ''; });
+}
+function rcSaveSupplier() {
+  const sp = {};
+  ['bizno','name','ceo','addr','type','item','tel','seal'].forEach(k => { sp[k] = (document.getElementById('rc-s-' + k).value || '').trim(); });
+  try { localStorage.setItem('motif_receipt_supplier', JSON.stringify(sp)); } catch(e) {}
+  showToast('공급자 정보를 저장했어요');
+}
+function rcNextNo() {
+  const d = new Date(); const ymd = d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+  let seq = 1;
+  try {
+    const saved = JSON.parse(localStorage.getItem('motif_receipt_seq') || '{}');
+    if (saved.ymd === ymd) seq = (saved.seq || 0) + 1;
+  } catch(e) {}
+  return ymd + '-' + String(seq).padStart(2,'0');
+}
+function rcCommitNo(no) {
+  const m = /^(\d{8})-(\d+)$/.exec(no || '');
+  if (!m) return;
+  try { localStorage.setItem('motif_receipt_seq', JSON.stringify({ ymd: m[1], seq: parseInt(m[2]) || 1 })); } catch(e) {}
+}
+function initReceipt() {
+  const d = document.getElementById('rc-date');
+  if (!d.value) d.value = new Date().toISOString().slice(0,10);
+  const no = document.getElementById('rc-no');
+  if (!no.value) no.value = rcNextNo();
+  if (!document.querySelectorAll('.rc-item').length) rcAddItem();
+  rcLoadSupplierForm();
+  rcFillCustomerList();
+  if (!allCustomers.length && typeof loadCustomers === 'function') { try { loadCustomers().then(rcFillCustomerList); } catch(e) {} }
+}
+function rcFillCustomerList() {
+  const dl = document.getElementById('rc-customer-list');
+  if (!dl) return;
+  const seen = new Set();
+  dl.innerHTML = (allCustomers || []).slice(0, 400).map(c => {
+    const label = [c.name, c.carType, c.phone ? String(c.phone).slice(-4) : ''].filter(Boolean).join(' · ');
+    if (!label || seen.has(label)) return '';
+    seen.add(label);
+    return '<option value="' + label.replace(/"/g,'&quot;') + '"></option>';
+  }).join('');
+}
+function rcPickCustomer(val) {
+  if (!val || !allCustomers || !allCustomers.length) return;
+  const parts = val.split(' · ');
+  if (parts.length < 2) return;
+  const c = allCustomers.find(x => [x.name, x.carType, x.phone ? String(x.phone).slice(-4) : ''].filter(Boolean).join(' · ') === val);
+  if (!c) return;
+  document.getElementById('rc-buyer').value = c.name || '';
+  if (c.carType) document.getElementById('rc-cartype').value = c.carType;
+  if (c.carNumber && !document.getElementById('rc-carnumber').value) document.getElementById('rc-carnumber').value = c.carNumber;
+}
+function rcAddItem(name, qty, price) {
+  const box = document.getElementById('rc-items');
+  const div = document.createElement('div');
+  div.className = 'rc-item';
+  div.style.cssText = 'display:flex;gap:6px;margin-bottom:8px;align-items:center';
+  const inp = 'font-size:14px;border:1.5px solid #e8e8e8;border-radius:10px;padding:10px;font-family:inherit;outline:none;min-width:0';
+  div.innerHTML = '<input type="text" placeholder="품목" value="' + (name||'') + '" style="flex:2.2;' + inp + '">' +
+    '<input type="number" placeholder="수량" inputmode="numeric" value="' + (qty||1) + '" style="flex:0.8;' + inp + '" oninput="rcUpdateTotal()">' +
+    '<input type="number" placeholder="단가" inputmode="numeric" value="' + (price||'') + '" style="flex:1.4;' + inp + '" oninput="rcUpdateTotal()">' +
+    '<button onclick="rcRemoveItem(this)" style="padding:8px;background:#ffebee;color:#c62828;border:1px solid #ffcdd2;border-radius:8px;font-size:14px;cursor:pointer;flex-shrink:0">✕</button>';
+  box.appendChild(div);
+}
+function rcRemoveItem(btn) {
+  if (document.querySelectorAll('.rc-item').length <= 1) { showToast('품목은 최소 1개 필요해요'); return; }
+  btn.closest('.rc-item').remove(); rcUpdateTotal();
+}
+function rcReadItems() {
+  return [...document.querySelectorAll('.rc-item')].map(el => {
+    const i = el.querySelectorAll('input');
+    const qty = parseInt(i[1].value) || 1, unit = parseInt(i[2].value) || 0;
+    return { name: i[0].value.trim(), qty, unit, amount: qty * unit };
+  }).filter(it => it.name || it.amount);
+}
+function rcSetVat(mode) {
+  rcVatMode = mode;
+  const on = document.getElementById('rc-vat-on'), off = document.getElementById('rc-vat-off');
+  const sel = 'background:#1a1a2e;color:white;border:2px solid #1a1a2e', un = 'background:white;color:#999;border:2px solid #eee';
+  const base = 'flex:1;padding:9px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;';
+  on.style.cssText = base + (mode === 'vat' ? sel : un);
+  off.style.cssText = base + (mode === 'vat' ? un : sel);
+  document.getElementById('rc-vat-label').textContent = mode === 'vat' ? '부가세 (10%)' : '부가세 (없음)';
+  rcUpdateTotal();
+}
+function rcCalc() {
+  const items = rcReadItems();
+  const supply = items.reduce((a, it) => a + it.amount, 0);
+  const vat = rcVatMode === 'vat' ? Math.round(supply * 0.1) : 0;
+  return { items, supply, vat, total: supply + vat };
+}
+function rcRender(supply, vat, total) {
+  document.getElementById('rc-supply').textContent = supply.toLocaleString('ko-KR') + '원';
+  document.getElementById('rc-vat').textContent = vat.toLocaleString('ko-KR') + '원';
+  document.getElementById('rc-total-korean').textContent = total > 0 ? '일금 ' + numberToKoreanJS(total) + '원정' : '';
+}
+function rcUpdateTotal() {
+  const c = rcCalc(); rcRender(c.supply, c.vat, c.total);
+  const t = document.getElementById('rc-total-input');
+  if (document.activeElement !== t) t.value = c.total > 0 ? c.total : '';
+}
+function rcRecalcFromTotal() {
+  const total = parseInt(document.getElementById('rc-total-input').value) || 0;
+  const supply = rcVatMode === 'vat' ? Math.round(total / 1.1) : total;
+  const vat = total - supply;
+  rcRender(supply, vat, total);
+  const rows = document.querySelectorAll('.rc-item');
+  if (rows.length === 1) { const i = rows[0].querySelectorAll('input'); i[1].value = 1; i[2].value = supply > 0 ? supply : ''; }
+}
+
+// 원형 도장 (붉은 인주, 이름 세로 배열)
+function rcDrawSeal(ctx, cx, cy, r, text) {
+  text = (text || '').replace(/\s+/g, '') || '인';
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(-0.06);
+  ctx.globalAlpha = 0.86;
+  ctx.strokeStyle = '#c8281e'; ctx.fillStyle = '#c8281e';
+  ctx.lineWidth = r * 0.085;
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+  ctx.lineWidth = r * 0.03;
+  ctx.beginPath(); ctx.arc(0, 0, r * 0.86, 0, Math.PI * 2); ctx.stroke();
+  const chars = text.split('');
+  const n = chars.length;
+  let fs = n <= 2 ? r * 0.78 : (n === 3 ? r * 0.62 : r * 0.5);
+  ctx.font = '900 ' + fs + 'px "Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  if (n <= 2) {
+    chars.forEach((ch, i) => ctx.fillText(ch, (i - (n - 1) / 2) * fs * 0.95, 0));
+  } else if (n === 3) {
+    // 2×2 배열: 김광 / 현印 (왼쪽 위부터)
+    ctx.fillText(chars[0], -fs * 0.5, -fs * 0.48);
+    ctx.fillText(chars[1], fs * 0.5, -fs * 0.48);
+    ctx.fillText(chars[2], -fs * 0.5, fs * 0.48);
+    ctx.fillText('印', fs * 0.5, fs * 0.48);
+  } else {
+    const cols = 2, rows = Math.ceil(n / cols);
+    chars.forEach((ch, i) => {
+      const col = Math.floor(i / rows), row = i % rows;
+      ctx.fillText(ch, (0.5 - col) * fs * 0.95, (row - (rows - 1) / 2) * fs * 0.95);
+    });
+  }
+  // 인주 질감: 작은 결손점
+  ctx.globalAlpha = 0.9; ctx.globalCompositeOperation = 'destination-out';
+  let seed = 7;
+  const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+  for (let i = 0; i < 70; i++) {
+    const a = rnd() * Math.PI * 2, d = rnd() * r;
+    ctx.beginPath(); ctx.arc(Math.cos(a) * d, Math.sin(a) * d, rnd() * r * 0.035 + 0.6, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function rcFmt(n) { return (n || 0).toLocaleString('ko-KR'); }
+
+function rcDrawReceipt(data) {
+  const W = 1240, PAD = 70;
+  const rowsN = Math.max(6, data.items.length);
+  const H = 1500 + rowsN * 64;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
+  const F = '"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif';
+  const line = (x1, y1, x2, y2, w, col) => { ctx.beginPath(); ctx.lineWidth = w || 1.5; ctx.strokeStyle = col || '#222'; ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); };
+  const text = (t, x, y, size, opt) => {
+    opt = opt || {};
+    ctx.font = (opt.weight || 500) + ' ' + size + 'px ' + F;
+    ctx.fillStyle = opt.color || '#1a1a1a'; ctx.textAlign = opt.align || 'left'; ctx.textBaseline = 'middle';
+    let s = String(t == null ? '' : t);
+    if (opt.maxW) { while (s.length > 1 && ctx.measureText(s).width > opt.maxW) s = s.slice(0, -1); if (s !== String(t)) s = s.slice(0, -1) + '…'; }
+    ctx.fillText(s, x, y);
+  };
+  const L = PAD, R = W - PAD, CW = R - L;
+  let y = 90;
+
+  // 제목
+  text('영 수 증', W / 2, y, 58, { weight: 900, align: 'center' });
+  text('(공급받는자 보관용)', W / 2, y + 52, 20, { color: '#777', align: 'center' });
+  text('No. ' + data.no, R, y + 52, 20, { color: '#555', align: 'right' });
+  y += 110;
+
+  // 공급받는자
+  line(L, y, R, y, 3);
+  y += 44;
+  ctx.font = '700 30px ' + F;
+  text((data.buyer || '') + '  귀하', L + 10, y, 30, { weight: 700, maxW: CW * 0.7 });
+  text(data.date, R, y, 22, { color: '#444', align: 'right' });
+  y += 44;
+
+  // 공급자 표
+  const sp = data.supplier;
+  const tTop = y, lab = L + 46, c1 = L + 92, c2 = L + 250, mid = L + Math.round(CW * 0.60), c3 = mid + 120;
+  const rowH = 58;
+  const rows = 4;
+  line(L, tTop, R, tTop, 2);
+  for (let i = 1; i <= rows; i++) line(L, tTop + rowH * i, R, tTop + rowH * i, i === rows ? 2 : 1, '#333');
+  line(L, tTop, L, tTop + rowH * rows, 2); line(R, tTop, R, tTop + rowH * rows, 2);
+  line(c1, tTop, c1, tTop + rowH * rows, 1, '#333');
+  line(c2, tTop, c2, tTop + rowH * rows, 1, '#333');
+  line(mid, tTop, mid, tTop + rowH, 1, '#333'); line(c3, tTop, c3, tTop + rowH, 1, '#333');
+  line(mid, tTop + rowH * 3, mid, tTop + rowH * 4, 1, '#333'); line(c3, tTop + rowH * 3, c3, tTop + rowH * 4, 1, '#333');
+  // 세로 '공급자' 라벨
+  ctx.save(); ctx.fillStyle = '#f3f3f3'; ctx.fillRect(L + 1, tTop + 1, c1 - L - 2, rowH * rows - 2); ctx.restore();
+  ['공', '급', '자'].forEach((ch, i) => text(ch, lab, tTop + rowH * 2 + (i - 1) * 40, 24, { weight: 700, align: 'center' }));
+  const cellLab = (t, x, yy) => text(t, x, yy, 19, { color: '#555', weight: 600, align: 'center' });
+  cellLab('등록번호', (c1 + c2) / 2, tTop + rowH * 0.5);
+  text(sp.bizno, c2 + 18, tTop + rowH * 0.5, 26, { weight: 700 });
+  cellLab('상 호', (c1 + c2) / 2, tTop + rowH * 1.5);
+  text(sp.name, c2 + 18, tTop + rowH * 1.5, 25, { weight: 700, maxW: mid - c2 - 30 });
+  cellLab('성 명', (mid + c3) / 2, tTop + rowH * 1.5);
+  text(sp.ceo, c3 + 18, tTop + rowH * 1.5, 26, { weight: 700 });
+  ctx.font = '700 26px ' + F; const ceoW = ctx.measureText(sp.ceo).width;
+  line(mid, tTop + rowH, mid, tTop + rowH * 2, 1, '#333'); line(c3, tTop + rowH, c3, tTop + rowH * 2, 1, '#333');
+  cellLab('사업장', (c1 + c2) / 2, tTop + rowH * 2.5 - 11); cellLab('소재지', (c1 + c2) / 2, tTop + rowH * 2.5 + 11);
+  text(sp.addr, c2 + 18, tTop + rowH * 2.5, 22, { maxW: R - c2 - 30 });
+  cellLab('업 태', (c1 + c2) / 2, tTop + rowH * 3.5);
+  text(sp.type, c2 + 18, tTop + rowH * 3.5, 22, { maxW: mid - c2 - 30 });
+  cellLab('종 목', (mid + c3) / 2, tTop + rowH * 3.5);
+  text(sp.item, c3 + 18, tTop + rowH * 3.5, 22, { maxW: R - c3 - 30 });
+  // 도장: 성명 옆
+  const sealX = Math.min(R - 62, c3 + 18 + ceoW + 66);
+  rcDrawSeal(ctx, sealX, tTop + rowH * 1.5 + 1, 50, sp.seal || sp.ceo);
+  y = tTop + rowH * rows + 28;
+
+  // 합계금액 박스
+  const sumH = 74;
+  ctx.fillStyle = '#f7f4ea'; ctx.fillRect(L, y, CW, sumH);
+  line(L, y, R, y, 2); line(L, y + sumH, R, y + sumH, 2); line(L, y, L, y + sumH, 2); line(R, y, R, y + sumH, 2);
+  text('합계금액', L + 24, y + sumH / 2, 24, { weight: 800 });
+  text('일금 ' + numberToKoreanJS(data.total) + '원정', L + 170, y + sumH / 2, 26, { weight: 700, maxW: CW * 0.5 });
+  text('₩ ' + rcFmt(data.total), R - 24, y + sumH / 2, 34, { weight: 900, align: 'right' });
+  y += sumH + 26;
+
+  // 품목 표
+  const hx = [L, L + 120, L + 640, L + 720, L + 900, R];  // 월일 | 품목 | 수량 | 단가 | 금액
+  const heads = ['월 일', '품 목', '수량', '단 가', '금 액'];
+  const hH = 50, iH = 64;
+  ctx.fillStyle = '#efefef'; ctx.fillRect(L, y, CW, hH);
+  line(L, y, R, y, 2);
+  heads.forEach((h, i) => text(h, (hx[i] + hx[i + 1]) / 2, y + hH / 2, 21, { weight: 700, align: 'center', color: '#333' }));
+  line(L, y + hH, R, y + hH, 1.5);
+  const md = (data.date || '').slice(5).replace('-', '/');
+  for (let i = 0; i < rowsN; i++) {
+    const yy = y + hH + iH * i;
+    const it = data.items[i];
+    if (it) {
+      text(md, (hx[0] + hx[1]) / 2, yy + iH / 2, 21, { align: 'center', color: '#444' });
+      text(it.name, hx[1] + 14, yy + iH / 2, 22, { maxW: hx[2] - hx[1] - 24 });
+      text(it.qty, (hx[2] + hx[3]) / 2, yy + iH / 2, 22, { align: 'center' });
+      text(rcFmt(it.unit), hx[4] - 16, yy + iH / 2, 22, { align: 'right' });
+      text(rcFmt(it.amount), hx[5] - 16, yy + iH / 2, 23, { align: 'right', weight: 700 });
+    }
+    line(L, yy + iH, R, yy + iH, 1, '#bbb');
+  }
+  const tBot = y + hH + iH * rowsN;
+  hx.forEach((x, i) => line(x, y, x, tBot, (i === 0 || i === hx.length - 1) ? 2 : 1, '#333'));
+  y = tBot;
+  // 공급가액 / 부가세 / 합계 행
+  const footRows = data.vatMode === 'vat'
+    ? [['공급가액', data.supply], ['부가세 (10%)', data.vat], ['합  계', data.total]]
+    : [['합  계', data.total]];
+  footRows.forEach((fr, i) => {
+    const yy = y + 52 * i;
+    const last = i === footRows.length - 1;
+    if (last) { ctx.fillStyle = '#f7f4ea'; ctx.fillRect(L, yy, CW, 52); }
+    text(fr[0], hx[3] + 16, yy + 26, 22, { weight: last ? 800 : 600, color: last ? '#1a1a1a' : '#444' });
+    text(rcFmt(fr[1]), R - 16, yy + 26, last ? 26 : 22, { align: 'right', weight: last ? 900 : 600 });
+    line(L, yy + 52, R, yy + 52, last ? 2 : 1, last ? '#222' : '#bbb');
+    line(L, yy, L, yy + 52, 2); line(R, yy, R, yy + 52, 2);
+  });
+  y += 52 * footRows.length + 30;
+
+  // 비고 + 영수함
+  if (data.vatMode !== 'vat') text('※ 부가세 별도 · 간이영수증', L, y, 19, { color: '#777' });
+  if (data.note) { text('비고: ' + data.note, L, y + (data.vatMode !== 'vat' ? 30 : 0), 20, { color: '#555', maxW: CW }); y += 30; }
+  y += 52;
+  text('위 금액을 정히 ' + (data.paid ? '영수' : '청구') + '함.', W / 2, y, 30, { weight: 800, align: 'center' });
+  y += 56;
+  text(data.date.replace(/-/g, '. ') + '.', W / 2, y, 22, { color: '#444', align: 'center' });
+  y += 70;
+  line(L, y, R, y, 1, '#ccc');
+  text('MOTIF 모티프 · ' + sp.addr + ' · ' + sp.tel, W / 2, y + 34, 18, { color: '#888', align: 'center', maxW: CW });
+
+  // 실제 높이로 잘라내기
+  const finalH = Math.min(H, y + 70);
+  const out = document.createElement('canvas'); out.width = W; out.height = finalH;
+  out.getContext('2d').drawImage(cv, 0, 0);
+  return out;
+}
+
+async function rcGenerate() {
+  const buyer = document.getElementById('rc-buyer').value.trim();
+  const date = document.getElementById('rc-date').value;
+  let no = document.getElementById('rc-no').value.trim();
+  if (!buyer) { showToast('공급받는자(고객명)를 입력해주세요'); return; }
+  if (!date) { showToast('작성일을 입력해주세요'); return; }
+  const c = rcCalc();
+  const total = parseInt(document.getElementById('rc-total-input').value) || c.total;
+  if (!total) { showToast('금액을 입력해주세요'); return; }
+  let supply = c.supply, vat = c.vat;
+  if (total !== c.total) { supply = rcVatMode === 'vat' ? Math.round(total / 1.1) : total; vat = total - supply; }
+  if (!no) { no = rcNextNo(); document.getElementById('rc-no').value = no; }
+  const carType = document.getElementById('rc-cartype').value.trim();
+  const carNumber = document.getElementById('rc-carnumber').value.trim();
+  let note = document.getElementById('rc-note').value.trim();
+  const carText = [carType, carNumber].filter(Boolean).join(' ');
+  if (carText) note = carText + (note ? ' · ' + note : '');
+  let items = c.items.filter(it => it.name);
+  if (!items.length) items = [{ name: '시공 대금', qty: 1, unit: supply, amount: supply }];
+  const data = { no, buyer, date, items, supply, vat, total, vatMode: rcVatMode, note, paid: document.getElementById('rc-paid').checked, supplier: rcSupplier() };
+  const btn = document.getElementById('rc-gen-btn'); btn.disabled = true; btn.textContent = '⏳ 만드는 중...';
+  try {
+    if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch(e) {} }
+    const cv = rcDrawReceipt(data);
+    rcLastDataUrl = cv.toDataURL('image/png');
+    rcLastBlob = await new Promise(res => cv.toBlob(res, 'image/png'));
+    rcLastFileName = '영수증_' + buyer + '_' + date.replace(/-/g, '') + '.png';
+    document.getElementById('rc-preview').src = rcLastDataUrl;
+    document.getElementById('rc-result').style.display = 'block';
+    rcCommitNo(no);
+    document.getElementById('rc-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // 발행 기록 (실패해도 영수증에는 영향 없음)
+    try {
+      await db.collection('receipts').doc(no + '_' + Date.now()).set({
+        no, buyer, date, carType, carNumber, items, supply, vat, total, vatMode: rcVatMode, note, paid: data.paid,
+        createdAt: new Date().toISOString()
+      });
+    } catch(e) { console.warn('[영수증 기록]', e); }
+    showToast('🧾 영수증이 만들어졌어요');
+  } catch(e) { console.error(e); showToast('❌ ' + e.message); }
+  btn.disabled = false; btn.textContent = '🧾 영수증 만들기';
+}
+async function rcShare() {
+  if (!rcLastBlob) return;
+  const file = new File([rcLastBlob], rcLastFileName, { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: 'MOTIF 영수증' }); return; } catch(e) { if (e.name === 'AbortError') return; }
+  }
+  rcDownload(); showToast('이 기기는 바로 공유가 안 돼서 이미지로 저장했어요');
+}
+function rcDownload() {
+  if (!rcLastDataUrl) return;
+  const a = document.createElement('a'); a.href = rcLastDataUrl; a.download = rcLastFileName; document.body.appendChild(a); a.click(); a.remove();
+}
+function rcPrint() {
+  if (!rcLastDataUrl) return;
+  const w = window.open('', '_blank');
+  if (!w) { showToast('팝업이 막혀 있어요. 이미지 저장을 이용해주세요'); return; }
+  w.document.write('<html><head><title>영수증</title><style>@page{size:A5 portrait;margin:8mm}body{margin:0;display:flex;justify-content:center}img{width:100%;max-width:148mm}</style></head><body><img src="' + rcLastDataUrl + '" onload="setTimeout(function(){window.print()},300)"></body></html>');
+  w.document.close();
+}
+function rcNew() {
+  document.getElementById('rc-buyer').value = ''; document.getElementById('rc-cartype').value = ''; document.getElementById('rc-carnumber').value = '';
+  document.getElementById('rc-note').value = ''; document.getElementById('rc-total-input').value = '';
+  document.getElementById('rc-items').innerHTML = ''; rcAddItem(); rcUpdateTotal();
+  document.getElementById('rc-no').value = rcNextNo();
+  document.getElementById('rc-result').style.display = 'none'; rcLastBlob = null; rcLastDataUrl = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 
 // ─── 썬팅 보증서 ─────────────────────────────────────────
 
