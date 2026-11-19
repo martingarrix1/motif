@@ -1,10 +1,7 @@
 {
   "note": "네이버 새 글 → 티스토리·워드프레스 자동 발행 기록. baseline_logNo 이하(이전) 글은 대상이 아니다.",
   "baseline_logNo": "224475873103",
-  "running": {
-    "logNo": "224483672354",
-    "at": "2026-11-19T08:54:50Z"
-  },
+  "running": null,
   "done": {
     "224475873103": {
       "title": "전주 썬팅. 솔라가드 S라인은 왜 역대급 엔트리일까?",
@@ -88,6 +85,14 @@
       "title": "전주 썬팅 수명은 몇 년일까? 재시공 시기를 알려주는 신호들",
       "tistory": "https://motif-jeonju.tistory.com/203",
       "wordpress": "https://motif-jeonju.com/jeonju-tinting-lifespan/",
+      "at": "2026-11-19",
+      "bing": true,
+      "google": "requested"
+    },
+    "224483672354": {
+      "title": "전주 테슬라 흰색 시트. 비건 가죽에도 야와라 코팅을 권하는 이유",
+      "tistory": "https://motif-jeonju.tistory.com/204",
+      "wordpress": "https://motif-jeonju.com/jeonju-tesla-white-seat-yawara/",
       "at": "2026-11-19",
       "bing": true,
       "google": "requested"
