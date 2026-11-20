@@ -1,10 +1,7 @@
 {
   "note": "네이버 새 글 → 티스토리·워드프레스 자동 발행 기록. baseline_logNo 이하(이전) 글은 대상이 아니다.",
   "baseline_logNo": "224475873103",
-  "running": {
-    "logNo": "224484454828",
-    "at": "2026-11-20T03:54:34Z"
-  },
+  "running": null,
   "done": {
     "224475873103": {
       "title": "전주 썬팅. 솔라가드 S라인은 왜 역대급 엔트리일까?",
@@ -97,6 +94,14 @@
       "tistory": "https://motif-jeonju.tistory.com/204",
       "wordpress": "https://motif-jeonju.com/jeonju-tesla-white-seat-yawara/",
       "at": "2026-11-19",
+      "bing": true,
+      "google": "requested"
+    },
+    "224484454828": {
+      "title": "솔라가드 더 LX가 요즘 시기에 주목받는 이유",
+      "tistory": "https://motif-jeonju.tistory.com/205",
+      "wordpress": "https://motif-jeonju.com/jeonju-lx-why-now/",
+      "at": "2026-11-20",
       "bing": true,
       "google": "requested"
     }
