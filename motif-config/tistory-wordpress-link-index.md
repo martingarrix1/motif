@@ -1,6 +1,6 @@
 # 모티프 티스토리 · 워드프레스 내부 링크 인덱스
 
-티스토리 206편 · 워드프레스 144편 · 마지막 갱신 2026-11-21 (매일 아침 자동 갱신)
+티스토리 207편 · 워드프레스 145편 · 마지막 갱신 2026-11-22 (매일 아침 자동 갱신)
 링크는 같은 블로그 글끼리만 넣습니다 (티스토리↔티스토리 · 워드프레스↔워드프레스). 짝 글끼리는 서로 링크합니다.
 형식: 날짜 | 제목 | URL | 차종 · 제품 · 주제
 
@@ -70,7 +70,8 @@
 - 26-04-16 | 전주썬팅 열차단, 세라믹이 좋다고요? — 작동 원리부터 다시 짚겠습니다 | https://motif-jeonju.tistory.com/11 | 솔라가드 LX · 열차단·TSER · 구조·기술
 - 26-04-06 | 세라믹 썬팅이 열에 약하다는 말 절반만 맞습니다 | https://motif-jeonju.tistory.com/9 | 솔라가드 LX · 제니스 IR · 구조·기술 · 열차단·TSER
 
-### 썬팅-수치·측정 (16편)
+### 썬팅-수치·측정 (17편)
+- 26-11-21 | 전주 스포티지 썬팅. 서비스 틴팅 대신 제니스 IR 30%와 15%를 선택한 이유 | https://motif-jeonju.tistory.com/208 | 스포티지 · 제니스 IR · 가격·비용 · 농도 선택
 - 26-10-21 | 버텍스 1100 vs 솔라가드 LX — TSER이 비슷해도 다른 이유 | https://motif-jeonju.tistory.com/140 | 솔라가드 LX · 버텍스 1100 · 열차단·TSER · 비교
 - 26-10-19 | TSER 70%인데 왜 더울까 — 썬팅은 냉매가 아니라 단열 보조재 | https://motif-jeonju.tistory.com/139 | 솔라가드 LX · 열차단·TSER · 비교
 - 26-08-11 | TSER 70%인데 왜 더울까요 — 전주 썬팅, 숫자 뒤의 조건 | https://motif-jeonju.tistory.com/138 | 솔라가드 LX · 열차단·TSER · 비교
@@ -273,7 +274,8 @@
 - 26-06-05 | 틴팅 필름 단점 vs 특성, 어떻게 구분하나? | https://motif-jeonju.com/%ed%8b%b4%ed%8c%85-%ed%95%84%eb%a6%84-%eb%8b%a8%ec%a0%90-vs-%ed%8a%b9%ec%84%b1-%ec%96%b4%eb%96%bb%ea%b2%8c-%ea%b5%ac%eb%b6%84%ed%95%98%eb%82%98/ | 비교
 - 26-06-02 | 썬팅 필름, 고르기 전에 알아야 할 것들 — 전주 오너 틴터가 정리한 선택의 기준 | https://motif-jeonju.com/%ec%8d%ac%ed%8c%85-%ed%95%84%eb%a6%84-%ea%b3%a0%eb%a5%b4%ea%b8%b0-%ec%a0%84%ec%97%90-%ec%95%8c%ec%95%84%ec%95%bc-%ed%95%a0-%ea%b2%83%eb%93%a4-%ec%a0%84%ec%a3%bc-%ec%98%a4%eb%84%88-%ed%8b%b4/
 
-### 썬팅-수치·측정 (15편)
+### 썬팅-수치·측정 (16편)
+- 26-11-21 | 스포티지 제니스 IR 썬팅 Q&A — 서비스 틴팅 대신 선택한 이유 · 전면 30% 측후면 15% · 내부 반사율 6% | https://motif-jeonju.com/jeonju-sportage-zenith-ir-tinting/ | 스포티지 · 제니스 IR · 반사
 - 26-11-20 | 솔라가드 더 LX 겨울 수요 Q&A — 측정 기준 · 겨울 단열 · 시인성 · 단점 3가지 | https://motif-jeonju.com/jeonju-lx-why-now/ | 솔라가드 LX
 - 26-11-18 | BMW X3 솔라가드 퀀텀 Q&A — 프라이버시와 시인성 · 전면 19% 측후면 14% | https://motif-jeonju.com/jeonju-bmw-x3-quantum-privacy/ | X3 · 퀀텀
 - 26-11-17 | 솔라가드 LX 역체감 Q&A — 감각 순응 · 유리 복사열 · 수치로 안 보이는 차이 | https://motif-jeonju.com/jeonju-lx-reverse-experience/ | 솔라가드 LX · 비교
