@@ -1,6 +1,6 @@
 #!/bin/sh
 # MOTIF 영상 작업 준비 한 줄: curl -sSL https://raw.githubusercontent.com/martingarrix1/motif/smartstore-assets/flow/kit/bootstrap.sh | sh -s ~/mk
-# 결과: <폴더>/scripts (편집 · 피아노 코드), fonts, brand (로고 원본), pn (피아노 샘플 84개), textkit (텍스트 버전 릴스 한 줄 제작 · 클래식 피아노 20곡)
+# 결과: <폴더>/scripts (편집 · 피아노 코드), fonts, brand (로고 원본), pn (피아노 샘플 84개), textkit (텍스트 버전 릴스 한 줄 제작 · 클래식 피아노 20곡 · 깜비 캐릭터)
 D=${1:-$HOME/mk}; R=https://raw.githubusercontent.com/martingarrix1/motif/smartstore-assets/flow
 mkdir -p "$D/scripts" "$D/fonts" "$D/brand" "$D/pn" && cd "$D" || exit 1
 {
