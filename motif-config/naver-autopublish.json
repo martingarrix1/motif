@@ -1,10 +1,7 @@
 {
   "note": "네이버 새 글 → 티스토리·워드프레스 자동 발행 기록. baseline_logNo 이하(이전) 글은 대상이 아니다.",
   "baseline_logNo": "224475873103",
-  "running": {
-    "logNo": "224485693309",
-    "at": "2026-11-21T04:09:37Z"
-  },
+  "running": null,
   "done": {
     "224475873103": {
       "title": "전주 썬팅. 솔라가드 S라인은 왜 역대급 엔트리일까?",
@@ -123,11 +120,15 @@
       "at": "2026-11-20",
       "bing": true,
       "google": "requested"
+    },
+    "224485693309": {
+      "title": "전주 스포티지 썬팅. 서비스 틴팅 대신 제니스 IR 30%와 15%를 선택한 이유",
+      "tistory": "https://motif-jeonju.tistory.com/208",
+      "wordpress": "https://motif-jeonju.com/jeonju-sportage-zenith-ir-tinting/",
+      "at": "2026-11-21T04:23:14Z",
+      "bing": true,
+      "google": "requested"
     }
   },
-  "skipped": {},
-  "loginAlert": {
-    "at": "2026-11-21T03:56:07Z",
-    "sites": "크롬 연결 안 됨"
-  }
+  "skipped": {}
 }
