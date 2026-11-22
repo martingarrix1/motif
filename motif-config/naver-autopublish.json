@@ -1,10 +1,7 @@
 {
   "note": "네이버 새 글 → 티스토리·워드프레스 자동 발행 기록. baseline_logNo 이하(이전) 글은 대상이 아니다.",
   "baseline_logNo": "224475873103",
-  "running": {
-    "logNo": "224486889843",
-    "at": "2026-11-22T04:05:26Z"
-  },
+  "running": null,
   "done": {
     "224475873103": {
       "title": "전주 썬팅. 솔라가드 S라인은 왜 역대급 엔트리일까?",
@@ -131,11 +128,15 @@
       "at": "2026-11-21T04:23:14Z",
       "bing": true,
       "google": "requested"
+    },
+    "224486889843": {
+      "title": "연말 주니퍼 출고 앞두고 썬팅 예산 100만 원 언더에서 왜 솔라가드 S라인을 봐야 할까요?",
+      "tistory": "https://motif-jeonju.tistory.com/209",
+      "wordpress": "https://motif-jeonju.com/jeonju-juniper-s-line-under-100/",
+      "at": "2026-11-22T04:19:08Z",
+      "bing": true,
+      "google": "requested"
     }
   },
-  "skipped": {},
-  "loginAlert": {
-    "at": "2026-11-22T03:55:36Z",
-    "sites": "크롬 연결 안 됨"
-  }
+  "skipped": {}
 }
