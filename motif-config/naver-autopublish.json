@@ -138,5 +138,9 @@
       "google": "requested"
     }
   },
-  "skipped": {}
+  "skipped": {},
+  "loginAlert": {
+    "at": "2026-11-22T06:56:04Z",
+    "sites": "크롬 연결 안 됨"
+  }
 }
