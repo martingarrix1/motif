@@ -1,6 +1,6 @@
 # 모티프 티스토리 · 워드프레스 내부 링크 인덱스
 
-티스토리 207편 · 워드프레스 145편 · 마지막 갱신 2026-11-22 (매일 아침 자동 갱신)
+티스토리 209편 · 워드프레스 147편 · 마지막 갱신 2026-11-23 (매일 아침 자동 갱신)
 링크는 같은 블로그 글끼리만 넣습니다 (티스토리↔티스토리 · 워드프레스↔워드프레스). 짝 글끼리는 서로 링크합니다.
 형식: 날짜 | 제목 | URL | 차종 · 제품 · 주제
 
@@ -40,7 +40,8 @@
 - 26-05-05 | 카시트 위 그 작은 피부를 위한 선택, 제니스 IR | 산타페 시그니처 패키지 시공기 | https://motif-jeonju.tistory.com/32 | 제니스 IR · 솔라가드 LX · 가격·비용 · 농도 선택
 - 26-03-31 | 버텍스 1100 vs 솔라가드 제니스IR | https://motif-jeonju.tistory.com/5 | 제니스 IR · 버텍스 1100 · 비교 · 가격·비용
 
-### 썬팅-원리·일반 (28편)
+### 썬팅-원리·일반 (29편)
+- 26-11-22 | 여름 열기를 막아 내는 썬팅 필름이 왜 겨울에는 실내 온기를 지켜 줄까요 | https://motif-jeonju.tistory.com/210 | 솔라가드 LX · 제니스 IR · 가격·비용 · 열차단·TSER
 - 26-11-20 | 전주 썬팅 모티프가 여러 브랜드를 내려놓고 솔라가드만 남긴 이유 | https://motif-jeonju.tistory.com/207 | 솔라가드 LX · 제니스 IR · 가격·비용 · 농도 선택
 - 26-11-11 | 전주 전기차 썬팅. 겨울 히터가 부담스럽다면 열이 빠져나가는 곳도 봐야 합니다 | https://motif-jeonju.tistory.com/190 | 솔라가드 LX · 전기차 · 가격·비용
 - 26-11-10 | 전주 썬팅. 편광 선글라스를 쓰면 자동차 유리가 무지개처럼 보이는 이유 | https://motif-jeonju.tistory.com/184 | 가격·비용 · 구조·기술
@@ -142,7 +143,8 @@
 - 26-05-07 | 전주 썬팅 재시공, 예산 안에서 전면에 비중을 더 둔 베뉴 케이스 | 제니스 IR + 티타늄 위치별 매칭 | https://motif-jeonju.tistory.com/34 | 제니스 IR · 티타늄 · 중고차·재시공 · 가격·비용
 - 26-05-03 | 가족을 위한 배려는 멀리 있지 않습니다 | BMW X7 솔라가드 LX 전체 재시공 사례 | https://motif-jeonju.tistory.com/30 | 카니발 · 팰리세이드 · 솔라가드 LX · 중고차·재시공 · 가격·비용
 
-### 신차패키지·신차검수 (21편)
+### 신차패키지·신차검수 (22편)
+- 26-11-22 | 연말 주니퍼 출고 앞두고 썬팅 예산 100만 원 언더에서 왜 솔라가드 S라인을 봐야 할까요 | https://motif-jeonju.tistory.com/209 | 모델Y · 주니퍼 · S라인 · 솔라가드 LX · 가격·비용 · 전파·하이패스
 - 26-11-17 | 테슬라 전라지역 신차 패키지 3종, 한시적으로 99만 원부터 시작하는 이유 | https://motif-jeonju.tistory.com/200 | 모델Y · 제니스 IR · S라인 · 가격·비용 · 전파·하이패스
 - 26-11-16 | 익산 썬팅. GV80 신차 검수와 제니스 IR. 필름의 광학 특성은 왜 운전석에서 드러날까 | https://motif-jeonju.tistory.com/196 | GV80 · 제니스 IR · 가격·비용 · 농도 선택
 - 26-11-11 | 전주 신차패키지 샵 고르는 법. 품목은 많이 받았는데 작업도 그만큼 달랐을까 | https://motif-jeonju.tistory.com/189 | 가격·비용 · 비교
@@ -243,7 +245,8 @@
 
 ## 워드프레스 (motif-jeonju.com)
 
-### 썬팅-솔라가드 LX (10편)
+### 썬팅-솔라가드 LX (11편)
+- 26-11-22 | 겨울 썬팅 Q&A — 열반사 필름이 난방열을 지키는 원리 · 보온병 비유 · LX와 제니스 IR 선택 | https://motif-jeonju.com/jeonju-tinting-winter-heat-retention/ | 솔라가드 LX · 제니스 IR · 반사
 - 26-11-15 | 솔라가드 LX vs 브이쿨 VK Q&A — 120만 원 차액 · 실차 테스트 · 색감 차이 | https://motif-jeonju.com/jeonju-lx-vkool-price-gap/ | 솔라가드 LX · 브이쿨 · 가격·비용 · 비교
 - 26-11-09 | 스퍼터링이란 무엇일까? 솔라가드 LX가 이 기술을 사용하는 이유 | https://motif-jeonju.com/sputtering-solargard-lx-why/ | 솔라가드 LX · 구조·기술
 - 26-11-05 | 마그네트론 스퍼터링 Q&A — 솔라가드 THE LX 금속 박막은 어떻게 만들어지나 | https://motif-jeonju.com/jeonju-magnetron-sputtering/ | 솔라가드 LX · 구조·기술
@@ -396,7 +399,8 @@
 - 26-06-06 | 전주 가죽코팅 기준 | 야와라·천연/비건레더·골든타임·관리주기 완전 정리 | https://motif-jeonju.com/%ec%a0%84%ec%a3%bc-%ea%b0%80%ec%a3%bd%ec%bd%94%ed%8c%85-%ea%b8%b0%ec%a4%80-%ec%95%bc%ec%99%80%eb%9d%bc%c2%b7%ec%b2%9c%ec%97%b0-%eb%b9%84%ea%b1%b4%eb%a0%88%eb%8d%94%c2%b7%ea%b3%a8%eb%93%a0%ed%83%80/ | 야와라 · 시공 후 관리
 - 26-06-04 | 전주 가죽코팅 정말 효과가 있을까? | https://motif-jeonju.com/%ec%a0%84%ec%a3%bc-%ea%b0%80%ec%a3%bd%ec%bd%94%ed%8c%85-%ec%a0%95%eb%a7%90-%ed%9a%a8%ea%b3%bc%ea%b0%80-%ec%9e%88%ec%9d%84%ea%b9%8c/
 
-### 시공사례-테슬라 (5편)
+### 시공사례-테슬라 (6편)
+- 26-11-22 | 주니퍼 솔라가드 S라인 Q&A — 99만 원 구성 · 저가 필름과 차이 · 제니스 IR이 맞는 경우 | https://motif-jeonju.com/jeonju-juniper-s-line-under-100/ | 주니퍼 · 제니스 IR · S라인 · 가격·비용 · 비교
 - 26-08-08 | 모델Y 주니퍼 틴팅 구성 비교 — 전주 · 전북 테슬라 썬팅 기준 | https://motif-jeonju.com/jeonju-model-y-juniper/ | 모델Y · 주니퍼 · 비교
 - 26-07-01 | 전주 테슬라 글라스루프 열 차단, 썬팅만으로 부족한 이유와 전동 썬쉐이드 | https://motif-jeonju.com/jeonju-tesla-sunshade/ | 테슬라
 - 26-06-23 | 전주 테슬라 썬팅 제니스IR Q&A | 비쌀수록 좋은 게 맞을까 | https://motif-jeonju.com/jeonju-tesla-zenith/ | 테슬라 · 제니스 IR
