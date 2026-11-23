@@ -1,10 +1,7 @@
 {
   "note": "네이버 새 글 → 티스토리·워드프레스 자동 발행 기록. baseline_logNo 이하(이전) 글은 대상이 아니다.",
   "baseline_logNo": "224475873103",
-  "running": {
-    "logNo": "224488399079",
-    "at": "2026-11-23T06:22:38Z"
-  },
+  "running": null,
   "done": {
     "224475873103": {
       "title": "전주 썬팅. 솔라가드 S라인은 왜 역대급 엔트리일까?",
@@ -153,8 +150,16 @@
       "tistory": "https://motif-jeonju.tistory.com/211",
       "wordpress": "https://motif-jeonju.com/jeonju-tinting-winter-indoor-temp/",
       "at": "2026-11-23",
-      "bing": false,
-      "google": "skipped"
+      "bing": true,
+      "google": "requested"
+    },
+    "224488399079": {
+      "title": "전주 필랑트 썬팅 첫 신차에 솔라가드 LX 40% · 25%를 시공한 이야기",
+      "tistory": "https://motif-jeonju.tistory.com/212",
+      "wordpress": "https://motif-jeonju.com/jeonju-filante-lx-40-25/",
+      "at": "2026-11-23",
+      "bing": true,
+      "google": "requested"
     }
   },
   "skipped": {}
