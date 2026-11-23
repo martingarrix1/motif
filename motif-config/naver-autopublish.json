@@ -2,8 +2,8 @@
   "note": "네이버 새 글 → 티스토리·워드프레스 자동 발행 기록. baseline_logNo 이하(이전) 글은 대상이 아니다.",
   "baseline_logNo": "224475873103",
   "running": {
-    "logNo": "224487999870",
-    "at": "2026-11-23T06:13:19Z"
+    "logNo": "224488399079",
+    "at": "2026-11-23T06:22:38Z"
   },
   "done": {
     "224475873103": {
@@ -147,6 +147,14 @@
       "at": "2026-11-22T12:39:05Z",
       "bing": true,
       "google": "requested"
+    },
+    "224487999870": {
+      "title": "전주 썬팅. 열차단 필름은 겨울철 실내 온도에 어떤 영향을 줄까요?",
+      "tistory": "https://motif-jeonju.tistory.com/211",
+      "wordpress": "https://motif-jeonju.com/jeonju-tinting-winter-indoor-temp/",
+      "at": "2026-11-23",
+      "bing": false,
+      "google": "skipped"
     }
   },
   "skipped": {}
