@@ -12,6 +12,8 @@ mkdir -p "$D/scripts" "$D/fonts" "$D/brand" "$D/pn" && cd "$D" || exit 1
 python3 -c "import numpy,PIL,scipy,cv2" 2>/dev/null || pip install -q --break-system-packages numpy pillow scipy opencv-python-headless 2>/dev/null || pip install -q numpy pillow scipy opencv-python-headless
 # 텍스트 버전 릴스 키트(textkit): 명령 한 줄 제작 — python3 textkit/textv/make_text.py all <폴더>
 curl -sSL --retry 2 -o textkit.tgz "$R/kit/textkit.tgz" && rm -rf textkit && tar xzf textkit.tgz && rm -f textkit.tgz
+# 원테이크 릴스 키트(onetake): script.json + scenes.json → python3 onetake/ot.py voice|sheet|final <폴더>
+curl -sSL --retry 2 -o onetake.tgz "$R/kit/onetake.tgz" && rm -rf onetake && tar xzf onetake.tgz && rm -f onetake.tgz
 [ -f /usr/share/fonts/opentype/noto/NotoSansCJK-Black.ttc ] || (apt-get install -y -q fonts-noto-cjk >/dev/null 2>&1 || sudo apt-get install -y -q fonts-noto-cjk >/dev/null 2>&1)
-echo "준비 완료 $D : textkit $( [ -d textkit ] && echo OK || echo 없음)"
+echo "준비 완료 $D : textkit $( [ -d textkit ] && echo OK || echo 없음) · onetake $( [ -d onetake ] && echo OK || echo 없음)"
 echo "준비 완료 $D : scripts $(ls scripts|wc -l) · fonts $(ls fonts|wc -l) · brand $(ls brand|wc -l) · pn $(ls pn|wc -l)"
