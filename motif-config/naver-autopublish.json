@@ -144,25 +144,11 @@
       "at": "2026-11-22T12:39:05Z",
       "bing": true,
       "google": "requested"
-    },
-    "224487999870": {
-      "title": "전주 썬팅. 열차단 필름은 겨울철 실내 온도에 어떤 영향을 줄까요",
-      "tistory": "https://motif-jeonju.tistory.com/211",
-      "wordpress": "https://motif-jeonju.com/jeonju-tinting-winter-indoor-temp/",
-      "at": "2026-11-23",
-      "bing": true,
-      "google": "already",
-      "note": "이미 두 채널에 발행돼 있어 기록만"
-    },
-    "224488399079": {
-      "title": "전주 필랑트 썬팅 첫 신차에 솔라가드 LX 40% · 25%를 시공한 이야기",
-      "tistory": "https://motif-jeonju.tistory.com/212",
-      "wordpress": "https://motif-jeonju.com/jeonju-filante-lx-40-25/",
-      "at": "2026-11-23",
-      "bing": true,
-      "google": "already",
-      "note": "이미 두 채널에 발행돼 있어 기록만"
     }
   },
-  "skipped": {}
+  "skipped": {},
+  "loginAlert": {
+    "at": "2026-11-23T01:55:46Z",
+    "sites": "크롬 연결 안 됨"
+  }
 }
