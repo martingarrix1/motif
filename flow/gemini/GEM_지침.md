@@ -25,7 +25,8 @@
    "lines": ["승인된 문장 1", "승인된 문장 2"],   // 화면 표기 그대로. 읽기 변환은 서버가 한다
    "bg": "PACKAGE",                               // 오른쪽 아래 흐르는 큰 영문 키워드(장면마다 다르게)
    "captions": ["신차 패키지는|[[품목이 많을수록]]|오히려 손해일 수 있습니다", "((매일 쓰지 않는 곳에))|((예산이 먼저 새어 나갑니다))"],
-   "graphic": {"p": "xyline", "...": "부품 인자"}
+   "graphic": {"p": "xyline", "...": "부품 인자"},
+   "fx": [{"p": "depthdust"}]                     // 선택: 장면 전체에 겹치는 효과(eyetrace · causticsweep · depthdust · blueprintgrid), 한 릴스에 1~2장면만
   }
  ]
 }
@@ -506,3 +507,46 @@ reel.json에 "style": "editorial"을 넣으면 카드형 대신 화면 전체를
 - drumwheel: 농도·등급 목록이 돌다가 가이드 레일에 멈춤 + VLT | box, title, options=[...], pick, spec_label, spec_val, unit, caption_, at
 - vernier: 눈금자가 이동하며 농도 창과 VLT·TSER 동시 연동 | box, title, steps=[["LX 15",12,71],["LX 25",23,65],["LX 40",42,61],["LX 70",72,55]], target_idx, caption_, at
 - ripplefield: 동심원 파동이 필름을 통과(rf_pass)하거나 반사 분산(heat_dispersion) | box, title, mode, src_label, dst_label, barrier, pct, unit, caption_, at
+
+## VORTEX 30 (2026-11-25 제미나이 해외 스튜디오 리서치 · Claude 시험 렌더 통과)
+조정: eyetrace 선 색 정의 오류 수정, flipboard 검정 타일을 밝은 타일+파랑 글자로, prismray 입사광 검정을 회색으로. E군(eyetrace · causticsweep · depthdust · blueprintgrid)은 reel.json 장면에 "fx": [{"p":"depthdust"}, ...]로 그래픽과 함께 겹쳐 쓴다(장면 길이 자동).
+
+### A. 3D · 아이소메트릭 · 공간 카메라 리그 (평면 카드 탈피 6종)
+1. isoexplode: SSR 30° 등각투영 3D 슬래브들이 공중으로 부양 분리되며 내부 블루 코어 광원과 우측 지시선 라벨이 연결됨 | box, title, slabs=[["하드코팅","g"],["다층 은·금속 스퍼터","b"],["광학 PET 원단","w"],["전면 점착층","p"]], metric_label, val, unit, at
+2. zparallax: 흰 카드 틀 없이 원경 제도판 · 중경 메인 수치 · 근경 플로팅 칩 3겹이 실제 3D Z축 시차로 돌리 아웃 | box, eyebrow, big_val, unit, headline, chips=["키워드1","키워드2","키워드3"], at
+3. rackfocus: 전경(통념·질문)에서 원경(핵심 수치·해답)으로 카메라 초점 거리(blur 4.8px ↔ 0px)가 이동하는 시네마틱 포커스 풀 | box, front_tag, front_text, back_tag, back_val, back_unit, back_sub, at
+4. hudtilt: 3D 원근 각도(rotateX/Y)로 기울어진 정밀 광학 텔레메트리 데크와 회전 레티클 링 · 스펙 리드아웃 | box, title, code="OPTICAL TELEMETRY", main_val, unit, specs=[["TSER","65%"],["VLT","23%"],["보증","10년"]], at
+5. irisshutter: 삼각함수 대칭 회전하는 4분할 기하학 조리개 셔터가 열리며 중앙 핵심 수치·명제를 노출 | box, tag, val, unit, label, sub, at
+6. hingeportal: 기존 통념 패널이 3D 경첩 축으로 회전해 열리며 그 너머의 블루 솔루션 패널로 진입 | box, door_tag, door_title, inside_tag, inside_title, inside_val, inside_unit, at
+
+### B. 광학 · 물리 · 소재 과학 시뮬레이터 (썬팅·PPF 원리 7종)
+7. liquidglass: 애플 리퀴드 글래스 굴절 캡슐(배경 확대 변위 + 양방향 대각선 라이트 스윕 + 스페큘러 림)이 유영하며 수치 표시 | box, title, bg_word="SOLAR GARD", val, unit, sub, at
+8. prismray: 백색 태양광이 광학 삼각 프리즘을 통과하며 가시광선(통과)과 적외선·자외선(전반사 차단)으로 정밀 분광 | box, title, pass_txt="가시광선 시야 확보", block_txt="적외선 복사열 반사", pct=65, unit="%", caption_, at
+9. raindrop: 고속 낙하 빗줄기가 스피드램프로 감속해 코팅면에 맺히며 초발수 접촉각(°)과 튕겨 나가는 구형 물방울 계측 | box, title, angle=112, surface="야와라 · 유리막 발수층", sub, caption_, at
+10. debrisshield: 날아드는 스톤칩·열 파편들이 중앙 포커스 배리어에 부딪혀 튕겨 나가고 배리어가 미세 탄성 리코일 후 복원 | box, title, shield_label="XPEL · PPF BARRIER", hits=4, pct=100, unit="%", at
+11. polarizer: 난반사 눈부심 스파이크 광원 위로 편광 필터 링이 90° 회전하며 글레어를 수평 소거하고 야간 선명도 확보 | box, title, before_txt="난반사 눈부심", after_txt="잔상·글레어 억제", val=6, unit="%", at
+12. heatcamera: 무채색·블루·바이올렛 등온선(Isotherm) 컨투어가 차량 유리창의 열 구배를 실시간 스캔하며 온도차 계측 | box, title, mode="winter"|"summer", delta=20, unit="%", label="단열 효율 상승", caption_, at
+13. selfheal: 확대된 클리어코트 위 스월 스크래치 선들 위로 온열 복원 링이 스캔하며 상처가 스스로 아물어 소멸 | box, title, temp_label="열복원 활성화", pct=100, sub="우레탄 엘라스토머 자가복원", at
+
+### C. 프로시저럴 · 제너레이티브 데이터 아트 (Cavalry 스타일 6종)
+14. repelfield: 7×5 정밀 벡터 바늘 매트릭스 사이로 에너지 프로브가 지나가며 자기장처럼 바늘 각도와 색상을 실시간 밀어냄 | box, title, probe_label="열반사 금속 장벽", metric_val=71, unit="%", caption_, at
+15. oscwave: 24개 수직 정밀 바가 사인파 위상차(Phase Stagger)로 물결치다 내레이션 타이밍에 목표 스펙 곡선으로 칼같이 정렬 | box, title, peak_label="적외선 차단 피크", val=94, unit="%", caption_="개념도", at
+16. falloffstack: 겹쳐 있던 5장의 공정·품목 카드가 벨커브 폴오프 곡선으로 부채처럼 펼쳐졌다가 핵심 1장으로 수렴 | box, title, cards=["신차 검수","전처리 탈지","정밀 성형","쉐이빙 마감","QR 전자보증"], pick=2, at
+17. radialsweep: 5~6개 성능 축 위로 일반 필름(회색)과 주인공 필름(블루 폴리곤)이 중심에서 회전 확장하며 면적 격차 비교 | box, title, axes=["열반사","야간시야","내구성","전비방어","보증기간"], base=[45,50,40,42,35], hero=[92,88,95,90,96], hero_name="THE LX", caption_="개념도", at
+18. echostack: 초대형 핵심 수치·단어 뒤로 프레임 시차를 둔 4겹의 블루·보라 윤곽선 에코가 파동처럼 따라붙어 합체 | box, eyebrow, word="10 YEARS", sub="변색 없는 풀메탈 스퍼터링 보증", g="b", at
+19. orbitduplicator: 원형 배열된 18개 정밀 기하 캡슐이 반경 확장과 자체 회전을 수식 연동해 시계 무브먼트처럼 개폐 | box, label, val=1665, unit="년", sub="생고뱅 광학 제조 헤리티지", at
+
+### D. 에디토리얼 · 저널리즘 · 타이포 아키텍처 (Vox / WSJ / Rive 스타일 6종)
+20. doczoom: 공식 성적서·보증서 도면 전체에서 핵심 문구로 줌인 매치컷하며 멀티플라이 블루 형광펜 드로잉 + 외곽 심도 블러 | box, doc_title="NFRC OFFICIAL SPEC", lines=["VLT 가시광선 투과율 : 42%","TSER 총태양에너지 차단 : 61%","WARRANTY 공식 보증 : 10년"], pick=1, at
+21. pannabletrack: 광폭 건축 눈금 타임라인 위를 카메라가 가로 패닝하며 출고~10년 시점별 상태 마커와 스템을 순차 점등 | box, title, milestones=[["출고 첫날","새 필름 동일 외관"],["3년 경과","염색 필름 변색 시작"],["5년 경과","재시공 중복 지출"],["10년 보증","LX 초기 물성 유지"]], pick=3, at
+22. cadbox: 8개 코너·미드 핸들이 달린 CAD 바운딩 박스가 스냅 확장되며 내부 핵심 문구의 폰트 웨이트(300→900)가 실시간 변화 | box, tag="PRECISION FIT", word="오차 없는 파이널핏", sub="도장 안쪽 마감 설계", val=0.1, unit="mm", at
+23. flipboard: 기계식 스플릿 플랩 타일들이 차르륵 회전하며 농도·등급·수치 스펙을 크로노그래프 감성으로 맞춤 | box, title, rows=[["FRONT","LX 40"],["SIDE · REAR","LX 25"],["TSER","65 %"]], at
+24. shuttertext: 7개의 수평 베네시안 슬랫 블라인드가 시차 회전하며 통념 문장에서 핵심 결론 문장으로 면도날 교차 전환 | box, tag, before="어두워야 시원하다는 통념", after="밝아도 뜨거운 열을 반사하는 기술", g="b", at
+25. certseal: 원형 경로를 따라 공전하는 타이포그래피 인장 링과 중앙 공식 특화샵·전자보증 체크 마크 각인 | box, ring_text="SOLAR GARD THE LX · OFFICIAL SPECIALIZED STUDIO · ", center_top="WARRANTY", center_val="10YR", sub="QR 전자보증 정품 등록", at
+
+### E. 전화면 시네마틱 이펙트 · 공간 오버레이 ("그외의 효과" 5종 — graphic 또는 fx 겸용)
+26. eyetrace: 상단 그래픽 결론 지점에서 출발한 테이퍼드 블루 코멧 광선이 우아한 호를 그리며 하단 자막 핵심어로 시선을 유도 | x0=540, y0=860, x1=540, y1=1055, at
+27. causticsweep: 쇼룸 천창을 통과한 듯한 은은한 사선 유리 굴절 채광(Studio Light Gobo)이 화면 배경을 가로지르며 공기감 부여 | angle=-24, intensity=0.55
+28. depthdust: 서로 다른 Z속도와 초점 심도를 가진 클린 광학 마이크로 보케 입자들이 부유하며 정적인 화면에 공간 깊이감 추가 | count=16, g="b"
+29. xrayblade: 화면 위를 레이저 스캔 블레이드가 가로지르며 일반 외관 도면을 내부 금속 와이어프레임·스펙 투시도로 변환 | box, title, outer_txt="외관상 비슷해 보이는 새 필름", inner_txt="내부 다층 풀메탈 스퍼터링 구조", val=10, unit="년", at
+30. blueprintgrid: 장면 시작과 함께 화면 외곽·코너 십자 마크·각도 보조선이 실시간 제도되듯 그려지며 설계 도면 무드 형성 | code="MOTIF ARCHIVE · SPEC SHEET", margin=52

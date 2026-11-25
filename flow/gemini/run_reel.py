@@ -108,6 +108,12 @@ def main():
                 gd["caps"] = [cap_rows(c) for c in caps[:vis_n]]
                 gd["stimes"] = [round(max(t0, x - 0.10), 3) for x in st[:vis_n]]
             items.append(dict(p=p, t=round(t0, 3), d=round(t1 - t0, 3), **gd))
+        fxs = s.get("fx") or []   # 장면 전체 오버레이 효과(eyetrace · causticsweep · depthdust · blueprintgrid 등)
+        if isinstance(fxs, dict): fxs = [fxs]
+        for fx in fxs:
+            fx = dict(fx); fp = fx.pop("p")
+            fxd = {kk: (resolve(vv, st[0], st) if kk in TIME_KEYS or isinstance(vv, (list, dict, str)) else vv) for kk, vv in fx.items()}
+            items.append(dict(p=fp, t=round(t0, 3), d=round(t1 - t0, 3), **fxd))
 
         if not is_ed:
             if s.get("bg"): items.append(dict(p="bgword", t=round(t0, 3), d=round(t1 - t0, 3), word=s["bg"]))
