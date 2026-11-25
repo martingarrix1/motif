@@ -39,7 +39,7 @@
 - 여운(필수): 마지막 장면은 항상 "압축 문장 + 생각하게 만드는 질문" 두 문장이다. 질문 없이 "도와드리겠습니다" 같은 안내로 끝내지 않는다.
 - 기본형(mode "thelx")은 반드시 "end"를 넣는다: `"end": {"question": ["회색 작은 줄", "검정 큰 줄", "파랑 큰 줄"], "product": "솔라가드 THE LX · 열반사 필름"}`. question은 마지막 질문을 3줄로 나눈 것(각 줄 12자 안팎), product는 제품명 한 줄. 마지막 질문을 말할 때 화면이 이 엔드카드로 바뀌고, 멘트 뒤 4초 여운 후 검정 페이드아웃.
 - 모티프 버전: 마지막 장면 둘째 문장을 "전주 모티프였습니다."로. 그 문장의 caption은 쓰지 않아도 된다(엔드카드가 뜬다).
-- 장면마다 부품을 바꾼다. 같은 부품을 연속으로 쓰지 않는다. 그래프 색 인자는 파랑(b) · 보라(p) · 회색만. 주황(n)은 쓰지 않는다(seesaw는 lg/rg를 "p"/"b"로).
+- 장면마다 부품을 바꾼다. 같은 부품을 연속으로 쓰지 않는다. 대사 속 비유·원리(보온병 · 필름 구조 · 열의 흐름 · 온도 변화 · 농도 배치)는 반드시 그림 부품(thermos · filmlayers · heatflow · tempcurve · cartop · spectrumcurve · colbars · dial · donut)으로 보여 준다. 한 릴스에 그림 부품을 최소 3개 쓴다. 그래프 색 인자는 파랑(b) · 보라(p) · 회색만. 주황(n)은 쓰지 않는다(seesaw는 lg/rg를 "p"/"b"로).
 - 수치는 승인된 대사에 있는 것만 그래픽에 넣는다. 예시 수치를 쓰면 caption_에 "예시"라고 적는다.
 
 ## 완성 예시 (테슬라 전라지역 신차 패키지)
@@ -466,3 +466,16 @@ TSER → 티에스이알 / LX → 엘엑스 / THE LX → 더 엘엑스(띄어 �
 - crossscan: 십자선이 가로지르며 스펙·수치가 드러남 | box, tag, text, sub, g="b", at
 - metricpair: 두 수치(TSER·IRER 등) 좌우 동시 카운트 + 막대 | box, title, left=["라벨",값,"단위","b"], right=["라벨",값,"단위","p"], at, caption_
 - stacklist: 품목 알약이 쌓였다가 한 줄 결론 카드로 압축 | box, pills=["품목", ...], at, collapse_at, result, g="bp"
+
+## 그림 부품 (2026-11-25 · 장면마다 다른 그림이 나오게)
+부품만 고르면 장면이 비슷해진다는 지적("예전엔 보온병도 나오고 그래프도 화려했는데")으로 추가. 한 릴스에 그림 부품을 2~3개 이상 섞어 쓴다. 시간 인자는 reel.json에서 "+초" · "s2+초" 문자열로.
+- thermos: 보온병 단면, 안쪽 금속 코팅이 열을 되돌림 | box, mode="winter"|"summer", title, inside, outside, note, at
+- tempcurve: 시간에 따른 온도 XY 곡선 2개(회색 vs 파랑) + 끝값 · 배지 | box, title, series=[["맨유리",[값...]],["LX",[값...]]], xlabels, ymin, ymax, unit="℃", delta, caption_, at
+- filmlayers: 필름 단면 층이 하나씩 쌓임(금속층은 파랑) | box, title, layers=[["이름","m"|"c"|"a"|"d"|"h"], ...], badge
+- spectrumcurve: 파장별 투과율 곡선(가시광선 띠 · 적외선 구간) | box, title, pts=[[nm,%], ...], caption_="개념도", at
+- cartop: 차량 평면도, 유리 위치가 농도만큼 어두워지며 이름표 | box, title, zones=[["front"|"side1"|"side2"|"roof"|"rear","LX 40",시각], ...]
+- heatflow: 필름 단면에서 열이 반사되는 길(summer 바깥 열기 · winter 실내 난방열) | box, mode, title, outside, inside, film, passed=통과 점선 수, at
+- colbars: 세로 막대 XY 그래프, 강조 막대만 파랑 | box, title, bars=[["라벨",값,시각], ...], vmax, unit, ticks, hi=강조 번호, caption_
+- dial: 반원 계기판, 바늘과 수치가 함께 | box, label, value, vmax=100, unit="%", sub, at
+- donut: 도넛 비율(반사 · 흡수 · 투과 등) + 범례 카운트 | box, title, parts=[["반사",45,"b"],["흡수",26,"p"],["투과",29,"g"]], center, caption_, at
+- 원문에 없는 수치로 그린 곡선·비율은 caption_에 "개념도" 또는 "예시 수치"라고 적는다.
