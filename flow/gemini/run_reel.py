@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""reel.json 하나로 MOTIF 릴스 mp4 만들기 (기본 카드형 + style:"editorial" 풀스크린 에디토리얼 겸용)"""
+"""reel.json 하나로 MOTIF 릴스 mp4 생성 (기본형 + editorial + onetake + fx 겸용)"""
 import json, os, re, subprocess, sys
 
 MK = os.path.expanduser(os.environ.get("MOTIF_MK", "~/mk"))
@@ -60,7 +60,7 @@ def main():
     R = json.load(open(os.path.join(D, "reel.json"), encoding="utf-8"))
     name = R.get("name") or os.path.basename(D)
     mode = R.get("mode", "thelx")
-    editorial = R.get("style") == "editorial"
+    style = R.get("style", "")
     scenes = R["scenes"]
     open(os.path.join(D, "script.txt"), "w", encoding="utf-8").write("\n\n".join("\n".join(s["lines"]) for s in scenes) + "\n")
 
@@ -82,61 +82,110 @@ def main():
 
     tail = 5.5 if mode == "motif" else 4.2
     DUR = round(VL + tail, 2)
-    items, k, bounds = [], 0, []
+    bounds, k = [], 0
     for s in scenes:
         n = len(s["lines"]); bounds.append(ss[k:k + n]); k += n
-    sign = mode == "motif" and re.search("모티프.*였습니다", scenes[-1]["lines"][-1])
-    qend = None if sign else R.get("end")
-    end_t = round(bounds[-1][-1] - 0.85, 3) if sign else (round(bounds[-1][-1] - 0.3, 3) if qend else DUR)
-    sign = sign or bool(qend)
-
-    for i, s in enumerate(scenes):
-        st = bounds[i]; t0 = max(0.0, st[0] - 0.14) if i else 0.10
-        t1 = (bounds[i + 1][0] + 0.02) if i + 1 < len(scenes) else (end_t if sign else DUR)
-        caps = s.get("captions") or [wrap(l) for l in s["lines"]]
-        vis_n = (len(st) - 1) if (sign and i == len(scenes) - 1) else len(st)
-        g = s.get("graphic")
-        is_ed = editorial or (g and str(g.get("p", "")).startswith("ed_"))
-
-        if g:
-            g = dict(g); p = g.pop("p")
-            if i == 0 and "at" in g and p not in ("shuttertext", "rackfocus", "hingeportal", "irisshutter", "strike", "splitline", "xrayblade"): g["at"] = "+0.4"   # 후킹 그래픽은 바로 시작(전환형 부품은 원래 시각 유지)
-            gd = {kk: (resolve(vv, st[0], st) if kk in TIME_KEYS or isinstance(vv, (list, dict, str)) else vv) for kk, vv in g.items()}
-            for kk in TIME_KEYS:
-                if kk in g and isinstance(g[kk], (int, float)): gd[kk] = round(st[0] + g[kk], 3)
-            for kk in TIME_KEYS:   # 장면이 끝나기(엔드카드 포함) 1초 전까지는 동작이 보이게
-                if isinstance(gd.get(kk), (int, float)) and gd[kk] > t1 - 1.0: gd[kk] = round(max(t0 + .3, t1 - 1.0), 3)
-            if is_ed:
-                gd["caps"] = [cap_rows(c) for c in caps[:vis_n]]
-                gd["stimes"] = [round(max(t0, x - 0.10), 3) for x in st[:vis_n]]
-            items.append(dict(p=p, t=round(t0, 3), d=round(t1 - t0, 3), **gd))
-        fxs = s.get("fx") or []   # 장면 전체 오버레이 효과(eyetrace · causticsweep · depthdust · blueprintgrid 등)
-        if isinstance(fxs, dict): fxs = [fxs]
-        for fx in fxs:
-            fx = dict(fx); fp = fx.pop("p")
-            fxd = {kk: (resolve(vv, st[0], st) if kk in TIME_KEYS or isinstance(vv, (list, dict, str)) else vv) for kk, vv in fx.items()}
-            items.append(dict(p=fp, t=round(t0, 3), d=round(t1 - t0, 3), **fxd))
-
-        if not is_ed:
-            if s.get("bg"): items.append(dict(p="bgword", t=round(t0, 3), d=round(t1 - t0, 3), word=s["bg"]))
-            y = 1020
-            for j, c in enumerate(caps[:vis_n]):
-                rows = cap_rows(c); ct = max(t0, st[j] - 0.12)
-                all_sub = all(all(st_ == "g" for _, st_ in r) for r in rows)
-                items.append(dict(p="caption", t=round(ct, 3), d=round(t1 - ct, 3), rows=rows, y=y, size=58))
-                y += (66 if all_sub else 78) * len(rows) + 20
-
+    motif_sign = bool(mode == "motif" and re.search("모티프.*였습니다", scenes[-1]["lines"][-1]))
+    qend = None if motif_sign else R.get("end")
+    end_t = round(bounds[-1][-1] - 0.85, 3) if motif_sign else (round(bounds[-1][-1] - 0.3, 3) if qend else DUR)
+    sign = motif_sign or bool(qend)
     hd = end_t if sign else DUR
-    if R.get("header"): items.insert(0, dict(p="header", t=0.0, d=round(hd, 3), title=R["header"]))
-    if mode in ("thelx", "motif"): items.append(dict(p="logo", t=0.0, d=round(hd, 3), name="thelx" if mode == "thelx" else "motif", w=180 if mode == "thelx" else 140))
-    if sign and not qend: items.append(dict(p="endcard", t=end_t, d=round(DUR - end_t, 3), logo_="motif"))
-    if qend:
-        q = (qend.get("question") or [])[:3]; q += [""] * (3 - len(q))
-        items.append(dict(p="centertext", t=end_t, d=round(DUR - end_t, 3), y=620, size=46, lines=[[q[0], "g"], [q[1], "k"], [q[2], "b"]]))
-        if qend.get("product"): items.append(dict(p="centertext", t=round(end_t + 0.5, 3), d=round(DUR - end_t - 0.5, 3), y=1080, size=34, lines=[[qend["product"], "g"]]))
-
     files = [os.path.join(D, f) for f in R.get("photos", []) if os.path.exists(os.path.join(D, f))]
-    spec = dict(dur=DUR, style=R.get("style", ""), zoomcut=bool(R.get("zoomcut")), dir=f"/tmp/hf/{name}", files=files, items=items)
+
+    if style == "onetake":
+        stations, hud_items = [], []
+        if R.get("header"): hud_items.append(dict(p="header", t=0.0, d=round(hd, 3), title=R["header"]))
+        if mode in ("thelx", "motif"): hud_items.append(dict(p="logo", t=0.0, d=round(hd, 3), name="thelx" if mode == "thelx" else "motif", w=180 if mode == "thelx" else 140))
+        for i, s in enumerate(scenes):
+            st = bounds[i]
+            cam_t = max(0.0, st[0] - 0.88) if i else 0.0
+            act_t = max(0.0, st[0] - 0.12) if i else 0.35
+            t1 = (bounds[i + 1][0] + 0.02) if i + 1 < len(scenes) else (end_t if sign else DUR)
+            stay_d = round(DUR - act_t, 3)
+            g_items, c_items, sbox = [], [], None
+
+            g = s.get("graphic")
+            if g:
+                g = dict(g); p = g.pop("p"); sbox = g.get("box", [84, 300, 912, 600])
+                gd = {kk: (resolve(vv, st[0], st) if kk in TIME_KEYS or isinstance(vv, (list, dict, str)) else vv) for kk, vv in g.items()}
+                for kk in TIME_KEYS:
+                    if kk in g and isinstance(g[kk], (int, float)): gd[kk] = round(st[0] + g[kk], 3)
+                g_items.append(dict(p=p, t=round(act_t, 3), d=stay_d, **gd))
+
+            fxs = s.get("fx") or []
+            if isinstance(fxs, dict): fxs = [fxs]
+            for fx in fxs:
+                fx = dict(fx); fp = fx.pop("p")
+                fxd = {kk: (resolve(vv, st[0], st) if kk in TIME_KEYS or isinstance(vv, (list, dict, str)) else vv) for kk, vv in fx.items()}
+                c_items.append(dict(p=fp, t=round(act_t, 3), d=round(max(1.0, t1 - act_t), 3), **fxd))
+
+            caps = s.get("captions") or [wrap(l) for l in s["lines"]]
+            vis_n = (len(st) - 1) if (sign and i == len(scenes) - 1) else len(st)
+            cy_cap = 1020
+            for j, c in enumerate(caps[:vis_n]):
+                rows = cap_rows(c); ct = max(act_t, st[j] - 0.10)
+                all_sub = all(all(st_ == "g" for _, st_ in r) for r in rows)
+                c_items.append(dict(p="caption", t=round(ct, 3), d=round(DUR - ct, 3), rows=rows, y=cy_cap, size=58))
+                cy_cap += (66 if all_sub else 78) * len(rows) + 20
+            stations.append(dict(cam_t=round(cam_t, 3), shell_box=sbox, g_items=g_items, c_items=c_items))
+
+        if motif_sign:
+            ov_start = max(0.2, round(end_t - 0.35, 3))
+            ec_start = round(ov_start + 0.85, 3)
+            stations.append(dict(cam_t=ov_start, is_end=True, overview=True, g_items=[], c_items=[dict(p="endcard", t=ec_start, d=round(DUR - ec_start, 3), logo_="motif")]))
+        elif qend:
+            q = (qend.get("question") or [])[:3]; q += [""] * (3 - len(q))
+            end_c = [dict(p="centertext", t=end_t, d=round(DUR - end_t, 3), y=620, size=46, lines=[[q[0], "g"], [q[1], "k"], [q[2], "b"]])]
+            if qend.get("product"): end_c.append(dict(p="centertext", t=round(end_t + 0.5, 3), d=round(DUR - end_t - 0.5, 3), y=1080, size=34, lines=[[qend["product"], "g"]]))
+            stations.append(dict(cam_t=max(0.2, round(end_t - 0.55, 3)), is_end=True, overview=False, g_items=[], c_items=end_c))
+
+        spec = dict(dur=DUR, style="onetake", dir=f"/tmp/hf/{name}", files=files, stations=stations, hud_items=hud_items)
+    else:
+        items = []
+        editorial = (style == "editorial")
+        for i, s in enumerate(scenes):
+            st = bounds[i]; t0 = max(0.0, st[0] - 0.14) if i else 0.40
+            t1 = (bounds[i + 1][0] + 0.02) if i + 1 < len(scenes) else (end_t if sign else DUR)
+            caps = s.get("captions") or [wrap(l) for l in s["lines"]]
+            vis_n = (len(st) - 1) if (sign and i == len(scenes) - 1) else len(st)
+            g = s.get("graphic")
+            is_ed = editorial or (g and str(g.get("p", "")).startswith("ed_"))
+
+            if g:
+                g = dict(g); p = g.pop("p")
+                gd = {kk: (resolve(vv, st[0], st) if kk in TIME_KEYS or isinstance(vv, (list, dict, str)) else vv) for kk, vv in g.items()}
+                for kk in TIME_KEYS:
+                    if kk in g and isinstance(g[kk], (int, float)): gd[kk] = round(st[0] + g[kk], 3)
+                if is_ed:
+                    gd["caps"] = [cap_rows(c) for c in caps[:vis_n]]
+                    gd["stimes"] = [round(max(t0, x - 0.10), 3) for x in st[:vis_n]]
+                items.append(dict(p=p, t=round(t0, 3), d=round(t1 - t0, 3), **gd))
+
+            fxs = s.get("fx") or []
+            if isinstance(fxs, dict): fxs = [fxs]
+            for fx in fxs:
+                fx = dict(fx); fp = fx.pop("p")
+                fxd = {kk: (resolve(vv, st[0], st) if kk in TIME_KEYS or isinstance(vv, (list, dict, str)) else vv) for kk, vv in fx.items()}
+                items.append(dict(p=fp, t=round(t0, 3), d=round(t1 - t0, 3), **fxd))
+
+            if not is_ed:
+                if s.get("bg"): items.append(dict(p="bgword", t=round(t0, 3), d=round(t1 - t0, 3), word=s["bg"]))
+                y = 1020
+                for j, c in enumerate(caps[:vis_n]):
+                    rows = cap_rows(c); ct = max(t0, st[j] - 0.12)
+                    all_sub = all(all(st_ == "g" for _, st_ in r) for r in rows)
+                    items.append(dict(p="caption", t=round(ct, 3), d=round(t1 - ct, 3), rows=rows, y=y, size=58))
+                    y += (66 if all_sub else 78) * len(rows) + 20
+
+        if R.get("header") and not editorial: items.insert(0, dict(p="header", t=0.0, d=round(hd, 3), title=R["header"]))
+        if mode in ("thelx", "motif"): items.append(dict(p="logo", t=0.0, d=round(hd, 3), name="thelx" if mode == "thelx" else "motif", w=180 if mode == "thelx" else 140))
+        if motif_sign: items.append(dict(p="endcard", t=end_t, d=round(DUR - end_t, 3), logo_="motif"))
+        if qend:
+            q = (qend.get("question") or [])[:3]; q += [""] * (3 - len(q))
+            items.append(dict(p="centertext", t=end_t, d=round(DUR - end_t, 3), y=620, size=46, lines=[[q[0], "g"], [q[1], "k"], [q[2], "b"]]))
+            if qend.get("product"): items.append(dict(p="centertext", t=round(end_t + 0.5, 3), d=round(DUR - end_t - 0.5, 3), y=1080, size=34, lines=[[qend["product"], "g"]]))
+        spec = dict(dur=DUR, style=style, zoomcut=bool(R.get("zoomcut", False)), dir=f"/tmp/hf/{name}", files=files, items=items)
+
     open(os.path.join(D, "spec.py"), "w", encoding="utf-8").write("SPEC = " + json.dumps(spec, ensure_ascii=False, indent=1).replace("null", "None").replace("true", "True").replace("false", "False") + "\n")
 
     vid = os.path.join(D, "video.mp4"); mix = os.path.join(D, "mix.mp4"); out = os.path.join(D, f"{name}.mp4")

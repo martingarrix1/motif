@@ -144,41 +144,11 @@
       "at": "2026-11-22T12:39:05Z",
       "bing": true,
       "google": "requested"
-    },
-    "224487999870": {
-      "title": "전주 썬팅. 열차단 필름은 겨울철 실내 온도에 어떤 영향을 줄까요?",
-      "tistory": "https://motif-jeonju.tistory.com/211",
-      "wordpress": "https://motif-jeonju.com/jeonju-tinting-winter-indoor-temp/",
-      "at": "2026-11-24T01:24:37Z",
-      "bing": true,
-      "google": "skipped",
-      "note": "이전 실행에서 이미 두 채널 발행됨 · 중복 확인 후 기록만"
-    },
-    "224488399079": {
-      "title": "전주 필랑트 썬팅 첫 신차에 솔라가드 LX 40% · 25%를 시공한 이야기",
-      "tistory": "https://motif-jeonju.tistory.com/212",
-      "wordpress": "https://motif-jeonju.com/jeonju-filante-lx-40-25/",
-      "at": "2026-11-24T01:24:37Z",
-      "bing": true,
-      "google": "skipped",
-      "note": "이전 실행에서 이미 두 채널 발행됨 · 중복 확인 후 기록만"
-    },
-    "224489518033": {
-      "title": "경차나 중고차에 솔라가드 LX를 시공하면 정말 과소비일까요?",
-      "tistory": "https://motif-jeonju.tistory.com/213",
-      "wordpress": "https://motif-jeonju.com/jeonju-compact-used-car-lx/",
-      "at": "2026-11-24T01:24:37Z",
-      "bing": true,
-      "google": "requested"
-    },
-    "224490339089": {
-      "title": "신차 가죽코팅. 수성과 유성을 구분하고 야와라를 권하는 이유는 무엇일까요?",
-      "tistory": "https://motif-jeonju.tistory.com/214",
-      "wordpress": "https://motif-jeonju.com/jeonju-yawara-water-based-coating/",
-      "at": "2026-11-24",
-      "bing": true,
-      "google": "requested"
     }
   },
-  "skipped": {}
+  "skipped": {},
+  "loginAlert": {
+    "at": "2026-11-23T01:55:46Z",
+    "sites": "크롬 연결 안 됨"
+  }
 }
