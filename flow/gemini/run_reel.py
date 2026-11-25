@@ -109,6 +109,7 @@ def main():
         g = s.get("graphic")
         if g:
             g = dict(g); p = g.pop("p")
+            if i == 0 and "at" in g: g["at"] = "+0.4"   # 첫 장면(후킹) 그래픽은 바로 시작
             gd = {kk: (resolve(vv, st[0], st) if kk in TIME_KEYS or isinstance(vv, (list, dict, str)) else vv) for kk, vv in g.items()}
             for kk in TIME_KEYS:
                 if kk in g and isinstance(g[kk], (int, float)): gd[kk] = round(st[0] + g[kk], 3)
@@ -129,7 +130,7 @@ def main():
         items.append(dict(p="centertext", t=end_t, d=round(DUR - end_t, 3), y=620, size=46, lines=[[q[0], "g"], [q[1], "k"], [q[2], "b"]]))
         if qend.get("product"): items.append(dict(p="centertext", t=round(end_t + 0.6, 3), d=round(DUR - end_t - 0.6, 3), y=1080, size=34, lines=[[qend["product"], "g"]]))
     files = [os.path.join(D, f) for f in R.get("photos", []) if os.path.exists(os.path.join(D, f))]
-    spec = dict(dur=DUR, dir=f"/tmp/hf/{name}", files=files, items=items)
+    spec = dict(dur=DUR, dir=f"/tmp/hf/{name}", files=files, items=items, zoomcut=bool(R.get("zoomcut")))
     open(os.path.join(D, "spec.py"), "w", encoding="utf-8").write("SPEC = " + json.dumps(spec, ensure_ascii=False, indent=1).replace("null", "None").replace("true", "True").replace("false", "False") + "\n")
 
     # 3) 렌더 → 소리 → 검정 페이드
