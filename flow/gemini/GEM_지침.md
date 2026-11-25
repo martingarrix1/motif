@@ -479,3 +479,18 @@ TSER → 티에스이알 / LX → 엘엑스 / THE LX → 더 엘엑스(띄어 �
 - dial: 반원 계기판, 바늘과 수치가 함께 | box, label, value, vmax=100, unit="%", sub, at
 - donut: 도넛 비율(반사 · 흡수 · 투과 등) + 범례 카운트 | box, title, parts=[["반사",45,"b"],["흡수",26,"p"],["투과",29,"g"]], center, caption_, at
 - 원문에 없는 수치로 그린 곡선·비율은 caption_에 "개념도" 또는 "예시 수치"라고 적는다.
+
+## 자막 · 전환 (2026-11-25 제미나이 제안 반영)
+- caption: 어절이 아래 마스크에서 올라오며(블러 4px) 등장, 강조 단어는 양쪽 핸들이 지나가며 옅은 형광 띠가 칠해지고 핸들은 0.8초 뒤 사라짐.
+- zoomcut: spec(또는 reel.json)에 "zoomcut": true를 넣을 때만 장면 전환 순간 화면이 살짝 확대·블러됨. 기본은 끔(마틴: 화려한 펀치 줌 전환은 어색하다).
+- 첫 장면(후킹) 그래픽은 run_reel.py가 자동으로 0.4초에 시작시킨다.
+
+## 에디토리얼 스타일 (2026-11-25 제미나이 제안 · style:"editorial")
+reel.json에 "style": "editorial"을 넣으면 카드형 대신 화면 전체를 쓰는 잡지형 장면. 장면 번호(01 / HOOK)와 영문 메타가 위에, 자막은 장면 안 큰 글씨로 들어간다. header는 쓰지 않는다(메타 줄이 대신함). 글자·화면 블러는 4~5px로 조정.
+- ed_split: 통념 카드가 흐려지고 아래 큰 카드에 고온/저온 숫자 + 법칙 문장 | no, q_tag, q_txt, a_tag, t_high, t_low, rule
+- ed_temp: 큰 온도 곡선(점선 맨유리 vs 파랑 LX) + 끝값 라벨 | no, bare=[...], lx=[...], xlabels, badge
+- ed_thermos: 가운데 금속 벽을 사이에 두고 양쪽 복사열이 반사 | no, in_label, out_label, wall
+- ed_odometer: 큰 +수치 카운트 + 필름 층 목록(METAL 층은 파랑) | no, label, val, unit, layers=[...]
+- ed_bento: 큰 카드(막대 8개 차오름) + 여름/겨울 두 카드 | no, main_tit, main_sub, summer=[태그,제목,설명], winter=[...]
+- ed_night: 원이 열리며 어두운 야간 화면 + 레이저 스캔 + 수치 카운트다운 | no, model, val, sub
+- ed_verdict: 결론 시소 | no, left, right, sub
