@@ -6,7 +6,7 @@
 순서: script.txt 생성 → make_reel.py voice(일레븐랩스 + 제미나이 검수) → spec.py 생성 → hfkit 렌더 → finish(피아노 · -16 LUFS) → 끝 검정 페이드
 결과: <작업폴더>/<name>.mp4
 
-reel.json 형식은 flow/gemini/GEM_지침.md 참고.
+reel.json 형식은 flow/gemini/GEM_지침.md 참고. 기본형(thelx)은 "end": {"question": [회색 줄, 검정 줄, 파랑 줄], "product": "제품명"} 로 엔드카드.
 """
 import json, os, re, subprocess, sys
 
@@ -100,7 +100,9 @@ def main():
     for s in scenes:
         n = len(s["lines"]); bounds.append(ss[k:k + n]); k += n
     sign = mode == "motif" and re.search("모티프.*였습니다", scenes[-1]["lines"][-1])
-    end_t = round(bounds[-1][-1] - 0.85, 3) if sign else DUR
+    qend = None if sign else R.get("end")        # 기본형 엔드카드: 마지막 질문 3줄 + 제품명
+    end_t = round(bounds[-1][-1] - 0.85, 3) if sign else (round(bounds[-1][-1] - 0.3, 3) if qend else DUR)
+    sign = sign or bool(qend)
     for i, s in enumerate(scenes):
         st = bounds[i]; t0 = max(0.0, st[0] - 0.12) if i else 0.15
         t1 = (bounds[i + 1][0] - 0.05) if i + 1 < len(scenes) else (end_t if sign else DUR - 1.2)
@@ -121,7 +123,11 @@ def main():
     hd = end_t if sign else DUR - 1.2
     if R.get("header"): items.insert(0, dict(p="header", t=0.0, d=round(hd, 3), title=R["header"]))
     if mode in ("thelx", "motif"): items.append(dict(p="logo", t=0.0, d=round(hd, 3), name="thelx" if mode == "thelx" else "motif", w=180 if mode == "thelx" else 140))
-    if sign: items.append(dict(p="endcard", t=end_t, d=round(DUR - end_t, 3), logo_="motif"))
+    if sign and not qend: items.append(dict(p="endcard", t=end_t, d=round(DUR - end_t, 3), logo_="motif"))
+    if qend:
+        q = (qend.get("question") or [])[:3]; q += [""] * (3 - len(q))
+        items.append(dict(p="centertext", t=end_t, d=round(DUR - end_t, 3), y=620, size=46, lines=[[q[0], "g"], [q[1], "k"], [q[2], "b"]]))
+        if qend.get("product"): items.append(dict(p="centertext", t=round(end_t + 0.6, 3), d=round(DUR - end_t - 0.6, 3), y=1080, size=34, lines=[[qend["product"], "g"]]))
     files = [os.path.join(D, f) for f in R.get("photos", []) if os.path.exists(os.path.join(D, f))]
     spec = dict(dur=DUR, dir=f"/tmp/hf/{name}", files=files, items=items)
     open(os.path.join(D, "spec.py"), "w", encoding="utf-8").write("SPEC = " + json.dumps(spec, ensure_ascii=False, indent=1).replace("null", "None").replace("true", "True").replace("false", "False") + "\n")
