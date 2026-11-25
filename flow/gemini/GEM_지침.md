@@ -549,4 +549,4 @@ reel.json에 "style": "editorial"을 넣으면 카드형 대신 화면 전체를
 27. causticsweep: 쇼룸 천창을 통과한 듯한 은은한 사선 유리 굴절 채광(Studio Light Gobo)이 화면 배경을 가로지르며 공기감 부여 | angle=-24, intensity=0.55
 28. depthdust: 서로 다른 Z속도와 초점 심도를 가진 클린 광학 마이크로 보케 입자들이 부유하며 정적인 화면에 공간 깊이감 추가 | count=16, g="b"
 29. xrayblade: 화면 위를 레이저 스캔 블레이드가 가로지르며 일반 외관 도면을 내부 금속 와이어프레임·스펙 투시도로 변환 | box, title, outer_txt="외관상 비슷해 보이는 새 필름", inner_txt="내부 다층 풀메탈 스퍼터링 구조", val=10, unit="년", at
-30. blueprintgrid: 장면 시작과 함께 화면 외곽·코너 십자 마크·각도 보조선이 실시간 제도되듯 그려지며 설계 도면 무드 형성 | code="MOTIF ARCHIVE · SPEC SHEET", margin=52
+30. blueprintgrid: 장면 시작과 함께 화면 외곽·코너 십자 마크·각도 보조선이 실시간 제도되듯 그려지며 설계 도면 무드 형성 | code="MOTIF ARCHIVE · SPEC SHEET", margin=52- pricedrop(box,tag,title,old,new,unit="만원",save,note,at_old,at_new): 정상가 막대가 차고 at_new-0.3에 취소선 → 큰 숫자가 old에서 new로 내려가며 막대도 줄어듦 → save 알약. 패키지 할인가 장면용.
