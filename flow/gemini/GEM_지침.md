@@ -455,3 +455,14 @@ TSER → 티에스이알 / LX → 엘엑스 / THE LX → 더 엘엑스(띄어 �
 - 제스처: `tap(x, y, at, n)` 터치 물결 · `swipecards(cards=[(제목,설명)])` 카드 넘기기
 - 이동 구조·메뉴: `tabbar(tabs, seq, icons)` 하단 탭 · `carousel(box, slides=[(제목,설명,사진|None)])` 가로 넘김 + 점 · `dropdown(box, label, options, pick)` 선택 상자
 - 공통 인자 t(시작 초), d(길이 초). 어둡게 덮는 modal · bottomsheet · coachmark는 한 릴스에 한두 번만(넓은 색 면 주의).
+
+## 프로 모션·타이포 부품 (2026-11-25 제미나이 제안 · Claude 시험 렌더 통과)
+엔진 전체 변경: 자막 어절 단위 등장(블러 4px · 확대 없음), 카드 다중 그림자, 숫자 tabular-nums, 같은 박스 그래프 장면이 이어지면 흰 카드가 다음 장면 크기로 미끄러지며 변형(sharedcard 자동).
+- splitline: 중앙 기준선이 그어지며 위/아래 문구가 교차 등장(대비·역설 후킹) | box, top, bottom, tag="CONTRAST", g="b", at
+- morphcard: 알약 배지 → 중간 바 → 큰 카드로 한 덩어리가 커지며 내용이 바뀜 | stages=[["태그","문구",시각], ...], y=340
+- bento: 비대칭 벤토 그리드 2~4칸(패키지 구성·강점 요약) | box, cells=[["태그","제목","설명","b"|"p"|"k",시각], ...]
+- ladder: 등급·가격 사다리, 추천 등급 하나만 돌출 강조 | box, title, tiers=[["등급명","가격",시각], ...], pick=번호(0부터)
+- focusword: 영문 자간이 넓어지며 핵심 명제가 초점 맞듯 안착(여운) | box, eyebrow, word, sub, g="bp", at
+- crossscan: 십자선이 가로지르며 스펙·수치가 드러남 | box, tag, text, sub, g="b", at
+- metricpair: 두 수치(TSER·IRER 등) 좌우 동시 카운트 + 막대 | box, title, left=["라벨",값,"단위","b"], right=["라벨",값,"단위","p"], at, caption_
+- stacklist: 품목 알약이 쌓였다가 한 줄 결론 카드로 압축 | box, pills=["품목", ...], at, collapse_at, result, g="bp"
