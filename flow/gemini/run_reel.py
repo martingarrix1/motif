@@ -100,10 +100,12 @@ def main():
 
         if g:
             g = dict(g); p = g.pop("p")
-            if i == 0 and "at" in g: g["at"] = "+0.4"   # 후킹 그래픽은 바로 시작
+            if i == 0 and "at" in g and p not in ("shuttertext", "rackfocus", "hingeportal", "irisshutter", "strike", "splitline", "xrayblade"): g["at"] = "+0.4"   # 후킹 그래픽은 바로 시작(전환형 부품은 원래 시각 유지)
             gd = {kk: (resolve(vv, st[0], st) if kk in TIME_KEYS or isinstance(vv, (list, dict, str)) else vv) for kk, vv in g.items()}
             for kk in TIME_KEYS:
                 if kk in g and isinstance(g[kk], (int, float)): gd[kk] = round(st[0] + g[kk], 3)
+            for kk in TIME_KEYS:   # 장면이 끝나기(엔드카드 포함) 1초 전까지는 동작이 보이게
+                if isinstance(gd.get(kk), (int, float)) and gd[kk] > t1 - 1.0: gd[kk] = round(max(t0 + .3, t1 - 1.0), 3)
             if is_ed:
                 gd["caps"] = [cap_rows(c) for c in caps[:vis_n]]
                 gd["stimes"] = [round(max(t0, x - 0.10), 3) for x in st[:vis_n]]
