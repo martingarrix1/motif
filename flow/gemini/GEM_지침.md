@@ -494,3 +494,15 @@ reel.json에 "style": "editorial"을 넣으면 카드형 대신 화면 전체를
 - ed_bento: 큰 카드(막대 8개 차오름) + 여름/겨울 두 카드 | no, main_tit, main_sub, summer=[태그,제목,설명], winter=[...]
 - ed_night: 원이 열리며 어두운 야간 화면 + 레이저 스캔 + 수치 카운트다운 | no, model, val, sub
 - ed_verdict: 결론 시소 | no, left, right, sub
+
+## 2026 트렌드 모션·도식 부품 10종 (2026-11-25 제미나이 리서치 · Claude 시험 렌더 통과, 검정 면은 파랑으로 조정)
+- sankey: 태양에너지 줄기가 반사·흡수·투과 리본으로 갈라지며 수치 카운트 | box, title, source="태양에너지 100%", branches=[["외부 반사",55,"b"],["원단 흡수",16,"p"],["실내 투과",29,"g"]], unit, caption_, at
+- loupe: 원형 확대 루페(2.4배)가 도면 위를 지나며 쉐이빙·PPF 끝단·도장 검수 | box, title, mode="shaving"|"ppf_edge"|"paint", zoom, metric_label, value, unit="mm", caption_, at
+- dotmatrix: 10×10 도트가 대각선으로 채워지며 비율 카운트 | box, title, count=71, second_count=0, unit="%", label, sub, g="b"|"p", caption_, at
+- caliper: 눈금자와 캘리퍼스 조가 맞물리며 두께(mil) 계측 | box, title, target_label, v1, compare_v, unit="mil", caption_, at
+- nodeflow: 주행 환경에서 조건별 회로선이 갈라져 추천 필름 노드 점등 | box, title, root, paths=[["조건","필름명",true|false], ...], caption_, at
+- elasticmesh: 탄성 그리드가 스톤칩 충격을 흡수한 뒤 수평 복원(PPF) | box, title, impact_label, base_label, pct, caption_, at
+- frostlens: 뿌연 잔상 도식 위로 선명한 창이 지나감 | box, title, haze_label, clear_label, metric_name, metric_val, unit, caption_, at
+- drumwheel: 농도·등급 목록이 돌다가 가이드 레일에 멈춤 + VLT | box, title, options=[...], pick, spec_label, spec_val, unit, caption_, at
+- vernier: 눈금자가 이동하며 농도 창과 VLT·TSER 동시 연동 | box, title, steps=[["LX 15",12,71],["LX 25",23,65],["LX 40",42,61],["LX 70",72,55]], target_idx, caption_, at
+- ripplefield: 동심원 파동이 필름을 통과(rf_pass)하거나 반사 분산(heat_dispersion) | box, title, mode, src_label, dst_label, barrier, pct, unit, caption_, at
