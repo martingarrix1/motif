@@ -1,10 +1,7 @@
 {
   "note": "네이버 새 글 → 티스토리·워드프레스 자동 발행 기록. baseline_logNo 이하(이전) 글은 대상이 아니다.",
   "baseline_logNo": "224475873103",
-  "running": {
-    "logNo": "224491036239",
-    "at": "2026-11-27T06:55:27Z"
-  },
+  "running": null,
   "done": {
     "224475873103": {
       "title": "전주 썬팅. 솔라가드 S라인은 왜 역대급 엔트리일까?",
@@ -179,6 +176,22 @@
       "tistory": "https://motif-jeonju.tistory.com/214",
       "wordpress": "https://motif-jeonju.com/jeonju-yawara-water-based-coating/",
       "at": "2026-11-24",
+      "bing": true,
+      "google": "requested"
+    },
+    "224491036239": {
+      "title": "LX 단일샵 대표가 주니퍼 차주분께 먼저 제니스 IR을 권하는 상황은 언제일까요?",
+      "tistory": "https://motif-jeonju.tistory.com/215",
+      "wordpress": "https://motif-jeonju.com/jeonju-juniper-zenith-ir-first/",
+      "at": "2026-11-27",
+      "bing": true,
+      "google": "requested"
+    },
+    "224492024162": {
+      "title": "전주 썬팅 모티프가 분야별 전담 체제로 하루 한두 대 예약제만 고집하는 이유",
+      "tistory": "https://motif-jeonju.tistory.com/216",
+      "wordpress": "https://motif-jeonju.com/jeonju-tinting-specialist-reservation/",
+      "at": "2026-11-27",
       "bing": true,
       "google": "requested"
     }
