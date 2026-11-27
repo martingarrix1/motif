@@ -1,12 +1,13 @@
 # 모티프 티스토리 · 워드프레스 내부 링크 인덱스
 
-티스토리 209편 · 워드프레스 147편 · 마지막 갱신 2026-11-23 (매일 아침 자동 갱신)
+티스토리 213편 · 워드프레스 151편 · 마지막 갱신 2026-11-27 (매일 아침 자동 갱신)
 링크는 같은 블로그 글끼리만 넣습니다 (티스토리↔티스토리 · 워드프레스↔워드프레스). 짝 글끼리는 서로 링크합니다.
 형식: 날짜 | 제목 | URL | 차종 · 제품 · 주제
 
 ## 티스토리 (motif-jeonju.tistory.com)
 
-### 썬팅-솔라가드 LX (19편)
+### 썬팅-솔라가드 LX (20편)
+- 26-11-24 | 경차나 중고차에 솔라가드 LX를 시공하면 정말 과소비일까요 | https://motif-jeonju.tistory.com/213 | 솔라가드 LX · 제니스 IR · 중고차·재시공 · 가격·비용
 - 26-11-20 | 솔라가드 더 LX가 요즘 시기에 주목받는 이유 | https://motif-jeonju.tistory.com/205 | 솔라가드 LX · 가격·비용 · 농도 선택
 - 26-11-17 | 솔라가드 LX의 역체감. 내 차에서는 몰랐던 차이를 왜 다른 차에서 알게 될까 | https://motif-jeonju.tistory.com/199 | 솔라가드 LX · 비교 · 가격·비용
 - 26-11-15 | 솔라가드 LX와 브이쿨 VK. 120만 원의 차액은 무엇으로 설명될까 | https://motif-jeonju.tistory.com/195 | 솔라가드 LX · 브이쿨 · 가격·비용 · 열차단·TSER
@@ -40,7 +41,8 @@
 - 26-05-05 | 카시트 위 그 작은 피부를 위한 선택, 제니스 IR | 산타페 시그니처 패키지 시공기 | https://motif-jeonju.tistory.com/32 | 제니스 IR · 솔라가드 LX · 가격·비용 · 농도 선택
 - 26-03-31 | 버텍스 1100 vs 솔라가드 제니스IR | https://motif-jeonju.tistory.com/5 | 제니스 IR · 버텍스 1100 · 비교 · 가격·비용
 
-### 썬팅-원리·일반 (29편)
+### 썬팅-원리·일반 (30편)
+- 26-11-23 | 전주 썬팅. 열차단 필름은 겨울철 실내 온도에 어떤 영향을 줄까요 | https://motif-jeonju.tistory.com/211 | 솔라가드 LX · 열차단·TSER · 가격·비용
 - 26-11-22 | 여름 열기를 막아 내는 썬팅 필름이 왜 겨울에는 실내 온기를 지켜 줄까요 | https://motif-jeonju.tistory.com/210 | 솔라가드 LX · 제니스 IR · 가격·비용 · 열차단·TSER
 - 26-11-20 | 전주 썬팅 모티프가 여러 브랜드를 내려놓고 솔라가드만 남긴 이유 | https://motif-jeonju.tistory.com/207 | 솔라가드 LX · 제니스 IR · 가격·비용 · 농도 선택
 - 26-11-11 | 전주 전기차 썬팅. 겨울 히터가 부담스럽다면 열이 빠져나가는 곳도 봐야 합니다 | https://motif-jeonju.tistory.com/190 | 솔라가드 LX · 전기차 · 가격·비용
@@ -71,7 +73,8 @@
 - 26-04-16 | 전주썬팅 열차단, 세라믹이 좋다고요? — 작동 원리부터 다시 짚겠습니다 | https://motif-jeonju.tistory.com/11 | 솔라가드 LX · 열차단·TSER · 구조·기술
 - 26-04-06 | 세라믹 썬팅이 열에 약하다는 말 절반만 맞습니다 | https://motif-jeonju.tistory.com/9 | 솔라가드 LX · 제니스 IR · 구조·기술 · 열차단·TSER
 
-### 썬팅-수치·측정 (17편)
+### 썬팅-수치·측정 (18편)
+- 26-11-23 | 전주 필랑트 썬팅 첫 신차에 솔라가드 LX 40% · 25%를 시공한 이야기 | https://motif-jeonju.tistory.com/212 | 솔라가드 LX · 가격·비용 · 농도 선택
 - 26-11-21 | 전주 스포티지 썬팅. 서비스 틴팅 대신 제니스 IR 30%와 15%를 선택한 이유 | https://motif-jeonju.tistory.com/208 | 스포티지 · 제니스 IR · 가격·비용 · 농도 선택
 - 26-10-21 | 버텍스 1100 vs 솔라가드 LX — TSER이 비슷해도 다른 이유 | https://motif-jeonju.tistory.com/140 | 솔라가드 LX · 버텍스 1100 · 열차단·TSER · 비교
 - 26-10-19 | TSER 70%인데 왜 더울까 — 썬팅은 냉매가 아니라 단열 보조재 | https://motif-jeonju.tistory.com/139 | 솔라가드 LX · 열차단·TSER · 비교
@@ -208,7 +211,8 @@
 - 26-04-01 | 필랑트 PPF 전체 말고 부분시공으로 가도 되는 이유 | https://motif-jeonju.tistory.com/6 | 엑스펠 · 익스트림 · 가격·비용 · 시공 후 관리
 - 26-03-29 | 전주 익산 주니퍼 무광 PPF 패키지, 스탠다드와 시그니처 무엇이 다른가 | https://motif-jeonju.tistory.com/1 | 주니퍼 · 스텔스·무광 · 울트라핏 · 가격·비용 · 내구성·보증
 
-### 유리막·가죽코팅 (11편)
+### 유리막·가죽코팅 (12편)
+- 26-11-24 | 신차 가죽코팅. 수성과 유성을 구분하고 야와라를 권하는 이유는 무엇일까요 | https://motif-jeonju.tistory.com/214 | 야와라 · 가격·비용 · 시공 후 관리
 - 26-11-19 | 전주 테슬라 흰색 시트. 비건 가죽에도 야와라 코팅을 권하는 이유 | https://motif-jeonju.tistory.com/204 | 테슬라 · 야와라 · 가격·비용 · 시공 후 관리
 - 26-11-09 | 가죽코팅 진짜효과가 있을까요? | https://motif-jeonju.tistory.com/182 | 야와라 · 가격·비용 · 시공 후 관리
 - 26-11-09 | 유리막 코팅 이럴땐 오히려 안하니만 못합니다. | https://motif-jeonju.tistory.com/179 | 가격·비용 · 시공 후 관리
@@ -245,7 +249,8 @@
 
 ## 워드프레스 (motif-jeonju.com)
 
-### 썬팅-솔라가드 LX (11편)
+### 썬팅-솔라가드 LX (12편)
+- 26-11-24 | 경차·중고차 솔라가드 LX Q&A — 과소비일까 · 보유 기간 · 전면 LX 조합 | https://motif-jeonju.com/jeonju-compact-used-car-lx/ | 솔라가드 LX · 중고차·재시공
 - 26-11-22 | 겨울 썬팅 Q&A — 열반사 필름이 난방열을 지키는 원리 · 보온병 비유 · LX와 제니스 IR 선택 | https://motif-jeonju.com/jeonju-tinting-winter-heat-retention/ | 솔라가드 LX · 제니스 IR · 반사
 - 26-11-15 | 솔라가드 LX vs 브이쿨 VK Q&A — 120만 원 차액 · 실차 테스트 · 색감 차이 | https://motif-jeonju.com/jeonju-lx-vkool-price-gap/ | 솔라가드 LX · 브이쿨 · 가격·비용 · 비교
 - 26-11-09 | 스퍼터링이란 무엇일까? 솔라가드 LX가 이 기술을 사용하는 이유 | https://motif-jeonju.com/sputtering-solargard-lx-why/ | 솔라가드 LX · 구조·기술
@@ -295,7 +300,8 @@
 - 26-06-20 | 솔라가드 퀀텀 Q&A | 풀메탈 반사필름의 원리·TSER 맹점·전파 간섭까지 | https://motif-jeonju.com/solargard-quantum-reflection/ | 퀀텀 · 열차단·TSER · 전파·하이패스
 - 26-06-10 | 전주썬팅 고를 때 열차단율만 보면 안 되는 이유 | 점검할 4가지 기준 | https://motif-jeonju.com/%ec%a0%84%ec%a3%bc%ec%8d%ac%ed%8c%85-%ea%b3%a0%eb%a5%bc-%eb%95%8c-%ec%97%b4%ec%b0%a8%eb%8b%a8%ec%9c%a8%eb%a7%8c-%eb%b3%b4%eb%a9%b4-%ec%95%88-%eb%90%98%eb%8a%94-%ec%9d%b4%ec%9c%a0-%ec%a0%90%ea%b2%80/ | 열차단·TSER
 
-### 썬팅-농도·시야·법규 (15편)
+### 썬팅-농도·시야·법규 (16편)
+- 26-11-23 | 겨울 썬팅 Q&A — 열차단 필름과 실내 온도 · 야간 시야 · 겨울 시공 | https://motif-jeonju.com/jeonju-tinting-winter-indoor-temp/ | 열차단·TSER · 야간 시야
 - 26-11-20 | 솔라가드 단일샵 Q&A — 제조원 · 보증 기간 · 전 농도 구비 · 시공 숙련도 | https://motif-jeonju.com/jeonju-solargard-single-brand/ | 농도 선택 · 내구성·보증
 - 26-11-16 | 모델Y 주니퍼 인도 전 썬팅 Q&A — 필름 · 농도 · 130만 원 구성 · 예약 시점 | https://motif-jeonju.com/jeonju-modely-juniper-delivery-tinting/ | 모델Y · 주니퍼 · 가격·비용 · 농도 선택
 - 26-11-15 | 포드 레인저 랩터 솔라가드 LX 썬팅 Q&A — 밝은 농도 · 틴티드 글래스 · 측면 유리 열차단 | https://motif-jeonju.com/jeonju-ranger-raptor-lx-tinting/ | 솔라가드 LX · 농도 선택 · 열차단·TSER
@@ -328,7 +334,8 @@
 - 26-06-09 | 전주썬팅 가격, 왜 3배~10배 차이 날까 | 필름값에 담긴 것 분해 | https://motif-jeonju.com/%ec%a0%84%ec%a3%bc%ec%8d%ac%ed%8c%85-%ea%b0%80%ea%b2%a9-%ec%99%9c-3%eb%b0%b010%eb%b0%b0-%ec%b0%a8%ec%9d%b4-%eb%82%a0%ea%b9%8c-%ed%95%84%eb%a6%84%ea%b0%92%ec%97%90-%eb%8b%b4%ea%b8%b4-%ea%b2%83/ | 가격·비용 · 비교
 - 26-06-05 | 전주썬팅 기준 | 가격보다 먼저 봐야 할 필름 구조·측정 기준 완전 정리 | https://motif-jeonju.com/%ec%a0%84%ec%a3%bc%ec%8d%ac%ed%8c%85-%ea%b8%b0%ec%a4%80-%ea%b0%80%ea%b2%a9%eb%b3%b4%eb%8b%a4-%eb%a8%bc%ec%a0%80-%eb%b4%90%ec%95%bc-%ed%95%a0-%ed%95%84%eb%a6%84-%ea%b5%ac%ec%a1%b0%c2%b7%ec%b8%a1/ | 가격·비용 · 구조·기술
 
-### 썬팅-재시공·관리·내구성 (8편)
+### 썬팅-재시공·관리·내구성 (9편)
+- 26-11-23 | 필랑트 솔라가드 LX Q&A — 첫 신차 · 전면 40% 측후면 25% · 재시공 없는 선택 | https://motif-jeonju.com/jeonju-filante-lx-40-25/ | 솔라가드 LX · 중고차·재시공
 - 26-11-19 | 썬팅 수명과 재시공 시기 Q&A — 변색 · 기포 · 보증 기간으로 읽는 교체 신호 | https://motif-jeonju.com/jeonju-tinting-lifespan/ | 내구성·보증 · 중고차·재시공
 - 26-11-14 | 솔라가드 LX 건조 기간 Q&A — 물 맺힘이 오래가는 이유와 기다리는 동안 주의할 점 | https://motif-jeonju.com/jeonju-lx-drying-time/ | 솔라가드 LX · 시공 후 관리
 - 26-08-05 | 썬팅 필름 교체 시점 판정 기준 — 전주 · 전북 재시공 가이드 | https://motif-jeonju.com/jeonju-tinting-replacement-timing/ | 중고차·재시공
@@ -388,7 +395,8 @@
 - 26-06-07 | 전주 PPF 최저가의 함정 | 저가 필름 3대 리스크와 신차 가치 보전 기준 | https://motif-jeonju.com/%ec%a0%84%ec%a3%bc-ppf-%ec%b5%9c%ec%a0%80%ea%b0%80%ec%9d%98-%ed%95%a8%ec%a0%95-%ec%a0%80%ea%b0%80-%ed%95%84%eb%a6%84-3%eb%8c%80-%eb%a6%ac%ec%8a%a4%ed%81%ac%ec%99%80-%ec%8b%a0%ec%b0%a8-%ea%b0%80/
 - 26-06-06 | 전주 PPF 기준 | XPEL 라인업·두께·자가복원·보증 완전 정리 | https://motif-jeonju.com/%ec%a0%84%ec%a3%bc-ppf-%ea%b8%b0%ec%a4%80-xpel-%eb%9d%bc%ec%9d%b8%ec%97%85%c2%b7%eb%91%90%ea%bb%98%c2%b7%ec%9e%90%ea%b0%80%eb%b3%b5%ec%9b%90%c2%b7%eb%b3%b4%ec%a6%9d-%ec%99%84%ec%a0%84-%ec%a0%95/ | 엑스펠 · 내구성·보증
 
-### 유리막·가죽코팅 (9편)
+### 유리막·가죽코팅 (10편)
+- 26-11-24 | 신차 가죽코팅 Q&A — 수성과 유성 차이 · 야와라 · 분사 시공 · 신차 클리닝 | https://motif-jeonju.com/jeonju-yawara-water-based-coating/ | 야와라 · 비교
 - 26-11-19 | 테슬라 흰색 시트 야와라 코팅 Q&A — 비건 가죽 · 이염 예방 · 시공 시점 | https://motif-jeonju.com/jeonju-tesla-white-seat-yawara/ | 테슬라 · 야와라
 - 26-11-09 | 가죽코팅 진짜효과가 있을까요? | https://motif-jeonju.com/jeonju-leather-coating-effect/
 - 26-11-09 | 유리막 코팅 이럴땐 오히려 안하니만 못합니다. | https://motif-jeonju.com/jeonju-glass-coating-when-not/
