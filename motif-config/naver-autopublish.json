@@ -1,10 +1,7 @@
 {
   "note": "네이버 새 글 → 티스토리·워드프레스 자동 발행 기록. baseline_logNo 이하(이전) 글은 대상이 아니다.",
   "baseline_logNo": "224475873103",
-  "running": {
-    "logNo": "224494905501",
-    "at": "2026-11-27T13:03:38Z"
-  },
+  "running": null,
   "done": {
     "224475873103": {
       "title": "전주 썬팅. 솔라가드 S라인은 왜 역대급 엔트리일까?",
@@ -203,8 +200,16 @@
       "tistory": "https://motif-jeonju.tistory.com/217",
       "wordpress": "https://motif-jeonju.com/jeonju-glass-coating-9h/",
       "at": "2026-11-27",
-      "bing": false,
-      "google": "skipped"
+      "bing": true,
+      "google": "requested"
+    },
+    "224494905501": {
+      "title": "솔라가드 LX와 제니스 IR 무엇이 효율을 높이는 선택일까요?",
+      "tistory": "https://motif-jeonju.tistory.com/218",
+      "wordpress": "https://motif-jeonju.com/jeonju-lx-zenith-ir-efficiency/",
+      "at": "2026-11-27",
+      "bing": true,
+      "google": "requested"
     }
   },
   "skipped": {}
